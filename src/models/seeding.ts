@@ -1,6 +1,4 @@
-import { PrismaClient } from "@prisma/client";
-
-export const prisma = new PrismaClient();
+import { prisma } from "./index.js";
 
 async function main() {
   await prisma.user.createMany({

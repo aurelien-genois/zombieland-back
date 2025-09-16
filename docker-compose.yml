@@ -19,6 +19,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    volumes:
+      - ./src:/app/src
     container_name: zombieland-api
     ports:
       - "${PORT}:3000"

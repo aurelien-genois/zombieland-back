@@ -8,7 +8,7 @@
     "build": "tsc",
     "start": "node dist/app.js",
     "dev": "tsx --watch src/app.ts",
-    "=== PRISMA =": " ===== PRISMA ===== ",
+    "======= PRISMA =======": "========= PRIMSA ===========",
     "db:seed": "tsx --env-file=.env ./src/models/seeding.ts",
     "db:generate": "prisma generate --schema=./src/models/schema.prisma",
     "db:migrate:deploy": "prisma migrate deploy --schema=./src/models/schema.prisma",
@@ -18,23 +18,43 @@
     "======= DOCKER =======": "========= DOCKER ===========",
     "docker:start": "npm run db:migrate:deploy && node dist/app.js",
     "docker:up": "docker compose --env-file .env up --build -d",
-    "docker:down": "docker compose --env-file .env.docker down",
+    "docker:down": "docker compose --env-file .env down",
     "docker:restart": "npm run docker:down && npm run docker:up",
-    "docker:up:fast": "docker compose --env-file .env.docker up -d"
+    "docker:up:fast": "docker compose --env-file .env up -d",
+    "======= ESLINT =======": "========= ESLINT ===========",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@eslint/js": "^9.35.0",
+    "@types/bcrypt": "^6.0.0",
+    "@types/cookie-parser": "^1.4.9",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.5.0",
+    "@types/uuid": "^10.0.0",
+    "eslint": "^9.35.0",
+    "globals": "^16.4.0",
     "prisma": "^6.16.1",
     "tsx": "^4.20.5",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "typescript-eslint": "^8.44.0"
   },
   "dependencies": {
     "@prisma/client": "^6.16.1",
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.1",
+    "uuid": "^13.0.0",
     "zod": "^4.1.8"
   }
 }

@@ -12,20 +12,19 @@ interface Token {
   type: string;
   expiresInMS: number;
 }
-// async function replaceRefreshTokenInDatabase(token: Token, user: User) {
-//   const result = await prisma.token.deleteMany({ where: { user_id: user.id } });
-//   console.log(">>delete result", result);
-//   const createResult = await prisma.token.create({
-//     data: {
-//       token: token.token,
-//       type: "refresh",
-//       user_id: user.id,
-//       created_at: new Date(),
-//       expired_at: new Date(new Date().valueOf() + token.expiresInMS),
-//     },
-//   });
-//   console.log(">>create result", createResult);
-// }
+
+async function replaceRefreshTokenInDatabase(token: Token, user: User) {
+  const result = await prisma.token.deleteMany({ where: { user_id: user.id } });
+  console.log(">>delete result", result);
+  await prisma.token.create({
+    data: {
+      token: token.token,
+      type: "refresh",
+      user_id: user.id,
+      expired_at: new Date(new Date().valueOf() + token.expiresInMS),
+    },
+  });
+}
 
 function setAccessTokenCookie(res: Response, accessToken: Token) {
   res.cookie("accessToken", accessToken.token, {
@@ -112,9 +111,16 @@ const authController = {
       const { accessToken, refreshToken } = generateAuthenticationTokens(user);
       console.log(">>tokens", { accessToken, refreshToken });
 
-      // const result = await replaceRefreshTokenInDatabase(refreshToken, user);
+      await replaceRefreshTokenInDatabase(refreshToken, user);
 
-      // console.log(">>result", result);
+      await prisma.token.create({
+        data: {
+          token: "15648",
+          type: "REFRESH",
+          user_id: 1,
+          expired_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+        },
+      });
 
       setAccessTokenCookie(res, accessToken);
       setRefreshTokenCookie(res, refreshToken);

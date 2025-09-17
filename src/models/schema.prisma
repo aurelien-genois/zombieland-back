@@ -15,9 +15,9 @@ model User {
   lastname  String
   email     String  @unique()
   password  String
-  is_active  Boolean
-  phone       String
-  birthday   DateTime @db.Date
+  is_active Boolean @default(false)
+  phone     String
+  birthday  DateTime @db.Date
   last_login DateTime?
 
   created_at DateTime @default(now())

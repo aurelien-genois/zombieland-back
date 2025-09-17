@@ -35,6 +35,7 @@ model Activity {
   id Int @id @default(autoincrement())
 
   name String
+  slug String
   description  String?
   minimum_age Int
   duration Int?

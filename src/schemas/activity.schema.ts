@@ -48,6 +48,9 @@ const activityImageUrlValidation = z
   .min(5, "Name must have at least 5 characters")
   .optional();
 
+// TODO rework "z.coerce.boolean()" to accept both "false" and false values
+// ("false" is actually coerced to true as a string)
+
 export const activitySchema = {
   create: z.object({
     name: activityNameValidation,
@@ -59,5 +62,16 @@ export const activitySchema = {
     image_url: activityImageUrlValidation,
     category_id: parseIdValidation,
     saved: z.coerce.boolean().default(false),
+  }),
+  update: z.object({
+    name: activityNameValidation.optional(),
+    description: activityDescriptionValidation.optional(),
+    minimum_age: activityMinimumAgeValidation.optional(),
+    duration: activityDurationValidation,
+    disabled_access: z.coerce.boolean().optional(),
+    high_intensity: z.coerce.boolean().optional(),
+    image_url: activityImageUrlValidation,
+    category_id: parseIdValidation.optional(),
+    saved: z.coerce.boolean().optional(),
   }),
 };

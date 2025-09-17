@@ -8,5 +8,6 @@ router.get("/", activitiesController.getAllActivities);
 router.get("/:slug", activitiesController.getOneActivity);
 router.post("/", activitiesController.createActivity);
 router.patch("/:id", activitiesController.updateActivity);
+router.delete("/:id", activitiesController.deleteActivity);
 
 export default router;

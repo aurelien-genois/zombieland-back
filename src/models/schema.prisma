@@ -45,12 +45,12 @@ model User {
 
 model Token {
   id         Int      @id @default(autoincrement())
-  token      String   @db.Uuid @default(uuid())
+  token      String  
   type       String
   user_id    Int?
+  expired_at  DateTime  
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
-  expired_at  DateTime  
 
   user       User?    @relation(fields: [user_id], references: [id])
 }

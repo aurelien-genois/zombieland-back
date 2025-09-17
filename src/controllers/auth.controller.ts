@@ -14,8 +14,9 @@ interface Token {
 }
 
 async function replaceRefreshTokenInDatabase(token: Token, user: User) {
-  const result = await prisma.token.deleteMany({ where: { user_id: user.id } });
-  console.log(">>delete result", result);
+  await prisma.token.deleteMany({
+    where: { user_id: user.id, type: "refresh" },
+  });
   await prisma.token.create({
     data: {
       token: token.token,
@@ -93,34 +94,21 @@ const authController = {
     try {
       const { email, password } = userSchema.login.parse(req.body);
 
-      console.log(">>body", req.body);
       const user = await prisma.user.findFirst({ where: { email } });
-      console.log(">>user", user);
 
       if (!user) {
         throw new Error("Email and password do not match");
       }
 
       const isMatching = await bcrypt.compare(password, user.password);
-      console.log(">>isMatching", isMatching);
 
       if (!isMatching) {
         throw new Error("Email and password do not match");
       }
 
       const { accessToken, refreshToken } = generateAuthenticationTokens(user);
-      console.log(">>tokens", { accessToken, refreshToken });
 
       await replaceRefreshTokenInDatabase(refreshToken, user);
-
-      await prisma.token.create({
-        data: {
-          token: "15648",
-          type: "REFRESH",
-          user_id: 1,
-          expired_at: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
-        },
-      });
 
       setAccessTokenCookie(res, accessToken);
       setRefreshTokenCookie(res, refreshToken);

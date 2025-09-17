@@ -14,15 +14,12 @@ const activitiesController = {
   },
 
   // TODO get one activity with query param "id" or "slug"
+  // TODO update one activity with query param "id"
+  // TODO delete one activity with query param "id"
 
   async createActivity(req: Request, res: Response) {
     try {
-      const result = activitySchema.create.safeParse(req.body);
-      if (!result.success) {
-        return res
-          .status(400)
-          .json({ errors: result.error?.issues[0]?.message });
-      }
+      const data = activitySchema.create.parse(req.body);
 
       const {
         name,
@@ -33,7 +30,7 @@ const activitiesController = {
         image_url,
         category_id,
         saved,
-      } = result.data;
+      } = data;
 
       // could replace accented characters with non-accented equivalents
       const slug = name

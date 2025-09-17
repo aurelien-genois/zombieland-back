@@ -24,7 +24,9 @@ const activityMinimumAgeValidation = z.coerce
       iss.input === undefined ? "Age is required" : "Age must be a number",
   })
   .positive("Age must be positive")
-  .int("Age must be an integer");
+  .int("Age must be an integer")
+  .min(1, "Age must be between 1 and 3")
+  .max(3, "Age must be between 1 and 3");
 
 const activityDurationValidation = z.coerce
   .number({
@@ -53,6 +55,7 @@ export const activitySchema = {
     minimum_age: activityMinimumAgeValidation,
     duration: activityDurationValidation,
     disabled_access: z.coerce.boolean().default(false),
+    high_intensity: z.coerce.boolean().default(false),
     image_url: activityImageUrlValidation,
     category_id: parseIdValidation,
     saved: z.coerce.boolean().default(false),

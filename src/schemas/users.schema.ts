@@ -103,7 +103,7 @@ export const userSchema = {
       path: ["confirmation"],
     }),
 
-  signIn: z.object({
+  login: z.object({
     email: emailValidation,
     password: passwordValidation,
   }),

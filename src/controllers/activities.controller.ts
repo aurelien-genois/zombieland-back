@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
 import { activitySchema } from "../schemas/activity.schema.js";
+import { parseSlugValidation } from "../schemas/utils.schema.js";
 import * as z from "zod";
 
 const activitiesController = {
@@ -17,7 +18,30 @@ const activitiesController = {
     }
   },
 
-  // TODO get one activity with query param "id" or "slug"
+  async getOneActivity(req: Request, res: Response) {
+    try {
+      const activitySlug = await parseSlugValidation.parseAsync(
+        req.params.slug
+      );
+
+      const activity = await prisma.activity.findUnique({
+        where: { slug: activitySlug },
+      });
+
+      if (!activity) {
+        return res.status(404).json({ error: "Activity not found" });
+      }
+
+      res.status(200).json(activity);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.log(">ZOD<", error.issues[0].message);
+      }
+      console.error("Error fetching one activity:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
   // TODO update one activity with query param "id"
   // TODO delete one activity with query param "id"
 
@@ -46,6 +70,7 @@ const activitiesController = {
         .replace(/[^a-z0-9 -]/g, ""); // remove any non-alphanumeric characters
 
       // could check if an activity already exist with the same name
+      // either append slug with the number found ("slug-2"), either throw error to prevent creation
 
       const activity = await prisma.activity.create({
         data: {

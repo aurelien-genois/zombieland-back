@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
 import { activitySchema } from "../schemas/activity.schema.js";
+import * as z from "zod";
 
 const activitiesController = {
   async getAllActivities(req: Request, res: Response) {
@@ -8,6 +9,9 @@ const activitiesController = {
       const activities = await prisma.activity.findMany();
       res.status(200).json(activities);
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.log(">ZOD<", error.issues[0].message);
+      }
       console.error("Error fetching activities:", error);
       res.status(500).json({ error: "Internal server error" });
     }
@@ -58,6 +62,9 @@ const activitiesController = {
 
       res.status(201).json(activity);
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.log(">ZOD<", error.issues[0].message);
+      }
       console.error("Error creating activity:", error);
       res.status(500).json({ error: "Internal server error", detail: error });
     }

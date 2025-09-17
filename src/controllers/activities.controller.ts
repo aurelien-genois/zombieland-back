@@ -45,8 +45,6 @@ const activitiesController = {
     }
   },
 
-  // TODO delete one activity with query param "id"
-
   async createActivity(req: Request, res: Response) {
     try {
       const data = activitySchema.create.parse(req.body);
@@ -74,6 +72,15 @@ const activitiesController = {
       // could check if an activity already exist with the same name
       // either append slug with the number found ("slug-2"), either throw error to prevent creation
 
+      const activityWithSameSlug = await prisma.activity.findUnique({
+        where: { slug: slug },
+      });
+      if (activityWithSameSlug) {
+        return res
+          .status(500)
+          .json({ error: "Activity already exists with same slug" });
+      }
+
       const activity = await prisma.activity.create({
         data: {
           name,
@@ -95,7 +102,7 @@ const activitiesController = {
         console.log(">ZOD<", error.issues[0].message);
       }
       console.error("Error creating activity:", error);
-      res.status(500).json({ error: "Internal server error", detail: error });
+      res.status(500).json({ error: "Internal server error" });
     }
   },
 
@@ -148,7 +155,30 @@ const activitiesController = {
         console.log(">ZOD<", error.issues[0].message);
       }
       console.error("Error update one activity:", error);
-      res.status(500).json({ error: "Internal server error", detail: error });
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
+  async deleteActivity(req: Request, res: Response) {
+    try {
+      const activityId = await parseIdValidation.parseAsync(req.params.id);
+
+      const activity = await prisma.activity.findUnique({
+        where: { id: activityId },
+      });
+
+      if (!activity) {
+        return res.status(404).json({ error: "Activity not found" });
+      }
+
+      await prisma.activity.delete({ where: { id: activityId } });
+      res.status(204).json();
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.log(">ZOD<", error.issues[0].message);
+      }
+      console.error("Error delete one activity:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
   },
 };

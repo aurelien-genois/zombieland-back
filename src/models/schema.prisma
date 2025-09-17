@@ -25,3 +25,43 @@ model User {
 
   @@map("user") 
 }
+
+enum ActivityStatus {
+  published
+  draft
+}
+
+model Activity {
+  id Int @id @default(autoincrement())
+
+  name String
+  slug String
+  description  String?
+  minimum_age Int
+  duration Int?
+  disabled_access Boolean @default(false)
+  status ActivityStatus @default(draft)
+  image_url String?
+
+  category Category @relation(fields: [category_id], references: [id]) // Alias
+  category_id Int
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("activity") 
+}
+
+model Category {
+  id Int @id @default(autoincrement())
+
+  name String
+  color String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  activities Activity[] // Alias
+
+  @@map("category") 
+}

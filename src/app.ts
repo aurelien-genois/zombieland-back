@@ -1,10 +1,14 @@
 import "dotenv/config";
+import cors from "cors";
 import express from "express";
 import { router } from "./routes/index.route.js";
 import bodyParser from "body-parser";
+import { config } from "./configs/server.config.js";
 
-const PORT = process.env.PORT || 3000;
+const PORT = config.server.port;
 const app = express();
+
+app.use(cors({ origin: config.server.allowedOrigins }));
 
 app.use(express.json());
 

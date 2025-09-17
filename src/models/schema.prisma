@@ -7,6 +7,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum RoleName {
+  admin
+  user
+}
+
+model Role {
+  id         Int       @id @default(autoincrement())
+  name       RoleName  @default(user)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  users      User[]
+}
+
 
 model User {
   id Int @id @default(autoincrement())
@@ -19,11 +33,27 @@ model User {
   phone     String
   birthday  DateTime @db.Date
   last_login DateTime?
+  role_id    Int?
+  role       Role?     @relation(fields: [role_id], references: [id])
 
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
 
+  tokens     Token[]
   @@map("user") 
+}
+
+
+model Token {
+  id         Int      @id @default(autoincrement())
+  token      String  
+  type       String
+  user_id    Int?
+  expired_at  DateTime  
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user       User?    @relation(fields: [user_id], references: [id])
 }
 
 enum ActivityStatus {

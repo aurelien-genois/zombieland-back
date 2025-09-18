@@ -15,6 +15,13 @@ const activityDescriptionValidation = z
         ? "Description is required"
         : "Description must be a string",
   })
+  .min(5, "Name must have at least 5 characters");
+
+const activitySloganValidation = z
+  .string({
+    error: (iss) =>
+      iss.input === undefined ? undefined : "Slogan must be a string",
+  })
   .min(5, "Name must have at least 5 characters")
   .optional();
 
@@ -25,25 +32,20 @@ const activityMinimumAgeValidation = z.coerce
   })
   .positive("Age must be positive")
   .int("Age must be an integer")
-  .min(1, "Age must be between 1 and 3")
-  .max(3, "Age must be between 1 and 3");
+  .min(0, "Age must be between 0 and 3")
+  .max(3, "Age must be between 0 and 3");
 
 const activityDurationValidation = z.coerce
-  .number({
+  .string({
     error: (iss) =>
-      iss.input === undefined
-        ? "Duration is required"
-        : "Duration must be a number",
+      iss.input === undefined ? undefined : "Duration must be a string",
   })
-  .positive("Duration must be positive")
   .optional();
 
 const activityImageUrlValidation = z
   .string({
     error: (iss) =>
-      iss.input === undefined
-        ? "Image url is required"
-        : "Image url must be a string",
+      iss.input === undefined ? undefined : "Image url must be a string",
   })
   .min(5, "Name must have at least 5 characters")
   .optional();
@@ -54,6 +56,7 @@ const activityImageUrlValidation = z
 export const activitySchema = {
   create: z.object({
     name: activityNameValidation,
+    slogan: activitySloganValidation,
     description: activityDescriptionValidation,
     minimum_age: activityMinimumAgeValidation,
     duration: activityDurationValidation,
@@ -66,6 +69,7 @@ export const activitySchema = {
   update: z.object({
     name: activityNameValidation.optional(),
     description: activityDescriptionValidation.optional(),
+    slogan: activitySloganValidation,
     minimum_age: activityMinimumAgeValidation.optional(),
     duration: activityDurationValidation,
     disabled_access: z.coerce.boolean().optional(),

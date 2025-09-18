@@ -1,29 +1,40 @@
 # ZombieLandCDA-back
 
-Sprint 1
+### Docker: **_Run Containers_**
 
-## Migration Prisma
+1. **Build and start the container**
 
-Si ajout/modification du "schema.prisma",
-il faut lancer la commande dans le container "zombieland-api"
-car seul ce container à accès à la BDD PostgreSql :
+   ```bash
+   npm run docker:up
+   ```
 
-```sh
-docker exec -it zombieland-api sh
-/app # npm run db:migrate:dev
-```
+2. **Start in development mode (Hot Reload)**
 
-=> grâce à la synchronisation du volume Docker du container, le fichier de migration sera récupéré en local et pourra être versionné
+   ```bash
+   npm run docker:up:fast
+   ```
 
-## Debug docker
+### Inside the Container: **_Run Prisma_**
 
-`docker logs zombieland-api`
+1. **Reset the Prisma database**
 
-## Erreurs de migrations Prisma
+   ```bash
+   npm run docker:db:migrate:reset
+   ```
 
-Prisma log dans la table `_prisma_migrations`
-En cas d'erreur lire le log correspondant et modifier les fichiers sql de migration en conséquence
+2. **Run migrations in development**
 
-supprimer le volume du service zombieland-db
-`docker volume rm zombielandcda-back_zombieland`
-`docker volume ls` pour lister les volumes
+   ```bash
+   npm run docker:db:migrate:dev
+   ```
+
+3. **Generate the Prisma client**
+
+   ```bash
+   npm run docker:db:generate
+   ```
+
+4. **Seed the database with a user**
+   ```bash
+   npm run docker:db:seed
+   ```

@@ -8,6 +8,7 @@ import { generateAuthenticationTokens } from "../lib/token.js";
 import { config } from "../configs/server.config.js";
 import { verificationEmail } from "../services/emailManager.service.js";
 import { v4 as uuidv4 } from "uuid";
+import type { get } from "http";
 
 interface Token {
   token: string;
@@ -78,7 +79,6 @@ const authController = {
           lastname,
           email,
           password: encryptedPassword,
-          is_active: true,
           phone,
           birthday,
         },
@@ -103,11 +103,50 @@ const authController = {
       res.status(500).json({ error: "Internal server error" });
     }
   },
+  // --------------------  Get Confirmation Email With Token------------------------
+  async getConfirmationEmailWithToken(req: Request, res: Response) {
+    try {
+      const { token } = await userSchema.token.parseAsync(req.query);
+      console.log(">>token", token);
+      const userToken = await prisma.token.findFirst({
+        where: { token, type: "verification_email" },
+        include: { user: true },
+      });
 
+      if (!userToken) {
+        return res.status(400).json({ errorMessage: "Invalid token." });
+      }
+
+      if (!userToken.expired_at || userToken.expired_at < new Date()) {
+        return res.status(400).json({ errorMessage: "Token has expired." });
+      }
+
+      if (userToken.user_id == null) {
+        return res.status(400).json({ errorMessage: "User ID is missing." });
+      }
+
+      await prisma.user.update({
+        where: { id: userToken.user_id },
+        data: { is_active: true },
+      });
+
+      await prisma.token.deleteMany({
+        where: { user_id: userToken.user_id, type: "verification_email" },
+      });
+
+      res.status(200).json({
+        message: "Email successfully verified.",
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.log(">ZOD<", error.issues[0].message);
+      }
+    }
+  },
   // --------------------  Login User ------------------------
   async login(req: Request, res: Response) {
     try {
-      const { email, password } = userSchema.login.parse(req.body);
+      const { email, password } = userSchema.login.parse(req.query);
 
       const user = await prisma.user.findFirst({ where: { email } });
 

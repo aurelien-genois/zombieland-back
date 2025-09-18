@@ -10,6 +10,6 @@ COPY ./ ./
 
 RUN npm run db:generate
 
-# RUN npm run build if use "docker:start" instead of "docker:start:dev"
+# RUN npm run build if use "docker:start" instead of "docker:dev"
 
-CMD ["npm", "run", "docker:start:dev"]
+CMD ["npm", "run", "docker:dev"]

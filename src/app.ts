@@ -1,4 +1,6 @@
 import "dotenv/config";
+import debug from "debug";
+const log = debug("zombieland:server");
 import cors from "cors";
 import express from "express";
 import { router } from "./routes/index.route.js";
@@ -20,4 +22,5 @@ app.get("/", (_req, res) => res.send("HOME PAGE !!!"));
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  log(`🚀 Server running on port ${PORT}`);
 });

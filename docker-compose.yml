@@ -41,6 +41,12 @@ services:
     depends_on:
       zombieland-db:
         condition: service_healthy
+  mailpit:
+    image: axllent/mailpit
+    restart: unless-stopped
+    ports:
+      - "${MAILPIT_LOCAL_PORT}:8025" # Web UI
+      - "${SMTP_LOCAL_PORT}:1025" # SMTP !
 
 volumes:
   zombieland:

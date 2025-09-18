@@ -6,7 +6,14 @@ import health from "./health.route.js";
 
 export const router = Router();
 
+// --------------------  Health ------------------------
 router.use("/health", health);
+
+// --------------------  Users ------------------------
 router.use("/users", users);
+
+// --------------------  Auth ------------------------
 router.use("/auth", auth);
+
+// --------------------  Activities ------------------------
 router.use("/activities", activities);

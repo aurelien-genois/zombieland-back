@@ -1,4 +1,5 @@
-import { z } from "zod";
+import { token } from "morgan";
+import { email, z } from "zod";
 
 // ================================== VALIDATIONS =================================
 
@@ -83,6 +84,10 @@ const lastLoginValidation = z.preprocess(
     .optional()
 );
 
+// --------------------  Token ------------------------
+
+const tokenValidation = z.uuid({ error: "Token must be a valid UUID" });
+
 // ================================== SCHEMAS =================================
 
 export const userSchema = {
@@ -107,4 +112,8 @@ export const userSchema = {
     email: emailValidation,
     password: passwordValidation,
   }),
+
+  email: z.object({ email: emailValidation }),
+
+  token: z.object({ token: tokenValidation }),
 };

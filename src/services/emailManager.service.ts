@@ -19,7 +19,7 @@ export const emailTest = async (_req: Request, res: Response) => {
   }
 };
 
-export const verificationEmail = async (
+export const sendVerificationEmail = async (
   toEmail: string,
   verificationCode: string
 ) => {

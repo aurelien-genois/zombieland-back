@@ -8,7 +8,16 @@ const router = Router();
 router.post("/register", authController.register);
 
 // --------------------  Confirmation Email ------------------------
-router.get("/email-confirmation", authController.getConfirmationEmailWithToken);
+router.get(
+  "/email-confirmation",
+  authController.sendConfirmationEmailWithToken
+);
+
+// --------------------  Resend Confirmation Email ------------------------
+router.post(
+  "/resend-email-confirmation",
+  authController.resendConfirmationEmail
+);
 
 // --------------------  Login ---------------------------
 router.post("/login", authController.login);

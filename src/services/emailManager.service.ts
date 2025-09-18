@@ -18,3 +18,18 @@ export const emailTest = async (_req: Request, res: Response) => {
     res.status(500).send({ message: "Erreur lors de l’envoi", error });
   }
 };
+
+export const verificationEmail = async (
+  toEmail: string,
+  verificationCode: string
+) => {
+  const emailVerification = {
+    from: process.env.FROM_EMAIL,
+    to: toEmail,
+    subject: "✅ Vérification de votre adresse e-mail",
+    text: `Votre code de vérification est : ${verificationCode}`,
+    html: `<p>Votre code de vérification est : <b>${verificationCode}</b></p>`,
+  };
+
+  return await emailTransporter.sendMail(emailVerification);
+};

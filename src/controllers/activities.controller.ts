@@ -1,6 +1,10 @@
 import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
 import { activitySchema } from "../schemas/activity.schema.js";
+import {
+  parseSlugValidation,
+  parseIdValidation,
+} from "../schemas/utils.schema.js";
 import * as z from "zod";
 
 const activitiesController = {
@@ -17,9 +21,29 @@ const activitiesController = {
     }
   },
 
-  // TODO get one activity with query param "id" or "slug"
-  // TODO update one activity with query param "id"
-  // TODO delete one activity with query param "id"
+  async getOneActivity(req: Request, res: Response) {
+    try {
+      const activitySlug = await parseSlugValidation.parseAsync(
+        req.params.slug
+      );
+
+      const activity = await prisma.activity.findUnique({
+        where: { slug: activitySlug },
+      });
+
+      if (!activity) {
+        return res.status(404).json({ error: "Activity not found" });
+      }
+
+      res.status(200).json(activity);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.log(">ZOD<", error.issues[0].message);
+      }
+      console.error("Error fetching one activity:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
 
   async createActivity(req: Request, res: Response) {
     try {
@@ -31,6 +55,7 @@ const activitiesController = {
         minimum_age,
         duration,
         disabled_access,
+        high_intensity,
         image_url,
         category_id,
         saved,
@@ -45,6 +70,16 @@ const activitiesController = {
         .replace(/[^a-z0-9 -]/g, ""); // remove any non-alphanumeric characters
 
       // could check if an activity already exist with the same name
+      // either append slug with the number found ("slug-2"), either throw error to prevent creation
+
+      const activityWithSameSlug = await prisma.activity.findUnique({
+        where: { slug: slug },
+      });
+      if (activityWithSameSlug) {
+        return res
+          .status(500)
+          .json({ error: "Activity already exists with same slug" });
+      }
 
       const activity = await prisma.activity.create({
         data: {
@@ -54,6 +89,7 @@ const activitiesController = {
           minimum_age,
           ...(duration && { duration }),
           disabled_access,
+          high_intensity,
           ...(image_url && { image_url }),
           category_id,
           status: saved ? "published" : "draft",
@@ -66,7 +102,83 @@ const activitiesController = {
         console.log(">ZOD<", error.issues[0].message);
       }
       console.error("Error creating activity:", error);
-      res.status(500).json({ error: "Internal server error", detail: error });
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
+  async updateActivity(req: Request, res: Response) {
+    try {
+      const activityId = await parseIdValidation.parseAsync(req.params.id);
+
+      const activity = await prisma.activity.findUnique({
+        where: { id: activityId },
+      });
+
+      if (!activity) {
+        return res.status(404).json({ error: "Activity not found" });
+      }
+
+      const data = await activitySchema.update.parseAsync(req.body);
+
+      const {
+        name,
+        description,
+        minimum_age,
+        duration,
+        disabled_access,
+        high_intensity,
+        image_url,
+        category_id,
+        saved,
+      } = data;
+
+      // TODO category : check if category exists in Database
+
+      const activityUpdated = await prisma.activity.update({
+        where: { id: activityId },
+        data: {
+          ...(name && { name }),
+          ...(description && { description }),
+          ...(minimum_age && { minimum_age }),
+          ...(duration && { duration }),
+          ...(disabled_access !== undefined && { disabled_access }),
+          ...(high_intensity !== undefined && { high_intensity }),
+          ...(image_url && { image_url }),
+          ...(category_id && { category_id }),
+          ...(saved !== undefined && { status: saved ? "published" : "draft" }),
+        },
+      });
+
+      res.status(200).json(activityUpdated);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.log(">ZOD<", error.issues[0].message);
+      }
+      console.error("Error update one activity:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
+  async deleteActivity(req: Request, res: Response) {
+    try {
+      const activityId = await parseIdValidation.parseAsync(req.params.id);
+
+      const activity = await prisma.activity.findUnique({
+        where: { id: activityId },
+      });
+
+      if (!activity) {
+        return res.status(404).json({ error: "Activity not found" });
+      }
+
+      await prisma.activity.delete({ where: { id: activityId } });
+      res.status(204).json();
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.log(">ZOD<", error.issues[0].message);
+      }
+      console.error("Error delete one activity:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
   },
 };

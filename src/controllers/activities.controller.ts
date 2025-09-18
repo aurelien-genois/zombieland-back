@@ -14,7 +14,7 @@ const activitiesController = {
       res.status(200).json(activities);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.log(">ZOD<", error.issues[0].message);
+        res.status(400).json({ error: error.issues[0].message });
       }
       console.error("Error fetching activities:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -38,7 +38,7 @@ const activitiesController = {
       res.status(200).json(activity);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.log(">ZOD<", error.issues[0].message);
+        res.status(400).json({ error: error.issues[0].message });
       }
       console.error("Error fetching one activity:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -99,7 +99,7 @@ const activitiesController = {
       res.status(201).json(activity);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.log(">ZOD<", error.issues[0].message);
+        res.status(400).json({ error: error.issues[0].message });
       }
       console.error("Error creating activity:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -152,7 +152,7 @@ const activitiesController = {
       res.status(200).json(activityUpdated);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.log(">ZOD<", error.issues[0].message);
+        res.status(400).json({ error: error.issues[0].message });
       }
       console.error("Error update one activity:", error);
       res.status(500).json({ error: "Internal server error" });
@@ -175,7 +175,7 @@ const activitiesController = {
       res.status(204).json();
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.log(">ZOD<", error.issues[0].message);
+        res.status(400).json({ error: error.issues[0].message });
       }
       console.error("Error delete one activity:", error);
       res.status(500).json({ error: "Internal server error" });

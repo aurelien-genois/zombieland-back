@@ -74,7 +74,7 @@ model Activity {
   slogan String?
   description  String?
   minimum_age Int
-  duration Int?
+  duration String?
   disabled_access Boolean @default(false)
   high_intensity Boolean @default(false)
   status ActivityStatus @default(draft)

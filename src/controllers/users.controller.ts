@@ -7,7 +7,6 @@ const usersController = {
   async getAllUsers(req: Request, res: Response) {
     try {
       const users = await prisma.user.findMany();
-      console.log("users", users);
       res.status(200).json(users);
     } catch (error) {
       console.error("Error fetching users:", error);

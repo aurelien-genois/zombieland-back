@@ -6,6 +6,8 @@ import * as z from "zod";
 import bcrypt from "bcrypt";
 import { generateAuthenticationTokens } from "../lib/token.js";
 import { config } from "../configs/server.config.js";
+import { verificationEmail } from "../services/emailManager.service.js";
+import { v4 as uuidv4 } from "uuid";
 
 interface Token {
   token: string;
@@ -68,6 +70,7 @@ const authController = {
       }
       const nbOfSaltRounds = parseInt(SALT);
       const encryptedPassword = await bcrypt.hash(password, nbOfSaltRounds);
+      const verificationToken = uuidv4();
 
       const user = await prisma.user.create({
         data: {
@@ -80,6 +83,18 @@ const authController = {
           birthday,
         },
       });
+
+      const userToken = await prisma.token.create({
+        data: {
+          token: verificationToken,
+          type: "verification_email",
+          user_id: user.id,
+          expired_at: new Date(new Date().valueOf() + 24 * 60 * 60 * 1000), // 24 hours
+        },
+      });
+
+      await verificationEmail(user.email, userToken.token);
+
       res.status(201).json(user);
     } catch (error) {
       if (error instanceof z.ZodError) {

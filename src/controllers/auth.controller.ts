@@ -6,9 +6,8 @@ import * as z from "zod";
 import bcrypt from "bcrypt";
 import { generateAuthenticationTokens } from "../lib/token.js";
 import { config } from "../configs/server.config.js";
-import { verificationEmail } from "../services/emailManager.service.js";
+import { sendVerificationEmail } from "../services/emailManager.service.js";
 import { v4 as uuidv4 } from "uuid";
-import type { get } from "http";
 
 interface Token {
   token: string;
@@ -93,7 +92,7 @@ const authController = {
         },
       });
 
-      await verificationEmail(user.email, userToken.token);
+      await sendVerificationEmail(user.email, userToken.token);
 
       res.status(201).json(user);
     } catch (error) {
@@ -103,8 +102,8 @@ const authController = {
       res.status(500).json({ error: "Internal server error" });
     }
   },
-  // --------------------  Get Confirmation Email With Token------------------------
-  async getConfirmationEmailWithToken(req: Request, res: Response) {
+  // --------------------  Send Confirmation Email With Token------------------------
+  async sendConfirmationEmailWithToken(req: Request, res: Response) {
     try {
       const { token } = await userSchema.token.parseAsync(req.query);
       console.log(">>token", token);
@@ -143,12 +142,60 @@ const authController = {
       }
     }
   },
+  // --------------------  Resend Confirmation Email ------------------------
+  async resendConfirmationEmail(req: Request, res: Response) {
+    try {
+      const { email } = await userSchema.email.parseAsync(req.body);
+
+      const user = await prisma.user.findUnique({ where: { email } });
+
+      if (!user) {
+        return res
+          .status(404)
+          .json({ errorMessage: "No user found with this email." });
+      }
+
+      if (user.is_active) {
+        return res
+          .status(400)
+          .json({ errorMessage: "This account is already active." });
+      }
+
+      const verificationToken = uuidv4();
+
+      const userToken = await prisma.token.create({
+        data: {
+          token: verificationToken,
+          type: "verification_email",
+          user_id: user.id,
+          expired_at: new Date(new Date().valueOf() + 24 * 60 * 60 * 1000), // 24 hours
+        },
+      });
+
+      await sendVerificationEmail(user.email, userToken.token);
+
+      res.status(200).json({
+        message: "Verification email sent successfully.",
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.log(">ZOD<", error.issues[0].message);
+      }
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+
   // --------------------  Login User ------------------------
   async login(req: Request, res: Response) {
     try {
-      const { email, password } = userSchema.login.parse(req.query);
+      const { email, password } = userSchema.login.parse(req.body);
+      console.log(">>body", req.body);
 
       const user = await prisma.user.findFirst({ where: { email } });
+
+      if (!user?.is_active) {
+        throw new Error("This account is not active.");
+      }
 
       if (!user) {
         throw new Error("Email and password do not match");
@@ -169,6 +216,7 @@ const authController = {
 
       res.status(200).json({ accessToken, refreshToken });
     } catch (error) {
+      console.log(">>error", error);
       if (error instanceof z.ZodError) {
         console.log(">ZOD<", error.issues[0].message);
       }

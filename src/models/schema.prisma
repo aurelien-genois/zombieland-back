@@ -21,7 +21,6 @@ model Role {
   users      User[]
 }
 
-
 model User {
   id Int @id @default(autoincrement())
 
@@ -43,13 +42,19 @@ model User {
   @@map("user") 
 }
 
+enum TypeToken {
+  refresh
+  verification_email
+  reset_password
+}
+
 
 model Token {
   id         Int      @id @default(autoincrement())
   token      String  
-  type       String
+  type       TypeToken
+  expired_at  DateTime? 
   user_id    Int?
-  expired_at  DateTime  
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 

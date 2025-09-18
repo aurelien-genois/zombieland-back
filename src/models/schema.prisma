@@ -71,6 +71,7 @@ model Activity {
 
   name String
   slug String @unique()
+  slogan String?
   description  String?
   minimum_age Int
   duration Int?

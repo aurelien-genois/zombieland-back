@@ -7,6 +7,9 @@ const router = Router();
 // --------------------  Register ------------------------
 router.post("/register", authController.register);
 
+// --------------------  Confirmation Email ------------------------
+router.get("/email-confirmation", authController.getConfirmationEmailWithToken);
+
 // --------------------  Login ---------------------------
 router.post("/login", authController.login);
 

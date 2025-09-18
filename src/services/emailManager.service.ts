@@ -28,7 +28,8 @@ export const verificationEmail = async (
     to: toEmail,
     subject: "✅ Vérification de votre adresse e-mail",
     text: `Votre code de vérification est : ${verificationCode}`,
-    html: `<p>Votre code de vérification est : <b>${verificationCode}</b></p>`,
+    html: `<p>Votre code de vérification est : 
+   <a href="http://localhost:3020/api/auth/email-confirmation?token=${verificationCode}">Cliquer ici</a></p>`,
   };
 
   return await emailTransporter.sendMail(emailVerification);

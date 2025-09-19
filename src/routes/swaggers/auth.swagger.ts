@@ -126,3 +126,41 @@
  *       500:
  *         description: Internal server error
  */
+
+/**
+ * @openapi
+ * /api/auth/logout:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Déconnexion de l'utilisateur
+ *     responses:
+ *       200:
+ *         description: Déconnexion réussie, cookies supprimés
+ */
+
+/**
+ * @openapi
+ * /api/auth/refresh:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Rafraîchir le token d'accès avec le refresh token
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 description: Refresh token (peut aussi être envoyé via cookie)
+ *     responses:
+ *       200:
+ *         description: Nouveaux tokens retournés
+ *       401:
+ *         description: Refresh token manquant, invalide ou expiré
+ *       500:
+ *         description: Erreur interne du serveur
+ */

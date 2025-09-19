@@ -1,5 +1,12 @@
 /**
  * @openapi
+ * tags:
+ *   name: Health
+ *   description: Endpoints pour vérifier l'état de santé de l'API.
+ */
+
+/**
+ * @openapi
  * /api/health:
  *   get:
  *     tags:

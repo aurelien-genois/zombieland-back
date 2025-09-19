@@ -71,9 +71,15 @@ const activitiesController = {
         req.params.slug
       );
 
-      // TODO if user not logged, filter on status "published" only
+      // if user not logged or not admin, filter on status "published"
+      // (only admin can access draft activities)
+      const userRole = req.userRole as string | undefined;
+
       const activity = await prisma.activity.findUnique({
-        where: { slug: activitySlug },
+        where: {
+          slug: activitySlug,
+          ...(userRole !== "admin" && { status: "published" }),
+        },
       });
 
       if (!activity) {

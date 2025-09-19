@@ -19,7 +19,13 @@ router.get(
 );
 
 // /:slug after /published to avoid conflict
-router.get("/:slug", activitiesController.getOneActivity);
+// everyone can access a single activity but need "checkRoles" to get req.user
+// and verifify if user can access draft activities
+router.get(
+  "/:slug",
+  checkRoles(["admin"], true), // Make authentication optional
+  activitiesController.getOneActivity
+);
 
 router.post("/", activitiesController.createActivity);
 router.patch("/:id", activitiesController.updateActivity);

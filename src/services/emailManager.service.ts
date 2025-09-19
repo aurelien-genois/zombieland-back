@@ -7,7 +7,7 @@ export const emailTest = async (_req: Request, res: Response) => {
     to: process.env.TO_MAIL,
     subject: "✅ Test d'envoi",
     text: "Voici un e-mail envoyé depuis ton backend Node.js 🚀",
-    html: "<b>Bravo ! Ceci est un test réel de <i>Zombieland/i></b>",
+    html: "<b>Bravo ! Ceci est un test réel de <i>Zombieland</i></b>",
   };
 
   try {

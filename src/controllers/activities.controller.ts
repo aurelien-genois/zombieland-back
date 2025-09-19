@@ -8,13 +8,7 @@ import {
 import * as z from "zod";
 
 const activitiesController = {
-  // first argument is used when binding the function for the "/published" route to pass the required status filter
-  // with this binding, no need to duplicate the function code to a "getAllPublishedActivities" function
-  async getAllActivities(
-    args: { status?: "draft" | "published" } = {},
-    req: Request,
-    res: Response
-  ) {
+  async getAllActivities(req: Request, res: Response) {
     try {
       const {
         category,
@@ -28,10 +22,11 @@ const activitiesController = {
         status,
       } = await activitySchema.filter.parseAsync(req.query);
 
+      // if user not logged or not admin, filter on status "published"
+      // (only admin can access draft activities)
+      const userRole = req.userRole as string | undefined;
       const statusFilter =
-        status === undefined && args.status !== undefined
-          ? args.status
-          : status;
+        status === undefined && userRole !== "admin" ? "published" : status;
 
       const activities = await prisma.activity.findMany({
         where: {

@@ -8,17 +8,10 @@ const router = Router();
 // only admin users can access all activities
 router.get(
   "/",
-  checkRoles(["admin"]),
-  activitiesController.getAllActivities.bind(null, {})
+  checkRoles(["admin"], true), // Make authentication optional
+  activitiesController.getAllActivities
 );
 
-// everyone can access published activities
-router.get(
-  "/published",
-  activitiesController.getAllActivities.bind(null, { status: "published" })
-);
-
-// /:slug after /published to avoid conflict
 // everyone can access a single activity but need "checkRoles" to get req.user
 // and verifify if user can access draft activities
 router.get(

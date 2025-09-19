@@ -15,35 +15,37 @@ const activityDescriptionValidation = z
         ? "Description is required"
         : "Description must be a string",
   })
+  .min(5, "Name must have at least 5 characters");
+
+const activitySloganValidation = z
+  .string({
+    error: (iss) =>
+      iss.input === undefined ? undefined : "Slogan must be a string",
+  })
   .min(5, "Name must have at least 5 characters")
   .optional();
 
-const activityMinimumAgeValidation = z.coerce
+const activityAgeGroupValidation = z.coerce
   .number({
     error: (iss) =>
       iss.input === undefined ? "Age is required" : "Age must be a number",
   })
   .positive("Age must be positive")
   .int("Age must be an integer")
-  .min(1, "Age must be between 1 and 3")
-  .max(3, "Age must be between 1 and 3");
+  .min(0, "Age must be between 0 and 3")
+  .max(3, "Age must be between 0 and 3");
 
 const activityDurationValidation = z.coerce
-  .number({
+  .string({
     error: (iss) =>
-      iss.input === undefined
-        ? "Duration is required"
-        : "Duration must be a number",
+      iss.input === undefined ? undefined : "Duration must be a string",
   })
-  .positive("Duration must be positive")
   .optional();
 
 const activityImageUrlValidation = z
   .string({
     error: (iss) =>
-      iss.input === undefined
-        ? "Image url is required"
-        : "Image url must be a string",
+      iss.input === undefined ? undefined : "Image url must be a string",
   })
   .min(5, "Name must have at least 5 characters")
   .optional();
@@ -54,8 +56,9 @@ const activityImageUrlValidation = z
 export const activitySchema = {
   create: z.object({
     name: activityNameValidation,
+    slogan: activitySloganValidation,
     description: activityDescriptionValidation,
-    minimum_age: activityMinimumAgeValidation,
+    age_group: activityAgeGroupValidation,
     duration: activityDurationValidation,
     disabled_access: z.coerce.boolean().default(false),
     high_intensity: z.coerce.boolean().default(false),
@@ -66,12 +69,41 @@ export const activitySchema = {
   update: z.object({
     name: activityNameValidation.optional(),
     description: activityDescriptionValidation.optional(),
-    minimum_age: activityMinimumAgeValidation.optional(),
+    slogan: activitySloganValidation,
+    age_group: activityAgeGroupValidation.optional(),
     duration: activityDurationValidation,
     disabled_access: z.coerce.boolean().optional(),
     high_intensity: z.coerce.boolean().optional(),
     image_url: activityImageUrlValidation,
     category_id: parseIdValidation.optional(),
     saved: z.coerce.boolean().optional(),
+  }),
+  filter: z.object({
+    category: parseIdValidation.optional(),
+    age_group: activityAgeGroupValidation.optional(),
+    high_intensity: z
+      .enum(["true", "false"])
+      .optional()
+      .transform((val) => {
+        if (val === undefined) return undefined;
+        return val === "true";
+      }),
+    disabled_access: z
+      .enum(["true", "false"])
+      .optional()
+      .transform((val) => {
+        if (val === undefined) return undefined;
+        return val === "true";
+      }),
+    limit: z.coerce.number().int().min(1).optional().default(20),
+    page: z.coerce.number().int().min(1).optional().default(1),
+    order: z.enum(["name:asc", "name:desc"]).default("name:asc").optional(),
+    search: z
+      .string()
+      .min(1)
+      .max(100) // Limit maximum length
+      .regex(/^[a-zA-Z0-9\s-_]+$/) // Only allow alphanumeric chars, spaces, hyphens, underscores
+      .transform((val) => val.trim()) // Remove leading/trailing spaces
+      .optional(),
   }),
 };

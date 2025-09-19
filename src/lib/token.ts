@@ -1,14 +1,17 @@
 import crypto from "node:crypto";
 import jwt from "jsonwebtoken";
-import type { User } from "@prisma/client";
+import type { User, RoleName } from "@prisma/client";
 import { config } from "../configs/server.config.js";
 
-export function generateAuthenticationTokens(user: User) {
+export function generateAuthenticationTokens(
+  user: User & { role?: { name: RoleName } | null }
+) {
   const payload = {
     userId: user.id,
-    roleName: user.role_id,
+    role: user.role?.name,
   };
 
+  console.log("Payload for JWT:", payload);
   const accessToken = jwt.sign(payload, config.server.jwtSecret, {
     expiresIn: "1h",
   });

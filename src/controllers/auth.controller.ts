@@ -191,7 +191,10 @@ const authController = {
       const { email, password } = userSchema.login.parse(req.body);
       console.log(">>body", req.body);
 
-      const user = await prisma.user.findFirst({ where: { email } });
+      const user = await prisma.user.findFirst({
+        where: { email },
+        include: { role: true },
+      });
 
       if (!user?.is_active) {
         throw new Error("This account is not active.");

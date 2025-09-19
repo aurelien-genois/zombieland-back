@@ -25,6 +25,9 @@ app.use(cookieParser());
 app.use(morgan("dev"));
 app.use("/api", router);
 
+app.get("/", (req, res) => {
+  res.send("Welcome to the ZombieLand API!");
+});
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   log(`🚀 Server running on port ${PORT}`);

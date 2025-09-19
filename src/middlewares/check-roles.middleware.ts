@@ -17,6 +17,7 @@ export function checkRoles(roles: RoleName[]) {
       next();
     } catch (error) {
       console.error(error);
+      return res.status(401).json({ message: "Unauthorized" });
     }
   };
 }

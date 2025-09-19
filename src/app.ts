@@ -7,6 +7,7 @@ import { router } from "./routes/index.route.js";
 import bodyParser from "body-parser";
 import { config } from "./configs/server.config.js";
 import morgan from "morgan";
+import cookieParser from "cookie-parser";
 
 const PORT = config.server.port;
 const app = express();
@@ -16,6 +17,7 @@ app.use(cors({ origin: config.server.allowedOrigins }));
 app.use(express.json());
 
 app.use(bodyParser.json());
+app.use(cookieParser());
 
 app.use(morgan("dev"));
 app.use("/api", router);

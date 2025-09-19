@@ -16,13 +16,8 @@ export function checkRoles(roles: RoleName[], optional = false) {
       req.userRole = role;
       next();
     } catch (error) {
-      if (optional) {
-        // If authentication is optional, continue without user info
-        next();
-      } else {
-        console.error(error);
-        return res.status(401).json({ message: "Non autorisé" });
-      }
+      console.error(error);
+     return res.status(401).json({ message: "Unauthorized" });
     }
   };
 }

@@ -105,5 +105,6 @@ export const activitySchema = {
       .regex(/^[a-zA-Z0-9\s-_]+$/) // Only allow alphanumeric chars, spaces, hyphens, underscores
       .transform((val) => val.trim()) // Remove leading/trailing spaces
       .optional(),
+    status: z.enum(["draft", "published"]).optional(),
   }),
 };

@@ -3,8 +3,14 @@ import users from "./users.route.js";
 import auth from "./auth.route.js";
 import activities from "./activities.route.js";
 import health from "./health.route.js";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./swaggers/index.js";
 
 export const router = Router();
+
+// // --------------------  Swagger-------------------
+router.use("/api-docs", swaggerUi.serve);
+router.get("/api-docs", swaggerUi.setup(swaggerSpec));
 
 // --------------------  Health ------------------------
 router.use("/health", health);
@@ -15,5 +21,5 @@ router.use("/users", users);
 // --------------------  Auth ------------------------
 router.use("/auth", auth);
 
-// --------------------  Activities ------------------------
+// --------------------  Activitie ------------------------
 router.use("/activities", activities);

@@ -16,7 +16,7 @@ export function checkRoles(roles: RoleName[]) {
       req.userRole = role;
       next();
     } catch (error) {
-      return res.status(403).json({ message: "Vous n'avez pas accès" });
+      console.error(error);
     }
   };
 }

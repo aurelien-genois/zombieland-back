@@ -19,15 +19,22 @@ const activitiesController = {
         page,
         order,
         search,
+        status,
       } = await activitySchema.filter.parseAsync(req.query);
 
-      // TODO if user not logged, filter on status "published" only
+      // if user not logged or not admin, filter on status "published"
+      // (only admin can access draft activities)
+      const userRole = req.userRole as string | undefined;
+      const statusFilter =
+        status === undefined && userRole !== "admin" ? "published" : status;
+
       const activities = await prisma.activity.findMany({
         where: {
           ...(category && { category_id: category }),
           ...(age_group && { minimum_age: age_group }),
           ...(high_intensity !== undefined && { high_intensity }),
           ...(disabled_access !== undefined && { disabled_access }),
+          ...(statusFilter !== undefined && { status: statusFilter }),
           ...(search !== undefined && {
             OR: [
               { name: { contains: search, mode: "insensitive" } },
@@ -59,9 +66,15 @@ const activitiesController = {
         req.params.slug
       );
 
-      // TODO if user not logged, filter on status "published" only
+      // if user not logged or not admin, filter on status "published"
+      // (only admin can access draft activities)
+      const userRole = req.userRole as string | undefined;
+
       const activity = await prisma.activity.findUnique({
-        where: { slug: activitySlug },
+        where: {
+          slug: activitySlug,
+          ...(userRole !== "admin" && { status: "published" }),
+        },
       });
 
       if (!activity) {

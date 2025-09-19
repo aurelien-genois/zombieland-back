@@ -8,6 +8,7 @@ import bodyParser from "body-parser";
 import { config } from "./configs/server.config.js";
 import { helmetMiddlewre } from "./middlewares/helmet.middleware.js";
 import morgan from "morgan";
+import cookieParser from "cookie-parser";
 
 const PORT = config.server.port;
 const app = express();
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use(helmetMiddlewre);
 
 app.use(bodyParser.json());
+app.use(cookieParser());
 
 app.use(morgan("dev"));
 app.use("/api", router);

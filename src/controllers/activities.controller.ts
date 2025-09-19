@@ -18,9 +18,9 @@ const activitiesController = {
         limit,
         page,
         order,
+        search,
       } = await activitySchema.filter.parseAsync(req.query);
 
-      // TODO search by name/slogan/description ?
       // TODO if user not logged, filter on status "published" only
       const activities = await prisma.activity.findMany({
         where: {
@@ -28,6 +28,13 @@ const activitiesController = {
           ...(age_group && { minimum_age: age_group }),
           ...(high_intensity !== undefined && { high_intensity }),
           ...(disabled_access !== undefined && { disabled_access }),
+          ...(search !== undefined && {
+            OR: [
+              { name: { contains: search, mode: "insensitive" } },
+              { slogan: { contains: search, mode: "insensitive" } },
+              { description: { contains: search, mode: "insensitive" } },
+            ],
+          }),
         },
         skip: (page - 1) * limit,
         take: limit,

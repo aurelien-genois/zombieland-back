@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
 import { config } from "../configs/server.config.js";
 
-export function checkRoles(roles: RoleName[]) {
+export function checkRoles(roles: RoleName[], optional = false) {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
       const token = extractAccessToken(req);
@@ -17,7 +17,7 @@ export function checkRoles(roles: RoleName[]) {
       next();
     } catch (error) {
       console.error(error);
-      return res.status(401).json({ message: "Unauthorized" });
+     return res.status(401).json({ message: "Unauthorized" });
     }
   };
 }

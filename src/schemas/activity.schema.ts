@@ -98,5 +98,12 @@ export const activitySchema = {
     limit: z.coerce.number().int().min(1).optional().default(20),
     page: z.coerce.number().int().min(1).optional().default(1),
     order: z.enum(["name:asc", "name:desc"]).default("name:asc").optional(),
+    search: z
+      .string()
+      .min(1)
+      .max(100) // Limit maximum length
+      .regex(/^[a-zA-Z0-9\s-_]+$/) // Only allow alphanumeric chars, spaces, hyphens, underscores
+      .transform((val) => val.trim()) // Remove leading/trailing spaces
+      .optional(),
   }),
 };

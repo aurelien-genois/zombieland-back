@@ -10,8 +10,33 @@ import * as z from "zod";
 const activitiesController = {
   async getAllActivities(req: Request, res: Response) {
     try {
-      const activities = await prisma.activity.findMany();
-      res.status(200).json(activities);
+      const {
+        category,
+        age_group,
+        high_intensity,
+        disabled_access,
+        limit,
+        page,
+        order,
+      } = await activitySchema.filter.parseAsync(req.query);
+
+      // TODO search by name/slogan/description ?
+      // TODO if user not logged, filter on status "published" only
+      const activities = await prisma.activity.findMany({
+        where: {
+          ...(category && { category_id: category }),
+          ...(age_group && { minimum_age: age_group }),
+          ...(high_intensity !== undefined && { high_intensity }),
+          ...(disabled_access !== undefined && { disabled_access }),
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+        orderBy: [
+          order === "name:asc" ? { name: "asc" } : {},
+          order === "name:desc" ? { name: "desc" } : {},
+        ],
+      });
+      res.status(200).json({ activities });
     } catch (error) {
       if (error instanceof z.ZodError) {
         res.status(400).json({ error: error.issues[0].message });
@@ -27,6 +52,7 @@ const activitiesController = {
         req.params.slug
       );
 
+      // TODO if user not logged, filter on status "published" only
       const activity = await prisma.activity.findUnique({
         where: { slug: activitySlug },
       });
@@ -52,7 +78,7 @@ const activitiesController = {
       const {
         name,
         description,
-        minimum_age,
+        age_group,
         duration,
         disabled_access,
         high_intensity,
@@ -81,12 +107,19 @@ const activitiesController = {
           .json({ error: "Activity already exists with same slug" });
       }
 
+      const foundCategory = await prisma.category.findUnique({
+        where: { id: category_id },
+      });
+      if (category_id && !foundCategory) {
+        return res.status(400).json({ error: "Category does not exist" });
+      }
+
       const activity = await prisma.activity.create({
         data: {
           name,
           slug,
           ...(description && { description }),
-          minimum_age,
+          minimum_age: age_group,
           ...(duration && { duration }),
           disabled_access,
           high_intensity,
@@ -123,7 +156,7 @@ const activitiesController = {
       const {
         name,
         description,
-        minimum_age,
+        age_group,
         duration,
         disabled_access,
         high_intensity,
@@ -132,14 +165,19 @@ const activitiesController = {
         saved,
       } = data;
 
-      // TODO category : check if category exists in Database
+      const foundCategory = await prisma.category.findUnique({
+        where: { id: category_id },
+      });
+      if (category_id && !foundCategory) {
+        return res.status(400).json({ error: "Category does not exist" });
+      }
 
       const activityUpdated = await prisma.activity.update({
         where: { id: activityId },
         data: {
           ...(name && { name }),
           ...(description && { description }),
-          ...(minimum_age && { minimum_age }),
+          ...(age_group && { minimum_age: age_group }),
           ...(duration && { duration }),
           ...(disabled_access !== undefined && { disabled_access }),
           ...(high_intensity !== undefined && { high_intensity }),

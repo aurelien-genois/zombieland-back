@@ -25,7 +25,7 @@ const activitySloganValidation = z
   .min(5, "Name must have at least 5 characters")
   .optional();
 
-const activityMinimumAgeValidation = z.coerce
+const activityAgeGroupValidation = z.coerce
   .number({
     error: (iss) =>
       iss.input === undefined ? "Age is required" : "Age must be a number",
@@ -58,7 +58,7 @@ export const activitySchema = {
     name: activityNameValidation,
     slogan: activitySloganValidation,
     description: activityDescriptionValidation,
-    minimum_age: activityMinimumAgeValidation,
+    age_group: activityAgeGroupValidation,
     duration: activityDurationValidation,
     disabled_access: z.coerce.boolean().default(false),
     high_intensity: z.coerce.boolean().default(false),
@@ -70,12 +70,33 @@ export const activitySchema = {
     name: activityNameValidation.optional(),
     description: activityDescriptionValidation.optional(),
     slogan: activitySloganValidation,
-    minimum_age: activityMinimumAgeValidation.optional(),
+    age_group: activityAgeGroupValidation.optional(),
     duration: activityDurationValidation,
     disabled_access: z.coerce.boolean().optional(),
     high_intensity: z.coerce.boolean().optional(),
     image_url: activityImageUrlValidation,
     category_id: parseIdValidation.optional(),
     saved: z.coerce.boolean().optional(),
+  }),
+  filter: z.object({
+    category: parseIdValidation.optional(),
+    age_group: activityAgeGroupValidation.optional(),
+    high_intensity: z
+      .enum(["true", "false"])
+      .optional()
+      .transform((val) => {
+        if (val === undefined) return undefined;
+        return val === "true";
+      }),
+    disabled_access: z
+      .enum(["true", "false"])
+      .optional()
+      .transform((val) => {
+        if (val === undefined) return undefined;
+        return val === "true";
+      }),
+    limit: z.coerce.number().int().min(1).optional().default(20),
+    page: z.coerce.number().int().min(1).optional().default(1),
+    order: z.enum(["name:asc", "name:desc"]).default("name:asc").optional(),
   }),
 };

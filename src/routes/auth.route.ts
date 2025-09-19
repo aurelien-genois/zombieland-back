@@ -22,4 +22,10 @@ router.post(
 // --------------------  Login ---------------------------
 router.post("/login", authController.login);
 
+// --------------------  Logout ---------------------------
+router.get("/logout", authController.logout);
+
+// --------------------  Refresh Token ------------------------
+router.post("/refresh", authController.refreshAccessToken);
+
 export default router;

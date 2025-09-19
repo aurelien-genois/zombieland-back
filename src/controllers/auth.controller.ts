@@ -226,6 +226,57 @@ const authController = {
       res.status(500).json({ error: "Internal server error" });
     }
   },
-};
 
+  // --------------------  Logout User ------------------------
+  async logout(_req: Request, res: Response) {
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken", { path: "/api/auth/refresh" });
+    res.status(200).json({ message: "Logout successful." });
+  },
+
+  // --------------------  Refresh Token ------------------------
+
+  async refreshAccessToken(req: Request, res: Response) {
+    try {
+      const rawToken = req.cookies?.refreshToken || req.body?.refreshToken;
+      if (!rawToken) {
+        return res.status(401).json({ error: "Refresh token not provided" });
+      }
+
+      const existingRefreshToken = await prisma.token.findFirst({
+        where: { token: rawToken, type: "refresh" },
+        include: { user: true },
+      });
+      if (!existingRefreshToken || !existingRefreshToken.user) {
+        return res.status(401).json({ error: "Invalid refresh token" });
+      }
+
+      if (
+        !existingRefreshToken.expired_at ||
+        existingRefreshToken.expired_at < new Date()
+      ) {
+        if (existingRefreshToken.id) {
+          await prisma.token.delete({ where: { id: existingRefreshToken.id } });
+        }
+        return res.status(401).json({ error: "Expired refresh token" });
+      }
+
+      const { accessToken, refreshToken } = generateAuthenticationTokens(
+        existingRefreshToken.user
+      );
+
+      await replaceRefreshTokenInDatabase(
+        refreshToken,
+        existingRefreshToken.user
+      );
+
+      setAccessTokenCookie(res, accessToken);
+      setRefreshTokenCookie(res, refreshToken);
+
+      res.json({ accessToken, refreshToken });
+    } catch (error) {
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
+};
 export default authController;

@@ -38,8 +38,8 @@ export const sendVerificationEmail = async (
   return await emailTransporter.sendMail(emailVerification);
 };
 
-// -------------------- Send Reset Password Email ------------------------
-export const sendResetPasswordEmail = async (
+// -------------------- Send Forgot Password Request ------------------------
+export const sendForgotPasswordRequest = async (
   toEmail: string,
   resetToken: string
 ) => {

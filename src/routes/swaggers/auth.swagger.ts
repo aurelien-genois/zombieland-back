@@ -195,7 +195,7 @@
 /**
  * @openapi
  * /api/auth/reset-password:
- *   post:
+ *   patch:
  *     tags:
  *       - Auth
  *     summary: Réinitialiser le mot de passe avec un token

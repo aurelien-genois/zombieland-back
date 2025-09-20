@@ -6,7 +6,7 @@ import bcrypt from "bcrypt";
 import { generateAuthenticationTokens } from "../lib/token.js";
 import { config } from "../configs/server.config.js";
 import {
-  sendResetPasswordEmail,
+  sendForgotPasswordRequest,
   sendVerificationEmail,
 } from "../services/emailManager.service.js";
 import { v4 as uuidv4 } from "uuid";
@@ -247,8 +247,8 @@ const authController = {
 
     res.json({ accessToken, refreshToken });
   },
-  // --------------------  1) Forgot Password ------------------------
-  async forgotPassword(req: Request, res: Response) {
+  // --------------------  1) Forgot Password Request ------------------------
+  async forgotPasswordRequest(req: Request, res: Response) {
     const { email } = await userSchema.email.parseAsync(req.body);
 
     const user = await prisma.user.findUnique({ where: { email } });
@@ -268,17 +268,15 @@ const authController = {
       },
     });
 
-    await sendResetPasswordEmail(user.email, userToken.token);
+    await sendForgotPasswordRequest(user.email, userToken.token);
 
     res.status(200).json({
-      message: "Reset password email sent successfully.",
+      message: "Forgot password Request sent successfully.",
     });
   },
 
   // --------------------  2) Reset Password ------------------------
   async resetPassword(req: Request, res: Response) {
-    console.log(">> Reset Password - body:", req.body);
-
     const { newPassword } = await userSchema.resetPassword.parseAsync(req.body);
 
     const { token } = await userSchema.token.parseAsync(req.query);

@@ -2,11 +2,13 @@ import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
 import { userSchema } from "../schemas/users.schema.js";
 import type { User } from "@prisma/client";
-import * as z from "zod";
 import bcrypt from "bcrypt";
 import { generateAuthenticationTokens } from "../lib/token.js";
 import { config } from "../configs/server.config.js";
-import { sendVerificationEmail } from "../services/emailManager.service.js";
+import {
+  sendForgotPasswordRequest,
+  sendVerificationEmail,
+} from "../services/emailManager.service.js";
 import { v4 as uuidv4 } from "uuid";
 import {
   BadRequestError,
@@ -244,6 +246,73 @@ const authController = {
     setRefreshTokenCookie(res, refreshToken);
 
     res.json({ accessToken, refreshToken });
+  },
+  // --------------------  1) Forgot Password Request ------------------------
+  async forgotPasswordRequest(req: Request, res: Response) {
+    const { email } = await userSchema.email.parseAsync(req.body);
+
+    const user = await prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      throw new NotFoundError("No user found with this email.");
+    }
+
+    const resetToken = uuidv4();
+
+    const userToken = await prisma.token.create({
+      data: {
+        token: resetToken,
+        type: "reset_password",
+        user_id: user.id,
+        expired_at: new Date(new Date().valueOf() + 1 * 60 * 60 * 1000), // 1 hour
+      },
+    });
+
+    await sendForgotPasswordRequest(user.email, userToken.token);
+
+    res.status(200).json({
+      message: "Forgot password Request sent successfully.",
+    });
+  },
+
+  // --------------------  2) Reset Password ------------------------
+  async resetPassword(req: Request, res: Response) {
+    const { newPassword } = await userSchema.resetPassword.parseAsync(req.body);
+
+    const { token } = await userSchema.token.parseAsync(req.query);
+    const userToken = await prisma.token.findFirst({
+      where: { token, type: "reset_password" },
+      include: { user: true },
+    });
+    if (!userToken) {
+      throw new NotFoundError("Token not found.");
+    }
+
+    if (!userToken.expired_at || userToken.expired_at < new Date()) {
+      throw new BadRequestError("Token has expired.");
+    }
+
+    if (userToken.user_id == null) {
+      throw new BadRequestError("User ID is missing.");
+    }
+
+    const SALT = process.env.SALT_ROUNDS;
+    if (!SALT) {
+      throw new Error("SALT_ROUNDS is not defined in environment variables.");
+    }
+    const nbOfSaltRounds = parseInt(SALT);
+    const encryptedPassword = await bcrypt.hash(newPassword, nbOfSaltRounds);
+
+    await prisma.user.update({
+      where: { id: userToken.user_id },
+      data: { password: encryptedPassword },
+    });
+
+    await prisma.token.deleteMany({
+      where: { user_id: userToken.user_id, type: "reset_password" },
+    });
+
+    res.status(200).json({ message: "Password has been reset successfully." });
   },
 };
 export default authController;

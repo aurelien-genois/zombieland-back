@@ -25,4 +25,11 @@ router.patch(
 // --------------------  Get One User --------------------
 router.get("/:id", checkRoles(["admin"]), usersController.getOneUser);
 
+// --------------------  Update Info --------------------
+router.patch(
+  "/",
+  checkRoles(["admin", "member"]),
+  usersController.updateUserInfo
+);
+
 export default router;

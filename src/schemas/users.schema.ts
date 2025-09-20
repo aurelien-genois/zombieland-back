@@ -137,4 +137,12 @@ export const usersSchema = {
       message: "Passwords do not match",
       path: ["confirmation"],
     }),
+
+  updateInfo: z.object({
+    firstname: firstnameValidation.optional(),
+    lastname: lastnameValidation.optional(),
+    email: emailValidation.optional(),
+    phone: phoneValidation.optional(),
+    birthday: birthdayValidation.optional(),
+  }),
 };

@@ -10,22 +10,7 @@ import { usersSchema } from "../schemas/users.schema.js";
 import bcrypt from "bcrypt";
 
 const usersController = {
-  // --------------------  Get ALl Users ------------------------
-
-  async getAllUsers(req: Request, res: Response) {
-    const users = await prisma.user.findMany();
-    res.status(200).json(users);
-  },
-
-  // --------------------  Get One User ------------------------
-  async getOneUser(req: Request, res: Response) {
-    const { id } = utilSchema.parseId.parse(req.params);
-    const user = await prisma.user.findUnique({ where: { id } });
-    if (!user) {
-      throw new NotFoundError("User not found");
-    }
-    res.status(200).json(user);
-  },
+  // ====================  MEMBER CONTROLLER ========================
 
   // --------------------  Get My Account ------------------------
   async getMyAccount(req: Request, res: Response) {
@@ -103,6 +88,73 @@ const usersController = {
       },
     });
     res.status(200).json(updatedUser);
+  },
+  // --------------------  Delete User ------------------------
+  async deleteUser(req: Request, res: Response) {
+    if (!req.userId) {
+      throw new UnauthorizedError("Unauthorized");
+    }
+    await prisma.user.delete({ where: { id: req.userId } });
+    res.status(204).send();
+  },
+
+  // ====================  ADMIN CONTROLLER ========================
+  // --------------------  Get ALl Users ------------------------
+
+  async getAllUsers(req: Request, res: Response) {
+    const users = await prisma.user.findMany();
+    res.status(200).json(users);
+  },
+
+  // --------------------  Get One User ------------------------
+  async getOneUser(req: Request, res: Response) {
+    const { id } = utilSchema.parseId.parse(req.params);
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+    res.status(200).json(user);
+  },
+
+  // --------------------  Update Role User ------------------------
+  async updateRoleUser(req: Request, res: Response) {
+    const { id } = utilSchema.parseId.parse(req.params);
+    const { role } = req.body;
+
+    if (role !== "admin" && role !== "member") {
+      throw new ConflictError("Role must be either 'admin' or 'member'");
+    }
+
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: {
+        role: { connect: { name: role } },
+      },
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        email: true,
+        role: { select: { id: true, name: true } },
+      },
+    });
+    res.status(200).json(updatedUser);
+  },
+
+  // --------------------  Delete User Account ------------------------
+  async deleteUserAccount(req: Request, res: Response) {
+    const { id } = utilSchema.parseId.parse(req.params);
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+    await prisma.user.delete({ where: { id } });
+    res.status(204).send();
   },
 };
 

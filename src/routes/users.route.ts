@@ -9,7 +9,18 @@ const router = Router();
 router.get("/", checkRoles(["admin"]), usersController.getAllUsers);
 
 // --------------------  Get My Account --------------------
-router.get("/me", checkRoles(["admin", "user"]), usersController.getMyAccount);
+router.get(
+  "/me",
+  checkRoles(["admin", "member"]),
+  usersController.getMyAccount
+);
+
+// --------------------  Update Password --------------------
+router.patch(
+  "/change-password",
+  checkRoles(["admin", "member"]),
+  usersController.updateUserPassword
+);
 
 // --------------------  Get One User --------------------
 router.get("/:id", checkRoles(["admin"]), usersController.getOneUser);

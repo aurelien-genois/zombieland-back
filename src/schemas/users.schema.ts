@@ -1,16 +1,15 @@
-import { token } from "morgan";
-import { email, z } from "zod";
+import { z } from "zod";
 
 // ================================== VALIDATIONS =================================
 
 // --------------------  EMAIL ------------------------
-const emailValidation = z.preprocess(
+export const emailValidation = z.preprocess(
   (val) => (typeof val === "string" ? val.trim().toLowerCase() : val),
   z.email({ error: "Invalid email format" })
 );
 
 // --------------------  Firstname ------------------------
-const firstnameValidation = z
+export const firstnameValidation = z
   .string({
     error: (iss) =>
       iss.input === undefined
@@ -20,7 +19,7 @@ const firstnameValidation = z
   .min(1, { error: "Firstname cannot be empty" });
 
 // --------------------  Lastname ------------------------
-const lastnameValidation = z
+export const lastnameValidation = z
   .string({
     error: (iss) =>
       iss.input === undefined

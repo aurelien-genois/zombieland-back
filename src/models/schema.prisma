@@ -39,6 +39,10 @@ model User {
   updated_at DateTime @default(now())
 
   tokens     Token[]
+
+  @@index([firstname])
+  @@index([lastname])
+  
   @@map("user") 
 }
 

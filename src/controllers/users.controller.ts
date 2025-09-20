@@ -8,6 +8,8 @@ import {
 } from "../lib/errors.js";
 import { usersSchema } from "../schemas/users.schema.js";
 import bcrypt from "bcrypt";
+import z from "zod";
+import { querySchema } from "../schemas/query.schema.js";
 
 const usersController = {
   // ====================  MEMBER CONTROLLER ========================
@@ -17,7 +19,15 @@ const usersController = {
     if (!req.userId) {
       throw new UnauthorizedError("Unauthorized");
     }
-    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    const user = await prisma.user.findUnique({
+      where: { id: req.userId },
+      omit: {
+        password: true,
+        created_at: true,
+        updated_at: true,
+      },
+      include: { role: { select: { id: true, name: true } } },
+    });
     if (!user) {
       throw new NotFoundError("User not found");
     }
@@ -102,8 +112,79 @@ const usersController = {
   // --------------------  Get ALl Users ------------------------
 
   async getAllUsers(req: Request, res: Response) {
-    const users = await prisma.user.findMany();
-    res.status(200).json(users);
+    const { page, limit, order, firstname, lastname, email, q } =
+      await querySchema.userPagination.parseAsync(req.query);
+
+    const whereFilters = [];
+
+    if (firstname) {
+      whereFilters.push({
+        firstname: { contains: firstname, mode: "insensitive" as const },
+      });
+    }
+
+    if (lastname) {
+      whereFilters.push({
+        lastname: { contains: lastname, mode: "insensitive" as const },
+      });
+    }
+
+    if (email) {
+      whereFilters.push({
+        email: { contains: email, mode: "insensitive" as const },
+      });
+    }
+
+    if (q) {
+      whereFilters.push({
+        OR: [
+          { firstname: { contains: q, mode: "insensitive" as const } },
+          { lastname: { contains: q, mode: "insensitive" as const } },
+          { email: { contains: q, mode: "insensitive" as const } },
+        ],
+      });
+    }
+
+    const where = whereFilters.length > 0 ? { AND: whereFilters } : {};
+
+    const [field, direction] = order.split(":") as [
+      "created_at" | "lastname",
+      "asc" | "desc"
+    ];
+
+    const total = await prisma.user.count({ where });
+
+    const users = await prisma.user.findMany({
+      where,
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: { [field]: direction },
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        email: true,
+        is_active: true,
+        phone: true,
+        birthday: true,
+        last_login: true,
+        role: { select: { id: true, name: true } },
+      },
+    });
+
+    res.json({
+      data: users,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page * limit < total,
+        hasPrevPage: page > 1,
+        order,
+        q: q || null,
+      },
+    });
   },
 
   // --------------------  Get One User ------------------------

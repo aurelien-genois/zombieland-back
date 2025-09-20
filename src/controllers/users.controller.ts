@@ -17,7 +17,15 @@ const usersController = {
     if (!req.userId) {
       throw new UnauthorizedError("Unauthorized");
     }
-    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    const user = await prisma.user.findUnique({
+      where: { id: req.userId },
+      omit: {
+        password: true,
+        created_at: true,
+        updated_at: true,
+      },
+      include: { role: { select: { id: true, name: true } } },
+    });
     if (!user) {
       throw new NotFoundError("User not found");
     }

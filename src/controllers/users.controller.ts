@@ -1,7 +1,11 @@
 import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
 import { utilSchema } from "../schemas/utils.schema.js";
-import { NotFoundError, UnauthorizedError } from "../lib/errors.js";
+import {
+  ConflictError,
+  NotFoundError,
+  UnauthorizedError,
+} from "../lib/errors.js";
 import { usersSchema } from "../schemas/users.schema.js";
 import bcrypt from "bcrypt";
 
@@ -67,6 +71,38 @@ const usersController = {
       where: { id: req.userId },
     });
     res.status(200).json({ message: "Password updated successfully" });
+  },
+  // --------------------  Update User Info ------------------------
+  async updateUserInfo(req: Request, res: Response) {
+    if (!req.userId) {
+      throw new UnauthorizedError("Unauthorized");
+    }
+    const { firstname, lastname, email, phone, birthday } =
+      await usersSchema.updateInfo.parseAsync(req.body);
+
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    if (!user) {
+      throw new NotFoundError("User Not Found");
+    }
+
+    const emailExists = await prisma.user.findUnique({ where: { email } });
+    if (emailExists && emailExists.id !== req.userId) {
+      throw new ConflictError("Email already in use");
+    }
+
+    const updatedUser = await prisma.user.update({
+      data: { firstname, lastname, email, phone, birthday },
+      where: { id: req.userId },
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        email: true,
+        phone: true,
+        birthday: true,
+      },
+    });
+    res.status(200).json(updatedUser);
   },
 };
 

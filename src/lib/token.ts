@@ -11,7 +11,6 @@ export function generateAuthenticationTokens(
     role: user.role?.name,
   };
 
-  console.log("Payload for JWT:", payload);
   const accessToken = jwt.sign(payload, config.server.jwtSecret, {
     expiresIn: "1h",
   });

@@ -11,7 +11,7 @@ async function main() {
     data: { name: "admin" },
   });
   const userRole = await prisma.role.create({
-    data: { name: "user" },
+    data: { name: "member" },
   });
 
   await prisma.user.createMany({

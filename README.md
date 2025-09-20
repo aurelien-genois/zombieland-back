@@ -19,7 +19,7 @@
 1. **Reset the Prisma database**
 
    ```bash
-   npm run docker:db:migrate:reset
+   npm run docker:db:reset
    ```
 
 2. **Run migrations in development**

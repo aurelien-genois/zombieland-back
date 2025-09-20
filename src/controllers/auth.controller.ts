@@ -83,6 +83,7 @@ const authController = {
         lastname,
         email,
         password: encryptedPassword,
+        role_id: 2,
         phone,
         birthday,
       },
@@ -169,19 +170,18 @@ const authController = {
   // --------------------  Login User ------------------------
   async login(req: Request, res: Response) {
     const { email, password } = userSchema.login.parse(req.body);
-    console.log(">>body", req.body);
 
     const user = await prisma.user.findFirst({
       where: { email },
       include: { role: true },
     });
 
-    if (!user?.is_active) {
-      throw new ConflictError("This account is not active.");
-    }
-
     if (!user) {
       throw new NotFoundError("Email and password do not match");
+    }
+
+    if (!user?.is_active) {
+      throw new ConflictError("This account is not active.");
     }
 
     const isMatching = await bcrypt.compare(password, user.password);
@@ -197,7 +197,11 @@ const authController = {
     setAccessTokenCookie(res, accessToken);
     setRefreshTokenCookie(res, refreshToken);
 
-    res.status(200).json({ accessToken, refreshToken });
+    const { password: _pw, ...safeUser } = user;
+
+    res.status(200).json({
+      user: safeUser,
+    });
   },
 
   // --------------------  Logout User ------------------------

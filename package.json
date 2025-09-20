@@ -23,7 +23,7 @@
     "docker:down": "docker compose --env-file .env down",
     "docker:restart": "npm run docker:down && npm run docker:up",
     "======= DOCKER EXEC =======": "========= DOCKER EXEC ===========",
-    "docker:db:migrate:reset": "docker exec -it zombieland-api npm run db:migrate:reset",
+    "docker:db:reset": "docker exec -it zombieland-api npm run db:migrate:reset",
     "docker:db:migrate:dev": "docker exec -it zombieland-api npm run db:migrate:dev",
     "docker:db:generate": "docker exec -it zombieland-api npm run db:generate",
     "docker:db:seed": "docker exec -it zombieland-api npm run db:seed",

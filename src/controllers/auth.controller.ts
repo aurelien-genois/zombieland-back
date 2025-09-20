@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
-import { userSchema } from "../schemas/users.schema.js";
+import { usersSchema } from "../schemas/users.schema.js";
 import type { User } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { generateAuthenticationTokens } from "../lib/token.js";
@@ -58,7 +58,7 @@ const authController = {
   // --------------------  Register User ------------------------
   async register(req: Request, res: Response) {
     const { email, password, firstname, lastname, phone, birthday } =
-      await userSchema.register.parseAsync(req.body);
+      await usersSchema.register.parseAsync(req.body);
 
     console.log(">>body", req.body);
 
@@ -104,7 +104,7 @@ const authController = {
   },
   // --------------------  Send Confirmation Email With Token------------------------
   async sendConfirmationEmailWithToken(req: Request, res: Response) {
-    const { token } = await userSchema.token.parseAsync(req.query);
+    const { token } = await usersSchema.token.parseAsync(req.query);
     const userToken = await prisma.token.findFirst({
       where: { token, type: "verification_email" },
       include: { user: true },
@@ -137,7 +137,7 @@ const authController = {
   },
   // --------------------  Resend Confirmation Email ------------------------
   async resendConfirmationEmail(req: Request, res: Response) {
-    const { email } = await userSchema.email.parseAsync(req.body);
+    const { email } = await usersSchema.email.parseAsync(req.body);
 
     const user = await prisma.user.findUnique({ where: { email } });
 
@@ -169,7 +169,7 @@ const authController = {
 
   // --------------------  Login User ------------------------
   async login(req: Request, res: Response) {
-    const { email, password } = userSchema.login.parse(req.body);
+    const { email, password } = usersSchema.login.parse(req.body);
 
     const user = await prisma.user.findFirst({
       where: { email },
@@ -253,7 +253,7 @@ const authController = {
   },
   // --------------------  1) Forgot Password Request ------------------------
   async forgotPasswordRequest(req: Request, res: Response) {
-    const { email } = await userSchema.email.parseAsync(req.body);
+    const { email } = await usersSchema.email.parseAsync(req.body);
 
     const user = await prisma.user.findUnique({ where: { email } });
 
@@ -281,9 +281,11 @@ const authController = {
 
   // --------------------  2) Reset Password ------------------------
   async resetPassword(req: Request, res: Response) {
-    const { newPassword } = await userSchema.resetPassword.parseAsync(req.body);
+    const { newPassword } = await usersSchema.resetPassword.parseAsync(
+      req.body
+    );
 
-    const { token } = await userSchema.token.parseAsync(req.query);
+    const { token } = await usersSchema.token.parseAsync(req.query);
     const userToken = await prisma.token.findFirst({
       where: { token, type: "reset_password" },
       include: { user: true },

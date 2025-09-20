@@ -90,7 +90,7 @@ const tokenValidation = z.uuid({ error: "Token must be a valid UUID" });
 
 // ================================== SCHEMAS =================================
 
-export const userSchema = {
+export const usersSchema = {
   register: z
     .object({
       firstname: firstnameValidation,
@@ -126,4 +126,23 @@ export const userSchema = {
       message: "Passwords do not match",
       path: ["confirmation"],
     }),
+
+  changePassword: z
+    .object({
+      oldPassword: passwordValidation,
+      newPassword: passwordValidation,
+      confirmation: passwordValidation,
+    })
+    .refine((data) => data.newPassword === data.confirmation, {
+      message: "Passwords do not match",
+      path: ["confirmation"],
+    }),
+
+  updateInfo: z.object({
+    firstname: firstnameValidation.optional(),
+    lastname: lastnameValidation.optional(),
+    email: emailValidation.optional(),
+    phone: phoneValidation.optional(),
+    birthday: birthdayValidation.optional(),
+  }),
 };

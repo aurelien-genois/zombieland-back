@@ -14,7 +14,7 @@ enum RoleName {
 
 model Role {
   id         Int       @id @default(autoincrement())
-  name       RoleName  @default(member)
+  name       RoleName  @unique
   created_at DateTime  @default(now())
   updated_at DateTime  @updatedAt
 

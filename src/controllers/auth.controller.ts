@@ -8,6 +8,12 @@ import { generateAuthenticationTokens } from "../lib/token.js";
 import { config } from "../configs/server.config.js";
 import { sendVerificationEmail } from "../services/emailManager.service.js";
 import { v4 as uuidv4 } from "uuid";
+import {
+  BadRequestError,
+  ConflictError,
+  NotFoundError,
+  UnauthorizedError,
+} from "../lib/errors.js";
 
 interface Token {
   token: string;
@@ -49,182 +55,147 @@ function setRefreshTokenCookie(res: Response, refreshToken: Token) {
 const authController = {
   // --------------------  Register User ------------------------
   async register(req: Request, res: Response) {
-    try {
-      const { email, password, firstname, lastname, phone, birthday } =
-        await userSchema.register.parseAsync(req.body);
+    const { email, password, firstname, lastname, phone, birthday } =
+      await userSchema.register.parseAsync(req.body);
 
-      console.log(">>body", req.body);
+    console.log(">>body", req.body);
 
-      const userWithSameEmail = await prisma.user.findUnique({
-        where: { email },
-      });
-      if (userWithSameEmail) {
-        return res
-          .status(409)
-          .json({ errorMessage: "This email is already in use." });
-      }
-
-      const SALT = process.env.SALT_ROUNDS;
-      if (!SALT) {
-        throw new Error("SALT_ROUNDS is not defined in environment variables.");
-      }
-      const nbOfSaltRounds = parseInt(SALT);
-      const encryptedPassword = await bcrypt.hash(password, nbOfSaltRounds);
-      const verificationToken = uuidv4();
-
-      const user = await prisma.user.create({
-        data: {
-          firstname,
-          lastname,
-          email,
-          password: encryptedPassword,
-          phone,
-          birthday,
-        },
-      });
-
-      const userToken = await prisma.token.create({
-        data: {
-          token: verificationToken,
-          type: "verification_email",
-          user_id: user.id,
-          expired_at: new Date(new Date().valueOf() + 24 * 60 * 60 * 1000), // 24 hours
-        },
-      });
-
-      await sendVerificationEmail(user.email, userToken.token);
-
-      res.status(201).json(user);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        console.log(">ZOD<", error.issues[0].message);
-      }
-      res.status(500).json({ error: "Internal server error" });
+    const userWithSameEmail = await prisma.user.findUnique({
+      where: { email },
+    });
+    if (userWithSameEmail) {
+      throw new ConflictError("This email is already in use.");
     }
+
+    const SALT = process.env.SALT_ROUNDS;
+    if (!SALT) {
+      throw new Error("SALT_ROUNDS is not defined in environment variables.");
+    }
+    const nbOfSaltRounds = parseInt(SALT);
+    const encryptedPassword = await bcrypt.hash(password, nbOfSaltRounds);
+    const verificationToken = uuidv4();
+
+    const user = await prisma.user.create({
+      data: {
+        firstname,
+        lastname,
+        email,
+        password: encryptedPassword,
+        phone,
+        birthday,
+      },
+    });
+
+    const userToken = await prisma.token.create({
+      data: {
+        token: verificationToken,
+        type: "verification_email",
+        user_id: user.id,
+        expired_at: new Date(new Date().valueOf() + 24 * 60 * 60 * 1000), // 24 hours
+      },
+    });
+
+    await sendVerificationEmail(user.email, userToken.token);
+
+    res.status(201).json(user);
   },
   // --------------------  Send Confirmation Email With Token------------------------
   async sendConfirmationEmailWithToken(req: Request, res: Response) {
-    try {
-      const { token } = await userSchema.token.parseAsync(req.query);
-      console.log(">>token", token);
-      const userToken = await prisma.token.findFirst({
-        where: { token, type: "verification_email" },
-        include: { user: true },
-      });
+    const { token } = await userSchema.token.parseAsync(req.query);
+    const userToken = await prisma.token.findFirst({
+      where: { token, type: "verification_email" },
+      include: { user: true },
+    });
 
-      if (!userToken) {
-        return res.status(400).json({ errorMessage: "Invalid token." });
-      }
-
-      if (!userToken.expired_at || userToken.expired_at < new Date()) {
-        return res.status(400).json({ errorMessage: "Token has expired." });
-      }
-
-      if (userToken.user_id == null) {
-        return res.status(400).json({ errorMessage: "User ID is missing." });
-      }
-
-      await prisma.user.update({
-        where: { id: userToken.user_id },
-        data: { is_active: true },
-      });
-
-      await prisma.token.deleteMany({
-        where: { user_id: userToken.user_id, type: "verification_email" },
-      });
-
-      res.status(200).json({
-        message: "Email successfully verified.",
-      });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        console.log(">ZOD<", error.issues[0].message);
-      }
+    if (!userToken) {
+      throw new NotFoundError("Token not found.");
     }
+
+    if (!userToken.expired_at || userToken.expired_at < new Date()) {
+      throw new BadRequestError("Token has expired.");
+    }
+
+    if (userToken.user_id == null) {
+      throw new BadRequestError("User ID is missing.");
+    }
+
+    await prisma.user.update({
+      where: { id: userToken.user_id },
+      data: { is_active: true },
+    });
+
+    await prisma.token.deleteMany({
+      where: { user_id: userToken.user_id, type: "verification_email" },
+    });
+
+    res.status(200).json({
+      message: "Email successfully verified.",
+    });
   },
   // --------------------  Resend Confirmation Email ------------------------
   async resendConfirmationEmail(req: Request, res: Response) {
-    try {
-      const { email } = await userSchema.email.parseAsync(req.body);
+    const { email } = await userSchema.email.parseAsync(req.body);
 
-      const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email } });
 
-      if (!user) {
-        return res
-          .status(404)
-          .json({ errorMessage: "No user found with this email." });
-      }
-
-      if (user.is_active) {
-        return res
-          .status(400)
-          .json({ errorMessage: "This account is already active." });
-      }
-
-      const verificationToken = uuidv4();
-
-      const userToken = await prisma.token.create({
-        data: {
-          token: verificationToken,
-          type: "verification_email",
-          user_id: user.id,
-          expired_at: new Date(new Date().valueOf() + 24 * 60 * 60 * 1000), // 24 hours
-        },
-      });
-
-      await sendVerificationEmail(user.email, userToken.token);
-
-      res.status(200).json({
-        message: "Verification email sent successfully.",
-      });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        console.log(">ZOD<", error.issues[0].message);
-      }
-      res.status(500).json({ error: "Internal server error" });
+    if (!user) {
+      throw new NotFoundError("No user found with this email.");
     }
+
+    if (user.is_active) {
+      throw new ConflictError("This account is already active.");
+    }
+
+    const verificationToken = uuidv4();
+
+    const userToken = await prisma.token.create({
+      data: {
+        token: verificationToken,
+        type: "verification_email",
+        user_id: user.id,
+        expired_at: new Date(new Date().valueOf() + 24 * 60 * 60 * 1000), // 24 hours
+      },
+    });
+
+    await sendVerificationEmail(user.email, userToken.token);
+
+    res.status(200).json({
+      message: "Verification email sent successfully.",
+    });
   },
 
   // --------------------  Login User ------------------------
   async login(req: Request, res: Response) {
-    try {
-      const { email, password } = userSchema.login.parse(req.body);
-      console.log(">>body", req.body);
+    const { email, password } = userSchema.login.parse(req.body);
+    console.log(">>body", req.body);
 
-      const user = await prisma.user.findFirst({
-        where: { email },
-        include: { role: true },
-      });
+    const user = await prisma.user.findFirst({
+      where: { email },
+      include: { role: true },
+    });
 
-      if (!user?.is_active) {
-        throw new Error("This account is not active.");
-      }
-
-      if (!user) {
-        throw new Error("Email and password do not match");
-      }
-
-      const isMatching = await bcrypt.compare(password, user.password);
-
-      if (!isMatching) {
-        throw new Error("Email and password do not match");
-      }
-
-      const { accessToken, refreshToken } = generateAuthenticationTokens(user);
-
-      await replaceRefreshTokenInDatabase(refreshToken, user);
-
-      setAccessTokenCookie(res, accessToken);
-      setRefreshTokenCookie(res, refreshToken);
-
-      res.status(200).json({ accessToken, refreshToken });
-    } catch (error) {
-      console.log(">>error", error);
-      if (error instanceof z.ZodError) {
-        console.log(">ZOD<", error.issues[0].message);
-      }
-      res.status(500).json({ error: "Internal server error" });
+    if (!user?.is_active) {
+      throw new ConflictError("This account is not active.");
     }
+
+    if (!user) {
+      throw new NotFoundError("Email and password do not match");
+    }
+
+    const isMatching = await bcrypt.compare(password, user.password);
+
+    if (!isMatching) {
+      throw new Error("Email and password do not match");
+    }
+
+    const { accessToken, refreshToken } = generateAuthenticationTokens(user);
+
+    await replaceRefreshTokenInDatabase(refreshToken, user);
+
+    setAccessTokenCookie(res, accessToken);
+    setRefreshTokenCookie(res, refreshToken);
+
+    res.status(200).json({ accessToken, refreshToken });
   },
 
   // --------------------  Logout User ------------------------
@@ -237,46 +208,42 @@ const authController = {
   // --------------------  Refresh Token ------------------------
 
   async refreshAccessToken(req: Request, res: Response) {
-    try {
-      const rawToken = req.cookies?.refreshToken || req.body?.refreshToken;
-      if (!rawToken) {
-        return res.status(401).json({ error: "Refresh token not provided" });
-      }
-
-      const existingRefreshToken = await prisma.token.findFirst({
-        where: { token: rawToken, type: "refresh" },
-        include: { user: true },
-      });
-      if (!existingRefreshToken || !existingRefreshToken.user) {
-        return res.status(401).json({ error: "Invalid refresh token" });
-      }
-
-      if (
-        !existingRefreshToken.expired_at ||
-        existingRefreshToken.expired_at < new Date()
-      ) {
-        if (existingRefreshToken.id) {
-          await prisma.token.delete({ where: { id: existingRefreshToken.id } });
-        }
-        return res.status(401).json({ error: "Expired refresh token" });
-      }
-
-      const { accessToken, refreshToken } = generateAuthenticationTokens(
-        existingRefreshToken.user
-      );
-
-      await replaceRefreshTokenInDatabase(
-        refreshToken,
-        existingRefreshToken.user
-      );
-
-      setAccessTokenCookie(res, accessToken);
-      setRefreshTokenCookie(res, refreshToken);
-
-      res.json({ accessToken, refreshToken });
-    } catch (error) {
-      res.status(500).json({ error: "Internal server error" });
+    const rawToken = req.cookies?.refreshToken || req.body?.refreshToken;
+    if (!rawToken) {
+      throw new BadRequestError("Refresh token not provided");
     }
+
+    const existingRefreshToken = await prisma.token.findFirst({
+      where: { token: rawToken, type: "refresh" },
+      include: { user: true },
+    });
+    if (!existingRefreshToken || !existingRefreshToken.user) {
+      throw new UnauthorizedError("Invalid refresh token");
+    }
+
+    if (
+      !existingRefreshToken.expired_at ||
+      existingRefreshToken.expired_at < new Date()
+    ) {
+      if (existingRefreshToken.id) {
+        await prisma.token.delete({ where: { id: existingRefreshToken.id } });
+      }
+      throw new UnauthorizedError("Expired refresh token");
+    }
+
+    const { accessToken, refreshToken } = generateAuthenticationTokens(
+      existingRefreshToken.user
+    );
+
+    await replaceRefreshTokenInDatabase(
+      refreshToken,
+      existingRefreshToken.user
+    );
+
+    setAccessTokenCookie(res, accessToken);
+    setRefreshTokenCookie(res, refreshToken);
+
+    res.json({ accessToken, refreshToken });
   },
 };
 export default authController;

@@ -164,3 +164,66 @@
  *       500:
  *         description: Erreur interne du serveur
  */
+
+/**
+ * @openapi
+ * /api/auth/forgot-password:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Demande de réinitialisation du mot de passe
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Email de réinitialisation envoyé.
+ *       400:
+ *         description: Email invalide ou non trouvé.
+ *       500:
+ *         description: Erreur interne du serveur.
+ */
+
+/**
+ * @openapi
+ * /api/auth/reset-password:
+ *   post:
+ *     tags:
+ *       - Auth
+ *     summary: Réinitialiser le mot de passe avec un token
+ *     parameters:
+ *       - in: query
+ *         name: token
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - newPassword
+ *               - confirmation
+ *             properties:
+ *               newPassword:
+ *                 type: string
+ *               confirmation:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Mot de passe réinitialisé avec succès.
+ *       400:
+ *         description: Token invalide, expiré ou données invalides.
+ *       404:
+ *         description: Aucun utilisateur trouvé avec ce token.
+ */

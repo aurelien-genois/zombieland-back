@@ -4,7 +4,7 @@ import authController from "../controllers/auth.controller.js";
 
 const router = Router();
 
-// --------------------  Register ------------------------
+// --------------------  Register ----------------------------
 router.post("/register", authController.register);
 
 // --------------------  Confirmation Email ------------------------
@@ -19,7 +19,7 @@ router.post(
   authController.resendConfirmationEmail
 );
 
-// --------------------  Login ---------------------------
+// --------------------  Login -------------------------------
 router.post("/login", authController.login);
 
 // --------------------  Logout ---------------------------
@@ -27,5 +27,11 @@ router.get("/logout", authController.logout);
 
 // --------------------  Refresh Token ------------------------
 router.post("/refresh", authController.refreshAccessToken);
+
+// --------------------  1) Forgot Password ------------------------
+router.post("/forgot-password", authController.forgotPassword);
+
+// --------------------  2) Reset Password ------------------------
+router.post("/reset-password", authController.resetPassword);
 
 export default router;

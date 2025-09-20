@@ -116,4 +116,14 @@ export const userSchema = {
   email: z.object({ email: emailValidation }),
 
   token: z.object({ token: tokenValidation }),
+
+  resetPassword: z
+    .object({
+      newPassword: passwordValidation,
+      confirmation: passwordValidation,
+    })
+    .refine((data) => data.newPassword === data.confirmation, {
+      message: "Passwords do not match",
+      path: ["confirmation"],
+    }),
 };

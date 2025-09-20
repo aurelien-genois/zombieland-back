@@ -9,12 +9,12 @@ datasource db {
 
 enum RoleName {
   admin
-  user
+  member
 }
 
 model Role {
   id         Int       @id @default(autoincrement())
-  name       RoleName  @default(user)
+  name       RoleName  @default(member)
   created_at DateTime  @default(now())
   updated_at DateTime  @updatedAt
 
@@ -29,7 +29,7 @@ model User {
   email     String  @unique()
   password  String
   is_active Boolean @default(false)
-  phone     String
+  phone     String?
   birthday  DateTime @db.Date
   last_login DateTime?
   role_id    Int?

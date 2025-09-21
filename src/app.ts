@@ -14,7 +14,7 @@ import { globalErrorHandler } from "./middlewares/global-error-handler.js";
 const PORT = config.server.port;
 const app = express();
 
-app.use(cors({ origin: config.server.allowedOrigins }));
+app.use(cors({ origin: config.server.allowedOrigins, credentials: true }));
 
 app.use(express.json());
 

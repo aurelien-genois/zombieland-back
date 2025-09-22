@@ -6,19 +6,14 @@ import { config } from "../configs/server.config.js";
 
 export function checkRoles(roles: RoleName[], optional = false) {
   return (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const token = extractAccessToken(req);
-      const { userId, role } = verifyAndDecodeJWT(token);
-      if (!roles.includes(role)) {
-        return res.status(403).json({ message: "Vous n'avez pas accès" });
-      }
-      req.userId = userId;
-      req.userRole = role;
-      next();
-    } catch (error) {
-      console.error(error);
-     return res.status(401).json({ message: "Unauthorized" });
+    const token = extractAccessToken(req);
+    const { userId, role } = verifyAndDecodeJWT(token);
+    if (!roles.includes(role)) {
+      return res.status(403).json({ message: "Vous n'avez pas accès" });
     }
+    req.userId = userId;
+    req.userRole = role;
+    next();
   };
 }
 

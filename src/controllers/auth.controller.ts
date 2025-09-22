@@ -60,8 +60,6 @@ const authController = {
     const { email, password, firstname, lastname, phone, birthday } =
       await usersSchema.register.parseAsync(req.body);
 
-    console.log(">>body", req.body);
-
     const userWithSameEmail = await prisma.user.findUnique({
       where: { email },
     });

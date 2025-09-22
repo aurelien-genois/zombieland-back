@@ -1,6 +1,6 @@
 # ZombieLandCDA-back
 
-### Docker: **_Run Containers_**
+## Docker: **_Run Containers_**
 
 1. **Build and start the container**
 
@@ -14,7 +14,21 @@
    npm run docker:up:fast
    ```
 
-### Inside the Container: **_Run Prisma_**
+## Update BDD Locally
+
+1. **Generate Prisma Client**
+
+   ```bash
+   npm run db:generate
+   ```
+
+2. **Delete Docker volume (prevent errors with Prisma migrations)**
+
+   ```bash
+   docker volume rm zombielandcda-back_zombieland
+   ```
+
+## Inside the Container **_Run Prisma_**
 
 1. **Reset the Prisma database**
 
@@ -35,6 +49,7 @@
    ```
 
 4. **Seed the database with a user**
+
    ```bash
    npm run docker:db:seed
    ```

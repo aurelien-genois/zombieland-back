@@ -22,8 +22,7 @@ const activitySloganValidation = z
     error: (iss) =>
       iss.input === undefined ? undefined : "Slogan must be a string",
   })
-  .min(5, "Name must have at least 5 characters")
-  .optional();
+  .min(5, "Name must have at least 5 characters");
 
 const activityAgeGroupValidation = z.coerce
   .number({
@@ -35,20 +34,17 @@ const activityAgeGroupValidation = z.coerce
   .min(0, "Age must be between 0 and 3")
   .max(3, "Age must be between 0 and 3");
 
-const activityDurationValidation = z.coerce
-  .string({
-    error: (iss) =>
-      iss.input === undefined ? undefined : "Duration must be a string",
-  })
-  .optional();
+const activityDurationValidation = z.coerce.string({
+  error: (iss) =>
+    iss.input === undefined ? undefined : "Duration must be a string",
+});
 
 const activityImageUrlValidation = z
   .string({
     error: (iss) =>
       iss.input === undefined ? undefined : "Image url must be a string",
   })
-  .min(5, "Name must have at least 5 characters")
-  .optional();
+  .min(5, "Name must have at least 5 characters");
 
 // TODO rework "z.coerce.boolean()" to accept both "false" and false values
 // ("false" is actually coerced to true as a string)
@@ -56,25 +52,25 @@ const activityImageUrlValidation = z
 export const activitySchema = {
   create: z.object({
     name: activityNameValidation,
-    slogan: activitySloganValidation,
+    slogan: activitySloganValidation.optional(),
     description: activityDescriptionValidation,
     age_group: activityAgeGroupValidation,
-    duration: activityDurationValidation,
+    duration: activityDurationValidation.optional(),
     disabled_access: z.coerce.boolean().default(false),
     high_intensity: z.coerce.boolean().default(false),
-    image_url: activityImageUrlValidation,
+    image_url: activityImageUrlValidation.optional(),
     category_id: parseIdValidation,
     saved: z.coerce.boolean().default(false),
   }),
   update: z.object({
     name: activityNameValidation.optional(),
     description: activityDescriptionValidation.optional(),
-    slogan: activitySloganValidation,
+    slogan: activitySloganValidation.optional(),
     age_group: activityAgeGroupValidation.optional(),
-    duration: activityDurationValidation,
+    duration: activityDurationValidation.optional(),
     disabled_access: z.coerce.boolean().optional(),
     high_intensity: z.coerce.boolean().optional(),
-    image_url: activityImageUrlValidation,
+    image_url: activityImageUrlValidation.optional(),
     category_id: parseIdValidation.optional(),
     saved: z.coerce.boolean().optional(),
   }),

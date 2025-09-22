@@ -8,7 +8,13 @@ import {
 import * as z from "zod";
 
 const activitiesController = {
-  async getAllActivities(req: Request, res: Response) {
+  // first argument is used when binding the function for the get "activities/" route to pass the required "published" status filter
+  // with this binding, no need to duplicate the function code to a "getAllPublishedActivities" function
+  async getAllActivities(
+    args: { status?: "draft" | "published" } = {},
+    req: Request,
+    res: Response
+  ) {
     try {
       const {
         category,
@@ -22,11 +28,8 @@ const activitiesController = {
         status,
       } = await activitySchema.filter.parseAsync(req.query);
 
-      // if user not logged or not admin, filter on status "published"
-      // (only admin can access draft activities)
-      const userRole = req.userRole as string | undefined;
-      const statusFilter =
-        status === undefined && userRole !== "admin" ? "published" : status;
+      // if the route provides a status, force the filter with this status
+      const statusFilter = args.status !== undefined ? args.status : status;
 
       const activities = await prisma.activity.findMany({
         where: {
@@ -60,20 +63,21 @@ const activitiesController = {
     }
   },
 
-  async getOneActivity(req: Request, res: Response) {
+  async getOneActivity(
+    args: { status?: "draft" | "published" } = {},
+    req: Request,
+    res: Response
+  ) {
     try {
       const activitySlug = await parseSlugValidation.parseAsync(
         req.params.slug
       );
 
-      // if user not logged or not admin, filter on status "published"
-      // (only admin can access draft activities)
-      const userRole = req.userRole as string | undefined;
-
       const activity = await prisma.activity.findUnique({
         where: {
           slug: activitySlug,
-          ...(userRole !== "admin" && { status: "published" }),
+          // if the route provides a status, force the filter with this status
+          ...(args.status !== undefined && { status: args.status }),
         },
       });
 

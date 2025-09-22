@@ -176,6 +176,49 @@
  *     summary: Récupère tous les utilisateurs (admin uniquement)
  *     security:
  *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *           default: 20
+ *       - in: query
+ *         name: order
+ *         required: false
+ *         schema:
+ *           type: string
+ *           enum: [created_at:asc, created_at:desc, lastname:asc, lastname:desc]
+ *           default: created_at:desc
+ *       - in: query
+ *         name: firstname
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: lastname
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: email
+ *         required: false
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: q
+ *         required: false
+ *         schema:
+ *           type: string
  *     responses:
  *       '200':
  *         description: Liste des utilisateurs
@@ -194,8 +237,6 @@
  *                     type: string
  *                   email:
  *                     type: string
- *                   password:
- *                     type: string
  *                   is_active:
  *                     type: boolean
  *                   phone:
@@ -204,21 +245,22 @@
  *                     type: string
  *                     format: date
  *                   role_id:
- *                     type: integer
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
  *                   last_login:
  *                     type: string
  *                     format: date-time
  *                     nullable: true
- *                   created_at:
- *                     type: string
- *                     format: date-time
- *                   updated_at:
- *                     type: string
- *                     format: date-time
  *       '401':
  *         description: Non authentifié
  *       '403':
  *         description: Accès interdit (rôle admin requis)
+ *       '500':
+ *         description: Erreur serveur
  */
 
 /**

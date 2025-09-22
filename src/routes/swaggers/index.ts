@@ -32,6 +32,10 @@ const options = {
         name: "Users",
         description: "Gestion des utilisateurs",
       },
+      {
+        name: "Activities",
+        description: "Gestion des activités",
+      },
     ],
   },
   apis: ["./src/routes/*.ts", "./src/routes/swaggers/*.ts"],

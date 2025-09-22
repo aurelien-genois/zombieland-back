@@ -95,7 +95,7 @@ export const activitySchema = {
         if (val === undefined) return undefined;
         return val === "true";
       }),
-    limit: z.coerce.number().int().min(1).optional().default(20),
+    limit: z.coerce.number().int().min(1).max(100).optional().default(20),
     page: z.coerce.number().int().min(1).optional().default(1),
     order: z.enum(["name:asc", "name:desc"]).default("name:asc").optional(),
     search: z

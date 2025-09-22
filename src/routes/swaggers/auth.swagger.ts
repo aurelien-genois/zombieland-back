@@ -130,7 +130,7 @@
 /**
  * @openapi
  * /api/auth/logout:
- *   post:
+ *   get:
  *     tags:
  *       - Auth
  *     summary: Déconnexion de l'utilisateur

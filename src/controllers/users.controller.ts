@@ -8,7 +8,6 @@ import {
 } from "../lib/errors.js";
 import { usersSchema } from "../schemas/users.schema.js";
 import bcrypt from "bcrypt";
-import z from "zod";
 import { querySchema } from "../schemas/query.schema.js";
 
 const usersController = {

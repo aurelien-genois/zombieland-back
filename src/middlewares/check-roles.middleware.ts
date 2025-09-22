@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
 import { config } from "../configs/server.config.js";
 
-export function checkRoles(roles: RoleName[], optional = false) {
+export function checkRoles(roles: RoleName[]) {
   return (req: Request, res: Response, next: NextFunction) => {
     const token = extractAccessToken(req);
     const { userId, role } = verifyAndDecodeJWT(token);

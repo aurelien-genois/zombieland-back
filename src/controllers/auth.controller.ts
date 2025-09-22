@@ -185,7 +185,7 @@ const authController = {
     const isMatching = await bcrypt.compare(password, user.password);
 
     if (!isMatching) {
-      throw new Error("Email and password do not match");
+      throw new BadRequestError("Email and password do not match");
     }
 
     const { accessToken, refreshToken } = generateAuthenticationTokens(user);

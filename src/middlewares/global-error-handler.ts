@@ -1,8 +1,13 @@
-import type { Request, Response } from "express";
+import type { NextFunction, Request, Response } from "express";
 import z from "zod";
 import { HttpClientError } from "../lib/errors.js";
 
-export function globalErrorHandler(error: Error, _req: Request, res: Response) {
+export function globalErrorHandler(
+  error: Error,
+  _req: Request,
+  res: Response,
+  _next: NextFunction
+) {
   const isProduction = process.env.NODE_ENV === "production";
   const baseError = {
     error: "An error occurred",
@@ -15,7 +20,7 @@ export function globalErrorHandler(error: Error, _req: Request, res: Response) {
     res.status(400).json({
       ...baseError,
       status: 400,
-      error: z.prettifyError(error),
+      error: error.issues[0].message,
     });
     return;
   }

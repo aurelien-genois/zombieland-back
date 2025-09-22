@@ -170,11 +170,13 @@ const activitiesController = {
       saved,
     } = data;
 
-    const foundCategory = await prisma.category.findUnique({
-      where: { id: category_id },
-    });
-    if (category_id && !foundCategory) {
-      throw new ConflictError("Selected category does not exist");
+    if (category_id) {
+      const foundCategory = await prisma.category.findUnique({
+        where: { id: category_id },
+      });
+      if (!foundCategory) {
+        throw new ConflictError("Selected category does not exist");
+      }
     }
 
     const activityUpdated = await prisma.activity.update({

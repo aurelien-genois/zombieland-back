@@ -108,7 +108,66 @@
  *                     type: string
  *                     format: date-time
  *       '404':
- *          description: Ressource non trouvée
+ *         description: Activité non trouvée
+ *       '500':
+ *         description: Erreur serveur
+ */
+
+/**
+ * @openapi
+ * /api/activities/{slug}:
+ *   get:
+ *     tags:
+ *       - Activities
+ *     summary: Récupère une activité publiée par son slug
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '200':
+ *         description: Activité publiée trouvée
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 name:
+ *                   type: string
+ *                 slug:
+ *                   type: string
+ *                 slogan:
+ *                   type: string
+ *                 description:
+ *                   type: string
+ *                 minimum_age:
+ *                   type: integer
+ *                 duration:
+ *                   type: string
+ *                 disabled_access:
+ *                   type: boolean
+ *                 high_intensity:
+ *                   type: boolean
+ *                 status:
+ *                   type: string
+ *                 image_url:
+ *                   type: string
+ *                 category_id:
+ *                   type: integer
+ *                 created_at:
+ *                   type: string
+ *                   format: date-time
+ *                 updated_at:
+ *                   type: string
+ *                   format: date-time
+ *       '404':
+ *         description: Activité non trouvée
  *       '500':
  *         description: Erreur serveur
  */
@@ -224,9 +283,280 @@
  *       '401':
  *         description: Non authentifié
  *       '403':
- *          description: Accès interdit (rôle admin requis)
+ *         description: Accès interdit (rôle admin requis)
  *       '404':
- *          description: Ressource non trouvée
+ *         description: Activité non trouvée
+ *       '500':
+ *         description: Erreur serveur
+ */
+
+/**
+ * @openapi
+ * /api/activities/all/{slug}:
+ *   get:
+ *     tags:
+ *       - Activities
+ *     summary: Récupère une activité par son slug (admin uniquement)
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: slug
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       '200':
+ *         description: Activité trouvée
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 name:
+ *                   type: string
+ *                 slug:
+ *                   type: string
+ *                 slogan:
+ *                   type: string
+ *                 description:
+ *                   type: string
+ *                 minimum_age:
+ *                   type: integer
+ *                 duration:
+ *                   type: string
+ *                 disabled_access:
+ *                   type: boolean
+ *                 high_intensity:
+ *                   type: boolean
+ *                 status:
+ *                   type: string
+ *                 image_url:
+ *                   type: string
+ *                 category_id:
+ *                   type: integer
+ *                 created_at:
+ *                   type: string
+ *                   format: date-time
+ *                 updated_at:
+ *                   type: string
+ *                   format: date-time
+ *       '401':
+ *         description: Non authentifié
+ *       '403':
+ *         description: Accès interdit (rôle admin requis)
+ *       '404':
+ *         description: Activité non trouvée
+ *       '500':
+ *         description: Erreur serveur
+ */
+
+/**
+ * @openapi
+ * /api/activities:
+ *   post:
+ *     tags:
+ *       - Activities
+ *     summary: Crée une activité (admin uniquement)
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - description
+ *               - age_group
+ *               - category_id
+ *             properties:
+ *               name:
+ *                 type: string
+ *               slogan:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               age_group:
+ *                 type: integer
+ *                 minimum: 0
+ *                 maximum: 3
+ *               duration:
+ *                 type: string
+ *               disabled_access:
+ *                 type: boolean
+ *               high_intensity:
+ *                 type: boolean
+ *               image_url:
+ *                 type: string
+ *               category_id:
+ *                 type: integer
+ *               saved:
+ *                 type: boolean
+ *     responses:
+ *       '200':
+ *         description: Activité créée
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 name:
+ *                   type: string
+ *                 slug:
+ *                   type: string
+ *                 slogan:
+ *                   type: string
+ *                 description:
+ *                   type: string
+ *                 minimum_age:
+ *                   type: integer
+ *                 duration:
+ *                   type: string
+ *                 disabled_access:
+ *                   type: boolean
+ *                 high_intensity:
+ *                   type: boolean
+ *                 status:
+ *                   type: string
+ *                 image_url:
+ *                   type: string
+ *                 category_id:
+ *                   type: integer
+ *                 created_at:
+ *                   type: string
+ *                   format: date-time
+ *                 updated_at:
+ *                   type: string
+ *                   format: date-time
+ *       '401':
+ *         description: Non authentifié
+ *       '403':
+ *         description: Accès interdit (rôle admin requis)
+ *       '409':
+ *         description: Activité déjà existante avec le même nom ou Catégorie sélectionnée inexistante
+ *       '500':
+ *         description: Erreur serveur
+ */
+
+/**
+ * @openapi
+ * /api/activities/{id}:
+ *   patch:
+ *     tags:
+ *       - Activities
+ *     summary: Met à jour une activité (admin uniquement)
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               slogan:
+ *                 type: string
+ *               description:
+ *                 type: string
+ *               age_group:
+ *                 type: integer
+ *                 minimum: 0
+ *                 maximum: 3
+ *               duration:
+ *                 type: string
+ *               disabled_access:
+ *                 type: boolean
+ *               high_intensity:
+ *                 type: boolean
+ *               image_url:
+ *                 type: string
+ *               category_id:
+ *                 type: integer
+ *               saved:
+ *                 type: boolean
+ *     responses:
+ *       '200':
+ *         description: Activité mise à jour
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 name:
+ *                   type: string
+ *                 slug:
+ *                   type: string
+ *                 slogan:
+ *                   type: string
+ *                 description:
+ *                   type: string
+ *                 minimum_age:
+ *                   type: integer
+ *                 duration:
+ *                   type: string
+ *                 disabled_access:
+ *                   type: boolean
+ *                 high_intensity:
+ *                   type: boolean
+ *                 status:
+ *                   type: string
+ *                 image_url:
+ *                   type: string
+ *                 category_id:
+ *                   type: integer
+ *                 created_at:
+ *                   type: string
+ *                   format: date-time
+ *                 updated_at:
+ *                   type: string
+ *                   format: date-time
+ *       '401':
+ *         description: Non authentifié
+ *       '403':
+ *         description: Accès interdit (rôle admin requis)
+ *       '404':
+ *         description: Activité non trouvée
+ *       '409':
+ *         description: Catégorie sélectionnée inexistante
+ *       '500':
+ *         description: Erreur serveur
+ *   delete:
+ *     tags:
+ *       - Activities
+ *     summary: Supprime une activité (admin uniquement)
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       '204':
+ *         description: Activité supprimée avec succès
+ *       '401':
+ *         description: Non authentifié
+ *       '403':
+ *         description: Accès interdit (rôle admin requis)
+ *       '404':
+ *         description: Activité non trouvée
  *       '500':
  *         description: Erreur serveur
  */

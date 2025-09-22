@@ -237,8 +237,6 @@
  *                     type: string
  *                   email:
  *                     type: string
- *                   password:
- *                     type: string
  *                   is_active:
  *                     type: boolean
  *                   phone:
@@ -247,21 +245,22 @@
  *                     type: string
  *                     format: date
  *                   role_id:
- *                     type: integer
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
  *                   last_login:
  *                     type: string
  *                     format: date-time
  *                     nullable: true
- *                   created_at:
- *                     type: string
- *                     format: date-time
- *                   updated_at:
- *                     type: string
- *                     format: date-time
  *       '401':
  *         description: Non authentifié
  *       '403':
  *         description: Accès interdit (rôle admin requis)
+ *       '500':
+ *         description: Erreur serveur
  */
 
 /**

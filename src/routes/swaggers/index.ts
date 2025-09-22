@@ -1,7 +1,4 @@
 import swaggerJSDoc from "swagger-jsdoc";
-import { config } from "../../configs/server.config.js";
-
-const PORT = config.server.port;
 
 const options = {
   definition: {

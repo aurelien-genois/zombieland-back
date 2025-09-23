@@ -213,15 +213,17 @@ const activitiesController = {
   },
 
   async evaluateActivity(req: Request, res: Response) {
+    const activityId = await parseIdValidation.parseAsync(req.params.id);
+
     if (!req.userId) {
       throw new UnauthorizedError("Unauthorized");
     }
     const data = await activitySchema.evaluate.parseAsync(req.body);
 
-    const { activity_id, grade, comment } = data;
+    const { grade, comment } = data;
 
     const activity = await prisma.activity.findUnique({
-      where: { id: activity_id },
+      where: { id: activityId },
     });
 
     if (!activity) {
@@ -231,10 +233,10 @@ const activitiesController = {
     // check if the user already evaluated this activity
     const existingUserRateActivity = await prisma.userRateActivity.findUnique({
       where: {
-        activity_id: activity_id,
+        activity_id: activityId,
         user_id: req.userId,
         user_rate_activity_pkey: {
-          activity_id: activity_id,
+          activity_id: activityId,
           user_id: req.userId,
         },
       },
@@ -247,7 +249,7 @@ const activitiesController = {
 
     const rate = await prisma.userRateActivity.create({
       data: {
-        activity_id: activity_id,
+        activity_id: activityId,
         user_id: req.userId,
         grade: grade,
         ...(comment && { comment: comment }),

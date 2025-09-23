@@ -176,13 +176,19 @@
 
 /**
  * @openapi
- * /api/activities/evaluate:
+ * /api/activities/evaluate/{id}:
  *   post:
  *     tags:
  *       - Activities
  *     summary: Évalue une activité (membre/admin uniquement)
  *     security:
  *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
  *     requestBody:
  *       required: true
  *       content:
@@ -190,11 +196,8 @@
  *           schema:
  *             type: object
  *             required:
- *               - activity_id
  *               - grade
  *             properties:
- *               activity_id:
- *                 type: integer
  *               grade:
  *                 type: integer
  *                 minimum: 1

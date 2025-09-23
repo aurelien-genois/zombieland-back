@@ -121,7 +121,6 @@ export const activitySchema = {
     status: z.enum(["draft", "published"]).optional(),
   }),
   evaluate: z.object({
-    activity_id: parseIdValidation,
     grade: evaluateGradeValidation,
     comment: evaluateCommentValidation.optional(),
   }),

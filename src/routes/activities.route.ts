@@ -31,7 +31,7 @@ router.delete(
 
 // ====================  MEMBER ROUTES ========================
 router.post(
-  "/evaluate",
+  "/evaluate/:id",
   checkRoles(["admin", "member"]),
   activitiesController.evaluateActivity
 );

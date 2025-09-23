@@ -172,6 +172,69 @@
  *         description: Erreur serveur
  */
 
+/************************ MEMBER ROUTES ************************/
+
+/**
+ * @openapi
+ * /api/activities/evaluate:
+ *   post:
+ *     tags:
+ *       - Activities
+ *     summary: Évalue une activité (membre/admin uniquement)
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - activity_id
+ *               - grade
+ *             properties:
+ *               activity_id:
+ *                 type: integer
+ *               grade:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 5
+ *               comment:
+ *                 type: string
+ *     responses:
+ *       '200':
+ *         description: Activité créée
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 grade:
+ *                   type: integer
+ *                 comment:
+ *                   type: string
+ *                 user_id:
+ *                   type: integer
+ *                 activity_id:
+ *                   type: integer
+ *                 created_at:
+ *                   type: string
+ *                   format: date-time
+ *                 updated_at:
+ *                   type: string
+ *                   format: date-time
+ *       '401':
+ *         description: Non authentifié
+ *       '403':
+ *         description: Accès interdit (rôle admin/membre requis)
+ *       '404':
+ *         description: Activité non trouvée
+ *       '409':
+ *         description: Activité déjà évaluée par cet utilisateur
+ *       '500':
+ *         description: Erreur serveur
+ */
+
 /************************ ADMIN ROUTES ************************/
 
 /**

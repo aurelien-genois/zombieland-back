@@ -40,6 +40,8 @@ model User {
 
   tokens     Token[]
 
+  userRateActivities UserRateActivity[] // Alias
+
   @@index([firstname])
   @@index([lastname])
   
@@ -87,10 +89,18 @@ model Activity {
   category Category @relation(fields: [category_id], references: [id]) // Alias
   category_id Int
 
+  userRateActivities UserRateActivity[] // Alias
+
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
 
-  @@map("activity") 
+  @@index([name])
+  @@index([category_id])
+  @@index([minimum_age])
+  @@index([disabled_access])
+  @@index([high_intensity])
+
+  @@map("activity")
 }
 
 model Category {
@@ -105,4 +115,21 @@ model Category {
   activities Activity[] // Alias
 
   @@map("category") 
+}
+
+model UserRateActivity {
+  grade Int
+  comment String?
+
+  user User @relation(fields: [user_id], references: [id]) // Alias
+  user_id Int
+
+  activity Activity @relation(fields: [activity_id], references: [id]) // Alias
+  activity_id Int
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@id(name: "user_rate_activity_pkey", fields: [user_id, activity_id])
+  @@map("user_rate_activity")
 }

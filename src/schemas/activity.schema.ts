@@ -22,7 +22,7 @@ const activitySloganValidation = z
     error: (iss) =>
       iss.input === undefined ? undefined : "Slogan must be a string",
   })
-  .min(5, "Name must have at least 5 characters");
+  .min(5, "Slogan must have at least 5 characters");
 
 const activityAgeGroupValidation = z.coerce
   .number({
@@ -45,6 +45,23 @@ const activityImageUrlValidation = z
       iss.input === undefined ? undefined : "Image url must be a string",
   })
   .min(5, "Name must have at least 5 characters");
+
+const evaluateGradeValidation = z.coerce
+  .number({
+    error: (iss) =>
+      iss.input === undefined ? "Rate is required" : "Rate must be a number",
+  })
+  .positive("Rate must be positive")
+  .int("Rate must be an integer")
+  .min(1, "Rate must be between 1 and 5")
+  .max(5, "Rate must be between 1 and 5");
+
+const evaluateCommentValidation = z
+  .string({
+    error: (iss) =>
+      iss.input === undefined ? undefined : "Comment must be a string",
+  })
+  .min(2, "Comment must have at least 2 characters");
 
 // TODO rework "z.coerce.boolean()" to accept both "false" and false values
 // ("false" is actually coerced to true as a string)
@@ -102,5 +119,10 @@ export const activitySchema = {
       .transform((val) => val.trim()) // Remove leading/trailing spaces
       .optional(),
     status: z.enum(["draft", "published"]).optional(),
+  }),
+  evaluate: z.object({
+    activity_id: parseIdValidation,
+    grade: evaluateGradeValidation,
+    comment: evaluateCommentValidation.optional(),
   }),
 };

@@ -211,6 +211,51 @@ const activitiesController = {
     await prisma.activity.delete({ where: { id: activityId } });
     res.status(204).json();
   },
+
+  async evaluateActivity(req: Request, res: Response) {
+    if (!req.userId) {
+      throw new UnauthorizedError("Unauthorized");
+    }
+    const data = await activitySchema.evaluate.parseAsync(req.body);
+
+    const { activity_id, grade, comment } = data;
+
+    const activity = await prisma.activity.findUnique({
+      where: { id: activity_id },
+    });
+
+    if (!activity) {
+      throw new NotFoundError("Activity not found");
+    }
+
+    // check if the user already evaluated this activity
+    const existingUserRateActivity = await prisma.userRateActivity.findUnique({
+      where: {
+        activity_id: activity_id,
+        user_id: req.userId,
+        user_rate_activity_pkey: {
+          activity_id: activity_id,
+          user_id: req.userId,
+        },
+      },
+    });
+
+    // ? authorize user to update his rate instead of blocking ?
+    if (existingUserRateActivity) {
+      throw new ConflictError("User already rates this activity");
+    }
+
+    const rate = await prisma.userRateActivity.create({
+      data: {
+        activity_id: activity_id,
+        user_id: req.userId,
+        grade: grade,
+        ...(comment && { comment: comment }),
+      },
+    });
+
+    res.status(201).json(rate);
+  },
 };
 
 export default activitiesController;

@@ -90,7 +90,13 @@ model Activity {
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
 
-  @@map("activity") 
+  @@index([name])
+  @@index([category_id])
+  @@index([minimum_age])
+  @@index([disabled_access])
+  @@index([high_intensity])
+
+  @@map("activity")
 }
 
 model Category {

@@ -225,7 +225,7 @@ const activitiesController = {
     });
 
     if (!activity) {
-      throw new ConflictError("Activity not found");
+      throw new NotFoundError("Activity not found");
     }
 
     // check if the user already evaluated this activity

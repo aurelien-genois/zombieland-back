@@ -206,7 +206,7 @@
  *                 type: string
  *     responses:
  *       '200':
- *         description: Activité créée
+ *         description: Activité évaluée avec succès
  *         content:
  *           application/json:
  *             schema:
@@ -464,7 +464,7 @@
  *                 type: boolean
  *     responses:
  *       '200':
- *         description: Activité créée
+ *         description: Activité créée avec succès
  *         content:
  *           application/json:
  *             schema:
@@ -556,7 +556,7 @@
  *                 type: boolean
  *     responses:
  *       '200':
- *         description: Activité mise à jour
+ *         description: Activité mise à jour avec succès
  *         content:
  *           application/json:
  *             schema:
@@ -623,6 +623,71 @@
  *         description: Accès interdit (rôle admin requis)
  *       '404':
  *         description: Activité non trouvée
+ *       '500':
+ *         description: Erreur serveur
+ */
+
+/**
+ * @openapi
+ * /api/activities/{id}/publish:
+ *   patch:
+ *     tags:
+ *       - Activities
+ *     summary: Publie une activité (admin uniquement)
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       '200':
+ *         description: Activité publiée avec succès
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 id:
+ *                   type: integer
+ *                 name:
+ *                   type: string
+ *                 slug:
+ *                   type: string
+ *                 slogan:
+ *                   type: string
+ *                 description:
+ *                   type: string
+ *                 minimum_age:
+ *                   type: integer
+ *                 duration:
+ *                   type: string
+ *                 disabled_access:
+ *                   type: boolean
+ *                 high_intensity:
+ *                   type: boolean
+ *                 status:
+ *                   type: string
+ *                 image_url:
+ *                   type: string
+ *                 category_id:
+ *                   type: integer
+ *                 created_at:
+ *                   type: string
+ *                   format: date-time
+ *                 updated_at:
+ *                   type: string
+ *                   format: date-time
+ *       '401':
+ *         description: Non authentifié
+ *       '403':
+ *         description: Accès interdit (rôle admin requis)
+ *       '404':
+ *         description: Activité non trouvée
+ *       '409':
+ *         description: Catégorie sélectionnée inexistante
  *       '500':
  *         description: Erreur serveur
  */

@@ -213,22 +213,20 @@ const activitiesController = {
   },
 
   async evaluateActivity(req: Request, res: Response) {
-    const activityId = await parseIdValidation.parseAsync(req.params.id);
-
     if (!req.userId) {
       throw new UnauthorizedError("Unauthorized");
     }
-    const data = await activitySchema.evaluate.parseAsync(req.body);
 
-    const { grade, comment } = data;
-
+    const activityId = await parseIdValidation.parseAsync(req.params.id);
     const activity = await prisma.activity.findUnique({
       where: { id: activityId },
     });
-
     if (!activity) {
       throw new NotFoundError("Activity not found");
     }
+
+    const data = await activitySchema.evaluate.parseAsync(req.body);
+    const { grade, comment } = data;
 
     // check if the user already evaluated this activity
     const existingUserRateActivity = await prisma.userRateActivity.findUnique({
@@ -257,6 +255,27 @@ const activitiesController = {
     });
 
     res.status(201).json(rate);
+  },
+
+  async publishActivity(req: Request, res: Response) {
+    const activityId = await parseIdValidation.parseAsync(req.params.id);
+    const activity = await prisma.activity.findUnique({
+      where: { id: activityId },
+    });
+    if (!activity) {
+      throw new NotFoundError("Activity not found");
+    } else if (activity.status === "published") {
+      throw new ConflictError("Activity is already published");
+    }
+
+    const activityUpdated = await prisma.activity.update({
+      where: { id: activityId },
+      data: {
+        status: "published",
+      },
+    });
+
+    res.status(200).json(activityUpdated);
   },
 };
 

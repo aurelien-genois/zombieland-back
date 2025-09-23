@@ -29,6 +29,12 @@ router.delete(
   activitiesController.deleteActivity
 );
 
+router.patch(
+  "/:id/publish",
+  checkRoles(["admin"]),
+  activitiesController.publishActivity
+);
+
 // ====================  MEMBER ROUTES ========================
 router.post(
   "/:id/evaluate",

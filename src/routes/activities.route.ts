@@ -29,6 +29,13 @@ router.delete(
   activitiesController.deleteActivity
 );
 
+// ====================  MEMBER ROUTES ========================
+router.post(
+  "/evaluate",
+  checkRoles(["admin", "member"]),
+  activitiesController.evaluateActivity
+);
+
 // ====================  PUBLIC ROUTES ========================
 router.get(
   "/",

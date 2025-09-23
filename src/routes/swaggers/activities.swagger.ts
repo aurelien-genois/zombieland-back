@@ -176,7 +176,7 @@
 
 /**
  * @openapi
- * /api/activities/evaluate/{id}:
+ * /api/activities/{id}/evaluate:
  *   post:
  *     tags:
  *       - Activities

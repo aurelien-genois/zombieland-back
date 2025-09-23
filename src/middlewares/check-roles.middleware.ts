@@ -3,6 +3,7 @@ import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
 import { config } from "../configs/server.config.js";
+import { UnauthorizedError } from "../lib/errors.js";
 
 export function checkRoles(roles: RoleName[], optional = false) {
   return (req: Request, res: Response, next: NextFunction) => {
@@ -24,7 +25,7 @@ function extractAccessToken(req: Request): string {
   if (typeof req.headers?.authorization === "string") {
     return req.headers.authorization.split(" ")[1];
   }
-  throw new Error("Access Token not provided");
+  throw new UnauthorizedError("Access Token not provided");
 }
 
 function verifyAndDecodeJWT(accessToken: string): JwtPayload {

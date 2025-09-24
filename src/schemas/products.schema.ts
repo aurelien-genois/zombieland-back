@@ -21,11 +21,18 @@ const productPriceValidation = z.coerce
 export const productSchema = {
   create: z.object({
     name: productNameValidation,
-    price: productPriceValidation
+    price: productPriceValidation,
+    status: z.enum(["draft", "published"])
   }),
   update: z.object({
     name: productNameValidation.optional(),
-    price: productPriceValidation.optional()
+    price: productPriceValidation.optional(),
+    status: z.enum(["draft", "published"]).optional()
+  }),
+  filter: z.object({
+    name: productNameValidation.optional(),
+    price: productPriceValidation.optional(),
+    status: z.enum(["draft", "published"]).optional()
   })
 };
 

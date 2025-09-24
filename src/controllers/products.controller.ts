@@ -3,14 +3,23 @@ import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
 import { parseIdValidation } from "../schemas/utils.schema.js";
 import { productSchema } from "../schemas/products.schema.js";
-
+import { NotFoundError } from "../lib/errors.js";
 
 const productsController = {
-  async getAllProducts(req: Request, res: Response) {
-    try {
-      const products = await prisma.product.findMany();
+  async getAllProductsByPublished(
+    req: Request,
+    res: Response
+  ) {
+    const products = await prisma.product.findMany({where: {status: "published"}})
       res.status(200).json(products);
-    }
+  },
+
+  async getAllProducts(
+    req: Request,
+    res: Response
+  ) {
+    const products = await prisma.product.findMany()
+      res.status(200).json(products);
   },
 
   async getProduct(req: Request, res: Response) {
@@ -19,6 +28,21 @@ const productsController = {
     const product = await prisma.product.findUnique({
       where: { id: productId }
     })
+    res.status(200).json(product);
+  },
+
+  async getProductByPublished(req: Request, res: Response) {
+    const productId = await parseIdValidation.parseAsync(req.params.id);
+    
+    const product = await prisma.product.findUnique({
+  
+      where: { id: productId, status: "published"}
+    })
+
+    if (!product) {
+      throw new NotFoundError("Product is not found");
+    }
+    
     res.status(200).json(product);
   },
 

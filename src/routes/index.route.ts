@@ -6,6 +6,7 @@ import products from "./products.route.js";
 import health from "./health.route.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./swaggers/index.js";
+import act from "./act.route.js";
 
 export const router = Router();
 
@@ -26,4 +27,7 @@ router.use("/auth", auth);
 router.use("/activities", activities);
 
 // --------------------  Products  ----------------------
-router.use("/products", products)
+router.use("/products", products);
+
+// --------------------  Act  ----------------------
+router.use("/act", act);

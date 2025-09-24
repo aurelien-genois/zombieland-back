@@ -14,7 +14,7 @@ router.get('/:id', checkRoles(["admin"]), productsController.getProduct);
 
 router.post('/', checkRoles(["admin"]), productsController.createProduct);
 
-router.patch('/:id', productsController.updateProduct);
+router.patch("/:id", productsController.updateProduct);
 
 router.delete('/:id', checkRoles(["admin"]), productsController.deleteProduct);
 

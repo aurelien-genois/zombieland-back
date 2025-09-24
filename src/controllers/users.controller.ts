@@ -10,7 +10,7 @@ import { usersSchema } from "../schemas/users.schema.js";
 import bcrypt from "bcrypt";
 import { querySchema } from "../schemas/query.schema.js";
 
-const usersController = {
+export const usersController = {
   // ====================  MEMBER CONTROLLER ========================
 
   // --------------------  Get My Account ------------------------
@@ -237,5 +237,3 @@ const usersController = {
     res.status(204).send();
   },
 };
-
-export default usersController;

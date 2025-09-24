@@ -2,242 +2,280 @@ import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
 import { activitySchema } from "../schemas/activity.schema.js";
 import {
+  ConflictError,
+  NotFoundError,
+  UnauthorizedError,
+} from "../lib/errors.js";
+import {
   parseSlugValidation,
   parseIdValidation,
 } from "../schemas/utils.schema.js";
-import * as z from "zod";
 
 const activitiesController = {
-  async getAllActivities(req: Request, res: Response) {
-    try {
-      const {
-        category,
-        age_group,
-        high_intensity,
-        disabled_access,
-        limit,
-        page,
-        order,
-        search,
-        status,
-      } = await activitySchema.filter.parseAsync(req.query);
+  // first argument is used when binding the function for the get "activities/" route to pass the required "published" status filter
+  // with this binding, no need to duplicate the function code to a "getAllPublishedActivities" function
+  async getAllActivities(
+    args: { status?: "draft" | "published" } = {},
+    req: Request,
+    res: Response
+  ) {
+    const {
+      category,
+      age_group,
+      high_intensity,
+      disabled_access,
+      limit,
+      page,
+      order,
+      search,
+      status,
+    } = await activitySchema.filter.parseAsync(req.query);
 
-      // if user not logged or not admin, filter on status "published"
-      // (only admin can access draft activities)
-      const userRole = req.userRole as string | undefined;
-      const statusFilter =
-        status === undefined && userRole !== "admin" ? "published" : status;
+    // if the route provides a status, force the filter with this status
+    const statusFilter = args.status !== undefined ? args.status : status;
 
-      const activities = await prisma.activity.findMany({
-        where: {
-          ...(category && { category_id: category }),
-          ...(age_group && { minimum_age: age_group }),
-          ...(high_intensity !== undefined && { high_intensity }),
-          ...(disabled_access !== undefined && { disabled_access }),
-          ...(statusFilter !== undefined && { status: statusFilter }),
-          ...(search !== undefined && {
-            OR: [
-              { name: { contains: search, mode: "insensitive" } },
-              { slogan: { contains: search, mode: "insensitive" } },
-              { description: { contains: search, mode: "insensitive" } },
-            ],
-          }),
-        },
-        skip: (page - 1) * limit,
-        take: limit,
-        orderBy: [
-          order === "name:asc" ? { name: "asc" } : {},
-          order === "name:desc" ? { name: "desc" } : {},
-        ],
-      });
-      res.status(200).json({ activities });
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        res.status(400).json({ error: error.issues[0].message });
-      }
-      console.error("Error fetching activities:", error);
-      res.status(500).json({ error: "Internal server error" });
+    // only admin users can access draft activities (should not be possible but just in case)
+    const userRole = req.userRole as string | undefined;
+    if (userRole !== "admin" && statusFilter === "draft") {
+      throw new UnauthorizedError("Unauthorized");
     }
+
+    const activities = await prisma.activity.findMany({
+      where: {
+        ...(category && { category_id: category }),
+        ...(age_group && { minimum_age: age_group }),
+        ...(high_intensity !== undefined && { high_intensity }),
+        ...(disabled_access !== undefined && { disabled_access }),
+        ...(statusFilter !== undefined && { status: statusFilter }),
+        ...(search !== undefined && {
+          OR: [
+            { name: { contains: search, mode: "insensitive" } },
+            { slogan: { contains: search, mode: "insensitive" } },
+            { description: { contains: search, mode: "insensitive" } },
+          ],
+        }),
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: [
+        order === "name:asc" ? { name: "asc" } : {},
+        order === "name:desc" ? { name: "desc" } : {},
+      ],
+    });
+    res.status(200).json(activities);
   },
 
-  async getOneActivity(req: Request, res: Response) {
-    try {
-      const activitySlug = await parseSlugValidation.parseAsync(
-        req.params.slug
-      );
+  async getOneActivity(
+    args: { status?: "draft" | "published" } = {},
+    req: Request,
+    res: Response
+  ) {
+    const activitySlug = await parseSlugValidation.parseAsync(req.params.slug);
 
-      // if user not logged or not admin, filter on status "published"
-      // (only admin can access draft activities)
-      const userRole = req.userRole as string | undefined;
+    const activity = await prisma.activity.findUnique({
+      where: {
+        slug: activitySlug,
+        // if the route provides a status, force the filter with this status
+        ...(args.status !== undefined && { status: args.status }),
+      },
+    });
 
-      const activity = await prisma.activity.findUnique({
-        where: {
-          slug: activitySlug,
-          ...(userRole !== "admin" && { status: "published" }),
-        },
-      });
-
-      if (!activity) {
-        return res.status(404).json({ error: "Activity not found" });
-      }
-
-      res.status(200).json(activity);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        res.status(400).json({ error: error.issues[0].message });
-      }
-      console.error("Error fetching one activity:", error);
-      res.status(500).json({ error: "Internal server error" });
+    if (!activity) {
+      throw new NotFoundError("Activity not found");
     }
+
+    res.status(200).json(activity);
   },
 
   async createActivity(req: Request, res: Response) {
-    try {
-      const data = activitySchema.create.parse(req.body);
+    const data = activitySchema.create.parse(req.body);
 
-      const {
+    const {
+      name,
+      description,
+      age_group,
+      duration,
+      disabled_access,
+      high_intensity,
+      image_url,
+      category_id,
+      saved,
+    } = data;
+
+    // could replace accented characters with non-accented equivalents
+    const slug = name
+      .replace(/^\s+|\s+$/g, "") // trim leading/trailing white space
+      .replace(/\s+/g, "-") // replace spaces with hyphens
+      .replace(/-+/g, "-") // remove consecutive hyphens
+      .toLowerCase()
+      .replace(/[^a-z0-9 -]/g, ""); // remove any non-alphanumeric characters
+
+    // could check if an activity already exist with the same name
+    // either append slug with the number found ("slug-2"), either throw error to prevent creation
+
+    const activityWithSameSlug = await prisma.activity.findUnique({
+      where: { slug: slug },
+    });
+    if (activityWithSameSlug) {
+      throw new ConflictError("Activity already exists with same slug");
+    }
+
+    const foundCategory = await prisma.category.findUnique({
+      where: { id: category_id },
+    });
+    if (category_id && !foundCategory) {
+      throw new ConflictError("Selected category does not exist");
+    }
+
+    const activity = await prisma.activity.create({
+      data: {
         name,
-        description,
-        age_group,
-        duration,
+        slug,
+        ...(description && { description }),
+        minimum_age: age_group,
+        ...(duration && { duration }),
         disabled_access,
         high_intensity,
-        image_url,
+        ...(image_url && { image_url }),
         category_id,
-        saved,
-      } = data;
+        status: saved ? "published" : "draft",
+      },
+    });
 
-      // could replace accented characters with non-accented equivalents
-      const slug = name
-        .replace(/^\s+|\s+$/g, "") // trim leading/trailing white space
-        .replace(/\s+/g, "-") // replace spaces with hyphens
-        .replace(/-+/g, "-") // remove consecutive hyphens
-        .toLowerCase()
-        .replace(/[^a-z0-9 -]/g, ""); // remove any non-alphanumeric characters
-
-      // could check if an activity already exist with the same name
-      // either append slug with the number found ("slug-2"), either throw error to prevent creation
-
-      const activityWithSameSlug = await prisma.activity.findUnique({
-        where: { slug: slug },
-      });
-      if (activityWithSameSlug) {
-        return res
-          .status(500)
-          .json({ error: "Activity already exists with same slug" });
-      }
-
-      const foundCategory = await prisma.category.findUnique({
-        where: { id: category_id },
-      });
-      if (category_id && !foundCategory) {
-        return res.status(400).json({ error: "Category does not exist" });
-      }
-
-      const activity = await prisma.activity.create({
-        data: {
-          name,
-          slug,
-          ...(description && { description }),
-          minimum_age: age_group,
-          ...(duration && { duration }),
-          disabled_access,
-          high_intensity,
-          ...(image_url && { image_url }),
-          category_id,
-          status: saved ? "published" : "draft",
-        },
-      });
-
-      res.status(201).json(activity);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        res.status(400).json({ error: error.issues[0].message });
-      }
-      console.error("Error creating activity:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
+    res.status(201).json(activity);
   },
 
   async updateActivity(req: Request, res: Response) {
-    try {
-      const activityId = await parseIdValidation.parseAsync(req.params.id);
+    const activityId = await parseIdValidation.parseAsync(req.params.id);
 
-      const activity = await prisma.activity.findUnique({
-        where: { id: activityId },
-      });
+    const activity = await prisma.activity.findUnique({
+      where: { id: activityId },
+    });
 
-      if (!activity) {
-        return res.status(404).json({ error: "Activity not found" });
-      }
+    if (!activity) {
+      throw new NotFoundError("Activity not found");
+    }
 
-      const data = await activitySchema.update.parseAsync(req.body);
+    const data = await activitySchema.update.parseAsync(req.body);
 
-      const {
-        name,
-        description,
-        age_group,
-        duration,
-        disabled_access,
-        high_intensity,
-        image_url,
-        category_id,
-        saved,
-      } = data;
+    const {
+      name,
+      description,
+      age_group,
+      duration,
+      disabled_access,
+      high_intensity,
+      image_url,
+      category_id,
+      saved,
+    } = data;
 
+    if (category_id) {
       const foundCategory = await prisma.category.findUnique({
         where: { id: category_id },
       });
-      if (category_id && !foundCategory) {
-        return res.status(400).json({ error: "Category does not exist" });
+      if (!foundCategory) {
+        throw new ConflictError("Selected category does not exist");
       }
-
-      const activityUpdated = await prisma.activity.update({
-        where: { id: activityId },
-        data: {
-          ...(name && { name }),
-          ...(description && { description }),
-          ...(age_group && { minimum_age: age_group }),
-          ...(duration && { duration }),
-          ...(disabled_access !== undefined && { disabled_access }),
-          ...(high_intensity !== undefined && { high_intensity }),
-          ...(image_url && { image_url }),
-          ...(category_id && { category_id }),
-          ...(saved !== undefined && { status: saved ? "published" : "draft" }),
-        },
-      });
-
-      res.status(200).json(activityUpdated);
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        res.status(400).json({ error: error.issues[0].message });
-      }
-      console.error("Error update one activity:", error);
-      res.status(500).json({ error: "Internal server error" });
     }
+
+    const activityUpdated = await prisma.activity.update({
+      where: { id: activityId },
+      data: {
+        ...(name && { name }),
+        ...(description && { description }),
+        ...(age_group && { minimum_age: age_group }),
+        ...(duration && { duration }),
+        ...(disabled_access !== undefined && { disabled_access }),
+        ...(high_intensity !== undefined && { high_intensity }),
+        ...(image_url && { image_url }),
+        ...(category_id && { category_id }),
+        ...(saved !== undefined && { status: saved ? "published" : "draft" }),
+      },
+    });
+
+    res.status(200).json(activityUpdated);
   },
 
   async deleteActivity(req: Request, res: Response) {
-    try {
-      const activityId = await parseIdValidation.parseAsync(req.params.id);
+    const activityId = await parseIdValidation.parseAsync(req.params.id);
 
-      const activity = await prisma.activity.findUnique({
-        where: { id: activityId },
-      });
+    const activity = await prisma.activity.findUnique({
+      where: { id: activityId },
+    });
 
-      if (!activity) {
-        return res.status(404).json({ error: "Activity not found" });
-      }
-
-      await prisma.activity.delete({ where: { id: activityId } });
-      res.status(204).json();
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        res.status(400).json({ error: error.issues[0].message });
-      }
-      console.error("Error delete one activity:", error);
-      res.status(500).json({ error: "Internal server error" });
+    if (!activity) {
+      throw new ConflictError("Activity not found");
     }
+
+    await prisma.activity.delete({ where: { id: activityId } });
+    res.status(204).json();
+  },
+
+  async evaluateActivity(req: Request, res: Response) {
+    if (!req.userId) {
+      throw new UnauthorizedError("Unauthorized");
+    }
+
+    const activityId = await parseIdValidation.parseAsync(req.params.id);
+    const activity = await prisma.activity.findUnique({
+      where: { id: activityId },
+    });
+    if (!activity) {
+      throw new NotFoundError("Activity not found");
+    }
+
+    const data = await activitySchema.evaluate.parseAsync(req.body);
+    const { grade, comment } = data;
+
+    // check if the user already evaluated this activity
+    const existingUserRateActivity = await prisma.userRateActivity.findUnique({
+      where: {
+        activity_id: activityId,
+        user_id: req.userId,
+        user_rate_activity_pkey: {
+          activity_id: activityId,
+          user_id: req.userId,
+        },
+      },
+    });
+
+    // ? authorize user to update his rate instead of blocking ?
+    if (existingUserRateActivity) {
+      throw new ConflictError("User already rates this activity");
+    }
+
+    const rate = await prisma.userRateActivity.create({
+      data: {
+        activity_id: activityId,
+        user_id: req.userId,
+        grade: grade,
+        ...(comment && { comment: comment }),
+      },
+    });
+
+    res.status(201).json(rate);
+  },
+
+  async publishActivity(req: Request, res: Response) {
+    const activityId = await parseIdValidation.parseAsync(req.params.id);
+    const activity = await prisma.activity.findUnique({
+      where: { id: activityId },
+    });
+    if (!activity) {
+      throw new NotFoundError("Activity not found");
+    } else if (activity.status === "published") {
+      throw new ConflictError("Activity is already published");
+    }
+
+    const activityUpdated = await prisma.activity.update({
+      where: { id: activityId },
+      data: {
+        status: "published",
+      },
+    });
+
+    res.status(200).json(activityUpdated);
   },
 };
 

@@ -22,8 +22,7 @@ const activitySloganValidation = z
     error: (iss) =>
       iss.input === undefined ? undefined : "Slogan must be a string",
   })
-  .min(5, "Name must have at least 5 characters")
-  .optional();
+  .min(5, "Slogan must have at least 5 characters");
 
 const activityAgeGroupValidation = z.coerce
   .number({
@@ -35,20 +34,34 @@ const activityAgeGroupValidation = z.coerce
   .min(0, "Age must be between 0 and 3")
   .max(3, "Age must be between 0 and 3");
 
-const activityDurationValidation = z.coerce
-  .string({
-    error: (iss) =>
-      iss.input === undefined ? undefined : "Duration must be a string",
-  })
-  .optional();
+const activityDurationValidation = z.coerce.string({
+  error: (iss) =>
+    iss.input === undefined ? undefined : "Duration must be a string",
+});
 
 const activityImageUrlValidation = z
   .string({
     error: (iss) =>
       iss.input === undefined ? undefined : "Image url must be a string",
   })
-  .min(5, "Name must have at least 5 characters")
-  .optional();
+  .min(5, "Name must have at least 5 characters");
+
+const evaluateGradeValidation = z.coerce
+  .number({
+    error: (iss) =>
+      iss.input === undefined ? "Rate is required" : "Rate must be a number",
+  })
+  .positive("Rate must be positive")
+  .int("Rate must be an integer")
+  .min(1, "Rate must be between 1 and 5")
+  .max(5, "Rate must be between 1 and 5");
+
+const evaluateCommentValidation = z
+  .string({
+    error: (iss) =>
+      iss.input === undefined ? undefined : "Comment must be a string",
+  })
+  .min(2, "Comment must have at least 2 characters");
 
 // TODO rework "z.coerce.boolean()" to accept both "false" and false values
 // ("false" is actually coerced to true as a string)
@@ -56,25 +69,25 @@ const activityImageUrlValidation = z
 export const activitySchema = {
   create: z.object({
     name: activityNameValidation,
-    slogan: activitySloganValidation,
+    slogan: activitySloganValidation.optional(),
     description: activityDescriptionValidation,
     age_group: activityAgeGroupValidation,
-    duration: activityDurationValidation,
+    duration: activityDurationValidation.optional(),
     disabled_access: z.coerce.boolean().default(false),
     high_intensity: z.coerce.boolean().default(false),
-    image_url: activityImageUrlValidation,
+    image_url: activityImageUrlValidation.optional(),
     category_id: parseIdValidation,
     saved: z.coerce.boolean().default(false),
   }),
   update: z.object({
     name: activityNameValidation.optional(),
     description: activityDescriptionValidation.optional(),
-    slogan: activitySloganValidation,
+    slogan: activitySloganValidation.optional(),
     age_group: activityAgeGroupValidation.optional(),
-    duration: activityDurationValidation,
+    duration: activityDurationValidation.optional(),
     disabled_access: z.coerce.boolean().optional(),
     high_intensity: z.coerce.boolean().optional(),
-    image_url: activityImageUrlValidation,
+    image_url: activityImageUrlValidation.optional(),
     category_id: parseIdValidation.optional(),
     saved: z.coerce.boolean().optional(),
   }),
@@ -95,7 +108,7 @@ export const activitySchema = {
         if (val === undefined) return undefined;
         return val === "true";
       }),
-    limit: z.coerce.number().int().min(1).optional().default(20),
+    limit: z.coerce.number().int().min(1).max(100).optional().default(20),
     page: z.coerce.number().int().min(1).optional().default(1),
     order: z.enum(["name:asc", "name:desc"]).default("name:asc").optional(),
     search: z
@@ -106,5 +119,9 @@ export const activitySchema = {
       .transform((val) => val.trim()) // Remove leading/trailing spaces
       .optional(),
     status: z.enum(["draft", "published"]).optional(),
+  }),
+  evaluate: z.object({
+    grade: evaluateGradeValidation,
+    comment: evaluateCommentValidation.optional(),
   }),
 };

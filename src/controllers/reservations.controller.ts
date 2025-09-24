@@ -81,9 +81,29 @@ const reservationsController = {
         },
       },
     });
+    const ordersWithTotals = orders.map((order) => {
+      const lines = order.order_lines.map((line) => {
+        const unit = line.selling_price;
+        
+        const lineTotal = +(unit * line.quantity).toFixed(2); 
     
+        return {
+          ...line,
+          computed_line_total_price: lineTotal,
+        };
+      });
     
-    res.status(200).json(orders);
+      const orderTotal = +lines
+        .reduce((sum, line) => sum + line.computed_line_total_price, 0)
+        .toFixed(2);
+    
+      return {
+        ...order,
+        order_lines: lines,
+        computed_order_total_price: orderTotal,
+      };
+    });
+    res.status(200).json(ordersWithTotals);
   },
 };
 

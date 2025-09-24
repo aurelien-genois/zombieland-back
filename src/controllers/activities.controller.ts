@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
+import { Prisma } from "@prisma/client";
 import { activitySchema } from "../schemas/activity.schema.js";
 import {
   ConflictError,
@@ -40,21 +41,32 @@ const activitiesController = {
       throw new UnauthorizedError("Unauthorized");
     }
 
+    const whereClause = {
+      ...(category && { category_id: category }),
+      ...(age_group && { minimum_age: age_group }),
+      ...(high_intensity !== undefined && { high_intensity }),
+      ...(disabled_access !== undefined && { disabled_access }),
+      ...(statusFilter !== undefined && { status: statusFilter }),
+      ...(search !== undefined && {
+        OR: [
+          { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
+          { slogan: { contains: search, mode: Prisma.QueryMode.insensitive } },
+          {
+            description: {
+              contains: search,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+        ],
+      }),
+    };
+
+    const totalActivities = await prisma.activity.count({
+      where: whereClause,
+    });
+
     const activities = await prisma.activity.findMany({
-      where: {
-        ...(category && { category_id: category }),
-        ...(age_group && { minimum_age: age_group }),
-        ...(high_intensity !== undefined && { high_intensity }),
-        ...(disabled_access !== undefined && { disabled_access }),
-        ...(statusFilter !== undefined && { status: statusFilter }),
-        ...(search !== undefined && {
-          OR: [
-            { name: { contains: search, mode: "insensitive" } },
-            { slogan: { contains: search, mode: "insensitive" } },
-            { description: { contains: search, mode: "insensitive" } },
-          ],
-        }),
-      },
+      where: whereClause,
       skip: (page - 1) * limit,
       take: limit,
       orderBy: [
@@ -62,7 +74,10 @@ const activitiesController = {
         order === "name:desc" ? { name: "desc" } : {},
       ],
     });
-    res.status(200).json(activities);
+    res.status(200).json({
+      activities,
+      totalActivities,
+    });
   },
 
   async getOneActivity(

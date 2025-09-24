@@ -7,15 +7,26 @@ import {
 
 // ================================== VALIDATIONS =================================
 
-const limitValidation = z.coerce.number().int().min(1).max(100).default(20);
+export const limitValidation = z.coerce
+  .number()
+  .int()
+  .min(1)
+  .max(100)
+  .default(20);
 
-const pageValidation = z.coerce.number().int().min(1).default(1);
+export const offsetValidation = z.coerce.number().int().min(0).default(0);
 
-const orderValidationUser = z
+export const directionValidation = z.enum(["asc", "desc"]).default("asc");
+
+export const orderByValidation = z.string().optional();
+
+export const pageValidation = z.coerce.number().int().min(1).default(1);
+
+export const orderValidationUser = z
   .enum(["created_at:asc", "created_at:desc", "lastname:asc", "lastname:desc"])
   .default("created_at:desc");
 
-const qValidation = z.string().optional();
+export const qValidation = z.string().optional();
 
 // ================================== SCHEMAS =================================
 

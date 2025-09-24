@@ -1,16 +1,21 @@
 import { Router } from "express";
 import productsController from "../controllers/products.controller.js";
+import { checkRoles } from "../middlewares/check-roles.middleware.js";
 
 const router = Router();
 
-router.get("/", productsController.getAllProducts);
+router.get('/', checkRoles(["admin"]), productsController.getAllProducts);
 
-router.get("/:id", productsController.getProduct);
+router.get('/published', checkRoles(["member", "admin"]), productsController.getAllProductsByPublished);
 
-router.post("/", productsController.createProduct);
+router.get('/published/:id', checkRoles(["member", "admin"]), productsController.getProductByPublished);
+
+router.get('/:id', checkRoles(["admin"]), productsController.getProduct);
+
+router.post('/', checkRoles(["admin"]), productsController.createProduct);
 
 router.patch("/:id", productsController.updateProduct);
 
-router.delete("/:id", productsController.deleteProduct);
+router.delete('/:id', checkRoles(["admin"]), productsController.deleteProduct);
 
 export default router;

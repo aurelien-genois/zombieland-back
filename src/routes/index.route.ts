@@ -7,6 +7,7 @@ import health from "./health.route.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./swaggers/index.js";
 import act from "./act.route.js";
+import reservations from "./reservations.route.js";
 
 export const router = Router();
 
@@ -31,3 +32,7 @@ router.use("/products", products);
 
 // --------------------  Act  ----------------------
 router.use("/act", act);
+
+// --------------------  Reservations ------------------------
+//   Order 
+router.use("/orders", reservations);

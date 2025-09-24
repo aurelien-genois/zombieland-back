@@ -134,11 +134,17 @@ model UserRateActivity {
   @@map("user_rate_activity")
 }
 
+enum ProductStatus {
+  published
+  draft
+}
+
 model Product {
   id Int @id @default(autoincrement())
 
   name String @unique
   price Float
+  status ProductStatus @default(draft)
   
   created_at DateTime @default(now())
   updated_at DateTime @default(now())

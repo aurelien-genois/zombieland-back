@@ -1,7 +1,4 @@
 import swaggerJSDoc from "swagger-jsdoc";
-import { config } from "../../configs/server.config.js";
-
-const PORT = config.server.port;
 
 const options = {
   definition: {
@@ -34,6 +31,10 @@ const options = {
       {
         name: "Users",
         description: "Gestion des utilisateurs",
+      },
+      {
+        name: "Activities",
+        description: "Gestion des activités",
       },
     ],
   },

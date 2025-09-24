@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
+import { Prisma } from "@prisma/client";
 import { orderSchema } from "../schemas/reservation.schema.js";
 import {UnauthorizedError,} from "../lib/errors.js";
 
@@ -27,34 +28,38 @@ const reservationsController = {
       order,
       search,
     } = await orderSchema.filter.parseAsync(req.query);
-
+    const whereClause: Prisma.OrderWhereInput = {
+      ...(status && { status }),
+      ...(user_id && { user_id }),
+      ...((visit_date_from || visit_date_to) && {
+        visit_date: {
+          ...(visit_date_from && { gte: visit_date_from }),
+          ...(visit_date_to && { lte: visit_date_to }),
+        },
+      }),
+      ...((order_date_from || order_date_to) && {
+        order_date: {
+          ...(order_date_from && { gte: order_date_from }),
+          ...(order_date_to && { lte: order_date_to }),
+        },
+      }),
+    
+      ...(payment_method && { payment_method }),
+    
+      ...(search && {
+        OR: [
+          { payment_method: { contains: search, mode: "insensitive" } },
+          { user: { email: { contains: search, mode: "insensitive" } } },
+          { user: { firstname: { contains: search, mode: "insensitive" } } },
+          { user: { lastname: { contains: search, mode: "insensitive" } } },
+        ],
+      }),
+    };
+    const totalOrders = await prisma.order.count({
+      where: whereClause,
+    });
     const orders = await prisma.order.findMany({
-      where: {
-        ...(status && { status }),
-        ...(user_id && { user_id }),
-        ...(visit_date_from && {
-          visit_date: { gte: visit_date_from },
-        }),
-        ...(visit_date_to && {
-          visit_date: { lte: visit_date_to },
-        }),
-        ...(order_date_from && {
-          order_date: { gte: order_date_from },
-        }),
-        ...(order_date_to && {
-          order_date: { lte: order_date_to },
-        }),
-        ...(payment_method && { payment_method }),
-        
-        ...(search && {
-          OR: [
-            { payment_method: { contains: search, mode: "insensitive" } },
-            { user: { email: { contains: search, mode: "insensitive" } } },
-            { user: { firstname: { contains: search, mode: "insensitive" } } },
-            { user: { lastname: { contains: search, mode: "insensitive" } } },
-          ],
-        }),
-      },
+      where: whereClause,
       skip: (page - 1) * limit,
       take: limit,
       orderBy: [
@@ -103,7 +108,7 @@ const reservationsController = {
         computed_order_total_price: orderTotal,
       };
     });
-    res.status(200).json(ordersWithTotals);
+    res.status(200).json({ordersWithTotals, totalOrders});
   },
 };
 

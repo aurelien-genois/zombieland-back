@@ -655,14 +655,17 @@ async function main() {
       {
         name: "Ticket Adulte",
         price: 29.90,
+        status: "published"
       },
       {
         name: "Ticket Enfant",
         price: 14.90,
+        status: "published"
       },
       {
         name: "Tarif Groupe",
         price: 159.90,
+        status: "draft",
       }
     ],
   });

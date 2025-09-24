@@ -44,7 +44,7 @@ export const sendForgotPasswordRequest = async (
     subject: "🔒 Réinitialisation de votre mot de passe",
     text: `Pour réinitialiser votre mot de passe, utilisez le code suivant : ${resetToken}`,
     html: `<p>Pour réinitialiser votre mot de passe, utilisez le code suivant : 
-   <a href="http://localhost:3020/api/auth/reset-password?token=${resetToken}">Cliquer ici</a></p>`,
+   <a href="http://localhost:5173/reset-password?token=${resetToken}">Cliquer ici</a></p>`,
   };
 
   return await emailTransporter.sendMail(emailResetPassword);

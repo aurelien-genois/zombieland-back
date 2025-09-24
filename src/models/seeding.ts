@@ -701,13 +701,13 @@ async function main() {
       order_lines: {
         create: [
           {
-            selling_price: 29.90,
+            current_price: 29.90,
             quantity: 1,
             ticket_code: generateTicketCode(1, 1),
             product_id: productIds[0], 
           },
           {
-            selling_price: 14.90,
+            current_price: 14.90,
             quantity: 2,
             ticket_code: generateTicketCode(1, 2),
             product_id: productIds[1], 
@@ -725,7 +725,7 @@ async function main() {
       order_lines: {
         create: [
           {
-            selling_price: 14.90,
+            current_price: 14.90,
             quantity: 1,
             ticket_code: generateTicketCode(2, 1),
             product_id: productIds[1],
@@ -743,19 +743,19 @@ async function main() {
       order_lines: {
         create: [
           {
-            selling_price: 29.90,
+            current_price: 29.90,
             quantity: 4,
             ticket_code: generateTicketCode(3, 1),
             product_id: productIds[0], 
           },
           {
-            selling_price: 14.90,
+            current_price: 14.90,
             quantity: 2,
             ticket_code: generateTicketCode(3, 2),
             product_id: productIds[1], 
           },
           {
-            selling_price: 159.90,
+            current_price: 159.90,
             quantity: 2,
             ticket_code: generateTicketCode(3, 3),
             product_id: productIds[2], 
@@ -773,7 +773,7 @@ async function main() {
       order_lines: {
         create: [
           {
-            selling_price: 29.90,
+            current_price: 29.90,
             quantity: 1,
             ticket_code: generateTicketCode(4, 1),
             product_id: productIds[0], 
@@ -791,13 +791,13 @@ async function main() {
       order_lines: {
         create: [
           {
-            selling_price: 29.90,
+            current_price: 29.90,
             quantity: 6,
             ticket_code: generateTicketCode(5, 1),
             product_id: productIds[0], 
           },
           {
-            selling_price: 14.90,
+            current_price: 14.90,
             quantity: 3,
             ticket_code: generateTicketCode(5, 2),
             product_id: productIds[1], 
@@ -815,7 +815,7 @@ async function main() {
       order_lines: {
         create: [
           {
-            selling_price: 29.90,
+            current_price: 29.90,
             quantity: 2,
             ticket_code: generateTicketCode(6, 1),
             product_id: productIds[0], 
@@ -833,13 +833,13 @@ async function main() {
       order_lines: {
         create: [
           {
-            selling_price: 14.90,
+            current_price: 14.90,
             quantity: 1,
             ticket_code: generateTicketCode(7, 1),
             product_id: productIds[1], 
           },
           {
-            selling_price: 159.90,
+            current_price: 159.90,
             quantity: 2,
             ticket_code: generateTicketCode(7, 2),
             product_id: productIds[2],
@@ -857,19 +857,19 @@ async function main() {
       order_lines: {
         create: [
           {
-            selling_price: 29.90,
+            current_price: 29.90,
             quantity: 8,
             ticket_code: generateTicketCode(8, 1),
             product_id: productIds[0], 
           },
           {
-            selling_price: 14.90,
+            current_price: 14.90,
             quantity: 4,
             ticket_code: generateTicketCode(8, 2),
             product_id: productIds[1], 
           },
           {
-            selling_price: 159.90,
+            current_price: 159.90,
             quantity: 4,
             ticket_code: generateTicketCode(8, 3),
             product_id: productIds[2], 

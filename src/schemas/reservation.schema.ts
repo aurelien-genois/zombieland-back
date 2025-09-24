@@ -33,14 +33,16 @@ const orderLineQuantityValidation = z.coerce
   .min(1, "Quantity must be at least 1")
   .max(20, "Quantity cannot exceed 20 tickets per line");
 
-const orderLineSellingPriceValidation = z.coerce
+  const orderLineCurrentPriceValidation = z.coerce
   .number({
     error: (iss) =>
       iss.input === undefined
         ? "Price is required"
-        : "Price must be a number"
+        : "Price must be a number",
   })
   .positive("Price must be positive")
+  .multipleOf(0.01, "Price must have maximum 2 decimal places")
+  .min(0.01, "Price must be at least 0.01");
 
 const orderLineTicketCodeValidation = z
   .string()
@@ -53,7 +55,7 @@ const orderLineTicketCodeValidation = z
 export const orderLineSchema = {
   // Create
   create: z.object({
-    selling_price: orderLineSellingPriceValidation,
+    current_price: orderLineCurrentPriceValidation,
     quantity: orderLineQuantityValidation,
     ticket_code: orderLineTicketCodeValidation,
     product_id: parseIdValidation,
@@ -61,7 +63,7 @@ export const orderLineSchema = {
   }),
   // Update 
   update: z.object({
-    selling_price: orderLineSellingPriceValidation.optional(),
+    current_price: orderLineCurrentPriceValidation.optional(),
     quantity: orderLineQuantityValidation.optional(),
     ticket_code: orderLineTicketCodeValidation.optional(),
     product_id: parseIdValidation.optional(),

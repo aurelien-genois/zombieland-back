@@ -7,13 +7,17 @@ const router = Router();
 
 // ====================  ADMIN ROUTES ========================
 router.get(
-    "/all",
+    "/",
     checkRoles(["admin"]),
     reservationsController.getAllOrders
   );
 
 // ====================  MEMBER ROUTES ========================
-
+router.get(
+  "/user/:user_id",
+  checkRoles(["admin", "member"]),
+  reservationsController.getUserOrders
+);
 
 // ====================  PUBLIC ROUTES ========================
 

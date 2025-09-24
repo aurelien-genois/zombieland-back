@@ -106,3 +106,15 @@ model Category {
 
   @@map("category") 
 }
+
+model Product {
+  id Int @id @default(autoincrement())
+
+  name String @unique
+  price Float
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@map("product")
+}

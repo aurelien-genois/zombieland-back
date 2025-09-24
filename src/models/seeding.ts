@@ -6,6 +6,7 @@ async function main() {
   await prisma.role.deleteMany();
   await prisma.activity.deleteMany();
   await prisma.category.deleteMany();
+  await prisma.product.deleteMany();
 
   const adminRole = await prisma.role.create({
     data: { name: "admin" },
@@ -648,7 +649,28 @@ async function main() {
   });
 
   console.log("activities inserted !");
+
+  const product = await prisma.product.createMany({
+    data: [
+      {
+        name: "Ticket Adulte",
+        price: 29.90,
+      },
+      {
+        name: "Ticket Enfant",
+        price: 14.90,
+      },
+      {
+        name: "Tarif Groupe",
+        price: 159.90,
+      }
+    ],
+  });
+
+  console.log("products inserted !");
 }
+
+
 
 main()
   .catch(console.error)

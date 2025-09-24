@@ -2,6 +2,7 @@ import { Router } from "express";
 import users from "./users.route.js";
 import auth from "./auth.route.js";
 import activities from "./activities.route.js";
+import products from "./products.route.js";
 import health from "./health.route.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./swaggers/index.js";
@@ -23,3 +24,6 @@ router.use("/auth", auth);
 
 // --------------------  Activitie ------------------------
 router.use("/activities", activities);
+
+// --------------------  Products  ----------------------
+router.use("/products", products)

@@ -133,3 +133,15 @@ model UserRateActivity {
   @@id(name: "user_rate_activity_pkey", fields: [user_id, activity_id])
   @@map("user_rate_activity")
 }
+
+model Product {
+  id Int @id @default(autoincrement())
+
+  name String @unique
+  price Float
+  
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+  
+  @@map("product")
+}

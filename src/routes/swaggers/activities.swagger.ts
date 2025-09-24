@@ -73,40 +73,45 @@
  *         content:
  *           application/json:
  *             schema:
- *               type: array
- *               items:
- *                 type: object
- *                 properties:
- *                   id:
- *                     type: integer
- *                   name:
- *                     type: string
- *                   slug:
- *                     type: string
- *                   slogan:
- *                     type: string
- *                   description:
- *                     type: string
- *                   minimum_age:
- *                     type: integer
- *                   duration:
- *                     type: string
- *                   disabled_access:
- *                     type: boolean
- *                   high_intensity:
- *                     type: boolean
- *                   status:
- *                     type: string
- *                   image_url:
- *                     type: string
- *                   category_id:
- *                     type: integer
- *                   created_at:
- *                     type: string
- *                     format: date-time
- *                   updated_at:
- *                     type: string
- *                     format: date-time
+ *               type: object
+ *               properties:
+ *                 activities:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       name:
+ *                         type: string
+ *                       slug:
+ *                         type: string
+ *                       slogan:
+ *                         type: string
+ *                       description:
+ *                         type: string
+ *                       minimum_age:
+ *                         type: integer
+ *                       duration:
+ *                         type: string
+ *                       disabled_access:
+ *                         type: boolean
+ *                       high_intensity:
+ *                         type: boolean
+ *                       status:
+ *                         type: string
+ *                       image_url:
+ *                         type: string
+ *                       category_id:
+ *                         type: integer
+ *                       created_at:
+ *                         type: string
+ *                         format: date-time
+ *                       updated_at:
+ *                         type: string
+ *                         format: date-time
+ *                 totalActivities:
+ *                   type: number
  *       '404':
  *         description: Activité non trouvée
  *       '500':

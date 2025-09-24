@@ -1,12 +1,15 @@
 import { prisma } from "./index.js";
 
 async function main() {
+  await prisma.orderLine.deleteMany();
+  await prisma.order.deleteMany();
+  await prisma.product.deleteMany();
   await prisma.token.deleteMany();
-  await prisma.user.deleteMany();
-  await prisma.role.deleteMany();
+  await prisma.userRateActivity.deleteMany();
   await prisma.activity.deleteMany();
   await prisma.category.deleteMany();
-  await prisma.product.deleteMany();
+  await prisma.user.deleteMany();
+  await prisma.role.deleteMany();
 
   const adminRole = await prisma.role.create({
     data: { name: "admin" },
@@ -671,6 +674,242 @@ async function main() {
   });
 
   console.log("products inserted !");
+
+  // Orders & OrderLines
+  const users = await prisma.user.findMany();
+  const products = await prisma.product.findMany();
+  const productIds = products.map(p => p.id);
+  const generateTicketCode = (orderId, lineId )  => {
+    const code = `ZMB-${new Date().getFullYear()}-${String(orderId).padStart(4, '0')}-${String(lineId).padStart(2, '0')}`;
+    return code.toUpperCase();
+  };
+
+  // Fonction pour calculer une date de visite future
+  const getFutureDate = (dateForNow) => {
+    const date = new Date();
+    date.setDate(date.getDate() + dateForNow);
+    return date;
+  };
+  const orders = [
+    {
+      status: "confirmed",
+      order_date: new Date("2025-01-10T10:30:00"),
+      visit_date: getFutureDate(15),
+      vat: 5.50,
+      payment_method: "credit_card",
+      user_id: users[0].id,
+      order_lines: {
+        create: [
+          {
+            selling_price: 29.90,
+            quantity: 1,
+            ticket_code: generateTicketCode(1, 1),
+            product_id: productIds[0], 
+          },
+          {
+            selling_price: 14.90,
+            quantity: 2,
+            ticket_code: generateTicketCode(1, 2),
+            product_id: productIds[1], 
+          },
+        ],
+      },
+    },
+    {
+      status: "confirmed",
+      order_date: new Date("2025-01-12T14:20:00"),
+      visit_date: getFutureDate(7),
+      vat: 5.50,
+      payment_method: "paypal",
+      user_id: users[1].id,
+      order_lines: {
+        create: [
+          {
+            selling_price: 14.90,
+            quantity: 1,
+            ticket_code: generateTicketCode(2, 1),
+            product_id: productIds[1],
+          },
+        ],
+      },
+    },
+    {
+      status: "pending",
+      order_date: new Date("2025-01-15T09:00:00"),
+      visit_date: getFutureDate(30),
+      vat: 5.50,
+      payment_method: "credit_card",
+      user_id: users[2].id,
+      order_lines: {
+        create: [
+          {
+            selling_price: 29.90,
+            quantity: 4,
+            ticket_code: generateTicketCode(3, 1),
+            product_id: productIds[0], 
+          },
+          {
+            selling_price: 14.90,
+            quantity: 2,
+            ticket_code: generateTicketCode(3, 2),
+            product_id: productIds[1], 
+          },
+          {
+            selling_price: 159.90,
+            quantity: 2,
+            ticket_code: generateTicketCode(3, 3),
+            product_id: productIds[2], 
+          },
+        ],
+      },
+    },
+    {
+      status: "canceled",
+      order_date: new Date("2025-01-08T16:45:00"),
+      visit_date: new Date("2025-01-20"),
+      vat: 5.50,
+      payment_method: "bank_transfer",
+      user_id: users[3].id,
+      order_lines: {
+        create: [
+          {
+            selling_price: 29.90,
+            quantity: 1,
+            ticket_code: generateTicketCode(4, 1),
+            product_id: productIds[0], 
+          },
+        ],
+      },
+    },
+    {
+      status: "confirmed",
+      order_date: new Date("2025-01-14T11:30:00"),
+      visit_date: getFutureDate(45),
+      vat: 5.50,
+      payment_method: "credit_card",
+      user_id: users[0].id,
+      order_lines: {
+        create: [
+          {
+            selling_price: 29.90,
+            quantity: 6,
+            ticket_code: generateTicketCode(5, 1),
+            product_id: productIds[0], 
+          },
+          {
+            selling_price: 14.90,
+            quantity: 3,
+            ticket_code: generateTicketCode(5, 2),
+            product_id: productIds[1], 
+          },
+        ],
+      },
+    },
+    {
+      status: "refund",
+      order_date: new Date("2025-01-05T13:20:00"),
+      visit_date: new Date("2025-01-10"),
+      vat: 5.50,
+      payment_method: "paypal",
+      user_id: users[1].id,
+      order_lines: {
+        create: [
+          {
+            selling_price: 29.90,
+            quantity: 2,
+            ticket_code: generateTicketCode(6, 1),
+            product_id: productIds[0], 
+          },
+        ],
+      },
+    },
+    {
+      status: "pending",
+      order_date: new Date(),
+      visit_date: getFutureDate(5),
+      vat: 5.50,
+      payment_method: "credit_card", 
+      user_id: users[2].id,
+      order_lines: {
+        create: [
+          {
+            selling_price: 14.90,
+            quantity: 1,
+            ticket_code: generateTicketCode(7, 1),
+            product_id: productIds[1], 
+          },
+          {
+            selling_price: 159.90,
+            quantity: 2,
+            ticket_code: generateTicketCode(7, 2),
+            product_id: productIds[2],
+          },
+        ],
+      },
+    },
+    {
+      status: "confirmed",
+      order_date: new Date("2025-01-13T10:00:00"),
+      visit_date: getFutureDate(60),
+      vat: 5.50,
+      payment_method: "credit_card",
+      user_id: users[3].id,
+      order_lines: {
+        create: [
+          {
+            selling_price: 29.90,
+            quantity: 8,
+            ticket_code: generateTicketCode(8, 1),
+            product_id: productIds[0], 
+          },
+          {
+            selling_price: 14.90,
+            quantity: 4,
+            ticket_code: generateTicketCode(8, 2),
+            product_id: productIds[1], 
+          },
+          {
+            selling_price: 159.90,
+            quantity: 4,
+            ticket_code: generateTicketCode(8, 3),
+            product_id: productIds[2], 
+          },
+        ],
+      },
+    },
+  ];
+
+  for (const orderData of orders) {
+    const order = await prisma.order.create({
+      data: orderData,
+      include: {
+        order_lines: true,
+      },
+    });
+  }
+
+  console.log(`${orders.length} orders created with their order lines!`);
+
+  //resume
+  const orderCount = await prisma.order.count();
+  const orderLineCount = await prisma.orderLine.count();
+  
+  console.log("=== Seeding Summary ===");
+  console.log(`Total orders: ${orderCount}`);
+  console.log(`Total order lines: ${orderLineCount}`);
+  console.log(`Orders by status:`);
+  
+  const statusCounts = await prisma.order.groupBy({
+    by: ['status'],
+    _count: {
+      status: true,
+    },
+  });
+  
+  statusCounts.forEach(item => {
+    console.log(`  - ${item.status}: ${item._count.status}`);
+  });
+  
 }
 
 

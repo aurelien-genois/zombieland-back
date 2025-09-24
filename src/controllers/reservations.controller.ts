@@ -1,0 +1,90 @@
+import type { Request, Response } from "express";
+import { prisma } from "../models/index.js";
+import { orderSchema } from "../schemas/reservation.schema.js";
+import {UnauthorizedError,} from "../lib/errors.js";
+
+const reservationsController = {
+  // GET All reservations + Pagination + Queries
+  async getAllOrders(
+    req: Request, 
+    res: Response
+  ) {
+    
+    const userRole = req.userRole as string | undefined;
+    if (userRole !== "admin") {
+      throw new UnauthorizedError("Unauthorized");
+    }
+    const {
+      status,
+      user_id,
+      visit_date_from,
+      visit_date_to,
+      order_date_from,
+      order_date_to,
+      payment_method,
+      limit,
+      page,
+      order,
+      search,
+    } = await orderSchema.filter.parseAsync(req.query);
+
+    const orders = await prisma.order.findMany({
+      where: {
+        ...(status && { status }),
+        ...(user_id && { user_id }),
+        ...(visit_date_from && {
+          visit_date: { gte: visit_date_from },
+        }),
+        ...(visit_date_to && {
+          visit_date: { lte: visit_date_to },
+        }),
+        ...(order_date_from && {
+          order_date: { gte: order_date_from },
+        }),
+        ...(order_date_to && {
+          order_date: { lte: order_date_to },
+        }),
+        ...(payment_method && { payment_method }),
+        
+        ...(search && {
+          OR: [
+            { payment_method: { contains: search, mode: "insensitive" } },
+            { user: { email: { contains: search, mode: "insensitive" } } },
+            { user: { firstname: { contains: search, mode: "insensitive" } } },
+            { user: { lastname: { contains: search, mode: "insensitive" } } },
+          ],
+        }),
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+      orderBy: [
+        order === "order_date:asc"   
+          ? { order_date: "asc" }  : order === "order_date:desc" 
+          ? { order_date: "desc" } : order === "visit_date:asc"   
+          ? { visit_date: "asc" }  : order === "visit_date:desc"  
+          ? { visit_date: "desc" } 
+          : { order_date: "desc" }
+      ],
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstname: true,
+            lastname: true,
+            email: true,
+          },
+        },
+        order_lines: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+    
+    
+    res.status(200).json(orders);
+  },
+};
+
+export default reservationsController;

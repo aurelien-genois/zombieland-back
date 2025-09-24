@@ -189,7 +189,7 @@ model Order {
 model OrderLine {
   id                Int      @id @default(autoincrement())
 
-  line_total_price  Int
+  selling_price     Float
   quantity          Int
   ticket_code       String
 

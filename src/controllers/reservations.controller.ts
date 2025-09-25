@@ -89,7 +89,7 @@ const reservationsController = {
     });
     const ordersWithTotals = orders.map((order) => {
       const lines = order.order_lines.map((line) => {
-        const unit = line.current_price;
+        const unit = line.unit_price;
         
         const lineTotal = +(unit * line.quantity).toFixed(2); 
     
@@ -161,7 +161,7 @@ const reservationsController = {
 
     const ordersWithTotals = orders.map((order) => {
       const lines = order.order_lines.map((line) => {
-        const unit = line.current_price;
+        const unit = line.unit_price;
         
         const lineTotal = +(unit * line.quantity).toFixed(2); 
     

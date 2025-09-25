@@ -19,6 +19,12 @@ router.get(
   reservationsController.getUserOrders
 );
 
+router.get(
+  "/:id",
+  checkRoles(["admin", "member"]),
+  reservationsController.getOneOrder
+);
+
 // ====================  PUBLIC ROUTES ========================
 
 

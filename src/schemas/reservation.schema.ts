@@ -25,6 +25,11 @@ const orderPaymentMethodValidation = z
   .string()
   .min(2, "Payment method must have at least 2 characters");
 
+const orderTicketCodeValidation = z
+  .string()
+  .min(6, "Ticket code must have at least 6 characters")
+  .regex(/^[A-Z0-9-]+$/, "Ticket code must contain only uppercase letters, numbers and hyphens");
+
 // OrderLine
 const orderLineQuantityValidation = z.coerce
   .number()
@@ -33,7 +38,7 @@ const orderLineQuantityValidation = z.coerce
   .min(1, "Quantity must be at least 1")
   .max(20, "Quantity cannot exceed 20 tickets per line");
 
-  const orderLineCurrentPriceValidation = z.coerce
+  const orderLineUnitPriceValidation = z.coerce
   .number({
     error: (iss) =>
       iss.input === undefined
@@ -44,10 +49,7 @@ const orderLineQuantityValidation = z.coerce
   .multipleOf(0.01, "Price must have maximum 2 decimal places")
   .min(0.01, "Price must be at least 0.01");
 
-const orderLineTicketCodeValidation = z
-  .string()
-  .min(6, "Ticket code must have at least 6 characters")
-  .regex(/^[A-Z0-9-]+$/, "Ticket code must contain only uppercase letters, numbers and hyphens");
+
 
 // ============== Schema =============== //
 
@@ -55,17 +57,15 @@ const orderLineTicketCodeValidation = z
 export const orderLineSchema = {
   // Create
   create: z.object({
-    current_price: orderLineCurrentPriceValidation,
+    unit_price: orderLineUnitPriceValidation,
     quantity: orderLineQuantityValidation,
-    ticket_code: orderLineTicketCodeValidation,
     product_id: parseIdValidation,
     order_id: parseIdValidation,
   }),
   // Update 
   update: z.object({
-    current_price: orderLineCurrentPriceValidation.optional(),
+    unit_price: orderLineUnitPriceValidation.optional(),
     quantity: orderLineQuantityValidation.optional(),
-    ticket_code: orderLineTicketCodeValidation.optional(),
     product_id: parseIdValidation.optional(),
   }),
 };
@@ -78,6 +78,7 @@ export const orderSchema = {
     vat: orderVatValidation.default(5.5),
     payment_method: orderPaymentMethodValidation,
     user_id: parseIdValidation,
+    ticket_code: orderTicketCodeValidation,
     order_lines: z.array(
       z.object({
         quantity: orderLineQuantityValidation,

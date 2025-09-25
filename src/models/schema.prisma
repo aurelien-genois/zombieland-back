@@ -176,12 +176,15 @@ model Order {
 
   order_lines     OrderLine[] 
 
+  ticket_code       String
+
   created_at      DateTime     @default(now())
   updated_at      DateTime     @updatedAt
   
   @@index([user_id])
   @@index([status])
   @@index([order_date])
+  @@index([ticket_code])
   @@index([visit_date])
   @@map("order")
 }
@@ -189,9 +192,9 @@ model Order {
 model OrderLine {
   id                Int      @id @default(autoincrement())
 
-  current_price     Float
+  unit_price     Float
   quantity          Int
-  ticket_code       String
+  
 
   product_id        Int
   product           Product  @relation(fields: [product_id], references: [id])
@@ -204,7 +207,6 @@ model OrderLine {
   
   @@index([order_id])
   @@index([product_id])
-  @@index([ticket_code])
   @@map("order_line")
 
   

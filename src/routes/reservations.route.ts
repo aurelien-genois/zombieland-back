@@ -25,6 +25,12 @@ router.get(
   reservationsController.getOneOrder
 );
 
+router.post(
+  "/",
+  checkRoles(["admin", "member"]),
+  reservationsController.createOrder
+);
+
 // ====================  PUBLIC ROUTES ========================
 
 

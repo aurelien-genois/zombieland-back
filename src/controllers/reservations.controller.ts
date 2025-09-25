@@ -2,8 +2,33 @@ import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
 import { Prisma } from "@prisma/client";
 import { orderSchema } from "../schemas/reservation.schema.js";
-import {NotFoundError, UnauthorizedError,} from "../lib/errors.js";
+import {BadRequestError, NotFoundError, UnauthorizedError,} from "../lib/errors.js";
 import { parseIdValidation } from "../schemas/utils.schema.js";
+
+function generateTicketCode() {
+  return `ZMB-${new Date().getFullYear()}-${Date.now()}-${Math.floor(Math.random()*1e6)}`
+    .toUpperCase();
+}
+
+function amountsFromLines(
+  lines: Array<{ unit_price: number; quantity: number }>,
+  vat: Prisma.Decimal | number
+) {
+  const subtotalD = lines.reduce(
+    (sum, line) => sum.plus(new Prisma.Decimal(line.unit_price).mul(line.quantity)),
+    new Prisma.Decimal(0)
+  );
+
+  const vatD = subtotalD.mul(vat).div(100);      // vat = 5.5 => 5.5%
+  const totalD = subtotalD.plus(vatD);
+
+  // arrondis à 2 décimales
+  const subtotal = +subtotalD.toDecimalPlaces(2).toString();
+  const vat_amount = +vatD.toDecimalPlaces(2).toString();
+  const total = +totalD.toDecimalPlaces(2).toString();
+
+  return { subtotal, vat_amount, total };
+}
 
 const reservationsController = {
   // GET All reservations + Pagination + Queries
@@ -237,7 +262,77 @@ const reservationsController = {
       order_lines: lines,
       total_order: orderTotal,
     });
-  }
+  },
+
+  async createOrder(req: Request, res: Response) {
+    if (!req.userId) {
+      throw new UnauthorizedError("Unauthorized - Must be logged in");
+    }
+    const { visit_date, vat, payment_method, order_lines } = await orderSchema.create.parseAsync(req.body);
+
+    // check if visit_date is on future
+    if (new Date(visit_date) <= new Date()) {
+      throw new BadRequestError("Visit date must be in the future");
+    }
+
+    // Vérify existing user
+    const user = await prisma.user.findUnique({
+      where: { id: req.userId },
+    });
+
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+
+    // préparer les lignes (si fournies) en figeant le prix courant
+    let createLines:
+    | { create: Array<{ product_id: number; quantity: number; unit_price: number }> }
+    | undefined;
+
+    if (order_lines && order_lines.length > 0) {
+      const ids = order_lines.map(line => line.product_id);
+      const products = await prisma.product.findMany({ where: { id: { in: ids } } });
+      if (products.length !== ids.length) {
+        throw new NotFoundError("One or more products not found");
+      }
+
+      createLines = {
+        create: order_lines.map(line => {
+          const productLine = products.find(product => product.id === line.product_id)!;
+          return {
+            product_id: line.product_id,
+            quantity: line.quantity,
+            // snapshot 
+            unit_price: productLine.price, 
+          };
+        }),
+      };
+    }
+    // 3) create order
+    const order = await prisma.order.create({
+      data: {
+        status: "pending",
+        visit_date,
+        vat,
+        payment_method,
+        user_id: req.userId,
+        ticket_code: generateTicketCode(),
+        ...(createLines && { order_lines: createLines }),
+      },
+      include: {
+        order_lines: { include: { product: { select: { id: true, name: true } } } },
+        user: { select: { id: true, firstname: true, lastname: true, email: true } },
+      },
+    });
+
+ 
+    const { subtotal, vat_amount, total } = amountsFromLines(
+      order.order_lines.map(line => ({ unit_price: line.unit_price, quantity: line.quantity })),
+      order.vat
+    );
+    res.status(201).json({ ...order, subtotal, vat_amount, total });
+  },
+ 
 };
 
 export default reservationsController;

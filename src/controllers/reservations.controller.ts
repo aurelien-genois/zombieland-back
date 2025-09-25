@@ -365,7 +365,50 @@ const reservationsController = {
     });
   
     res.status(201).json(line);
+  },
+
+  async updateOrderLine(req: Request, res: Response) {
+    const lineId = await parseIdValidation.parseAsync(req.params.lineId);
+    
+    const {quantity, product_id} = await orderLineSchema.update.parseAsync(req.body);
+    const userId = req.userId;
+    const role = req.userRole as string | undefined;
+  
+    const line = await prisma.orderLine.findUnique({
+      where: { id: lineId },
+      include: { order: true },
+    });
+    if (!line){
+      throw new NotFoundError("Order line not found");
+    } 
+
+    if (role !== "admin" && line.order.user_id !== userId) {
+      throw new UnauthorizedError("Unauthorized - You can only modify your own orders");
+    }
+    if (line.order.status !== "pending") {
+      throw new BadRequestError("Can only modify lines in pending orders");
+    }
+  
+    // si changement de produit -> refixer unit_price
+    const data = await orderLineSchema.update.parseAsync({quantity})
+    if (product_id) {
+      const product = await prisma.product.findUnique({ where: { id: product_id } });
+      if (!product){
+        throw new NotFoundError("Product not found");
+      } 
+      data.product_id = product_id;
+      data.unit_price = product.price;
+    }
+  
+    const updated = await prisma.orderLine.update({
+      where: { id: lineId },
+      data,
+      include: { product: { select: { id: true, name: true } } },
+    });
+  
+    res.status(200).json(updated);
   }
+  
 };
 
 export default reservationsController;

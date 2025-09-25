@@ -36,6 +36,12 @@ router.post(
   reservationsController.addOrderLines
 );
 
+router.patch(
+  "/lines/:lineId",
+  checkRoles(["admin", "member"]),
+  reservationsController.updateOrderLine
+);
+
 // ====================  PUBLIC ROUTES ========================
 
 

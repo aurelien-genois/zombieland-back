@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
 import { Prisma } from "@prisma/client";
 import { orderSchema } from "../schemas/reservation.schema.js";
-import {UnauthorizedError,} from "../lib/errors.js";
+import {NotFoundError, UnauthorizedError,} from "../lib/errors.js";
 import { parseIdValidation } from "../schemas/utils.schema.js";
 
 const reservationsController = {
@@ -182,6 +182,61 @@ const reservationsController = {
       };
     });
     res.status(200).json({ordersWithTotals, totalOrders});
+  },
+  async getOneOrder(req: Request, res: Response) {
+    const orderId = await parseIdValidation.parseAsync(req.params.id);
+    const userId = req.userId;
+    const userRole = req.userRole as string | undefined;
+
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstname: true,
+            lastname: true,
+            email: true,
+            phone: true,
+          },
+        },
+        order_lines: {
+          include: {
+            product: true,
+          },
+        },
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundError("Order not found");
+    }
+
+    // Un utilisateur ne peut voir que ses propres commandes, sauf admin
+    if (userRole !== "admin" && order.user_id !== userId) {
+      throw new UnauthorizedError("Unauthorized - You can only view your own orders");
+    }
+
+    const lines = order.order_lines.map((line) => {
+      const unitPrice = line.unit_price;
+      const lineTotalPrice = +(unitPrice * line.quantity).toFixed(2);
+      return {
+        ...line,
+        computed_line_total_price: lineTotalPrice,
+      };
+    })
+    
+      const orderTotal = +lines
+        .reduce((sum, line) => sum + line.computed_line_total_price, 0)
+        .toFixed(2);
+
+    
+
+    res.status(200).json({
+      ...order,
+      order_lines: lines,
+      total_order: orderTotal,
+    });
   }
 };
 

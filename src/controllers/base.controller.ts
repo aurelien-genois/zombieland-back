@@ -68,6 +68,10 @@ abstract class BaseController {
   // --------------------  Update ------------------------
   async updateById(req: Request, res: Response): Promise<void> {
     const { id } = utilSchema.parseId.parse(req.params);
+    const item = await this.prismaModel.findUnique({ where: { id } });
+    if (!item) {
+      throw new NotFoundError("Item not found");
+    }
     const data = this.schemaUpdate.parse(req.body);
     const updatedItem = await this.prismaModel.update({
       where: { id },
@@ -79,6 +83,10 @@ abstract class BaseController {
   // --------------------  Delete ------------------------
   async deleteById(req: Request, res: Response): Promise<void> {
     const { id } = utilSchema.parseId.parse(req.params);
+    const item = await this.prismaModel.findUnique({ where: { id } });
+    if (!item) {
+      throw new NotFoundError("Item not found");
+    }
     await this.prismaModel.delete({ where: { id } });
     res.status(204).end();
   }

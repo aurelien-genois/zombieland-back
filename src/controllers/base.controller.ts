@@ -3,11 +3,7 @@ import type { ZodType } from "zod";
 import { z } from "zod";
 import { utilSchema } from "../schemas/utils.schema.js";
 import { NotFoundError } from "../lib/errors.js";
-import {
-  directionValidation,
-  limitValidation,
-  offsetValidation,
-} from "../schemas/query.schema.js";
+import { limitValidation, offsetValidation } from "../schemas/query.schema.js";
 
 abstract class BaseController {
   protected prismaModel: any;
@@ -38,12 +34,14 @@ abstract class BaseController {
     const offset = offsetValidation.parse(req.query.offset);
     const orderBy = this.schemaOrderBy.parse(req.query.orderBy);
 
+    const [field, direction] = orderBy?.split(":") as [string, "asc" | "desc"];
+
     const totalFound = await this.prismaModel.count();
 
     const items = await this.prismaModel.findMany({
       take: limit,
       skip: offset,
-      orderBy: orderBy ? { [orderBy]: direction } : undefined,
+      orderBy: orderBy ? { [field]: direction } : undefined,
     });
 
     res.json({

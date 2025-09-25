@@ -698,18 +698,17 @@ async function main() {
       vat: 5.50,
       payment_method: "credit_card",
       user_id: users[0].id,
+      ticket_code: generateTicketCode(1, 1),
       order_lines: {
         create: [
           {
-            current_price: 29.90,
+            unit_price: 29.90,
             quantity: 1,
-            ticket_code: generateTicketCode(1, 1),
             product_id: productIds[0], 
           },
           {
-            current_price: 14.90,
+            unit_price: 14.90,
             quantity: 2,
-            ticket_code: generateTicketCode(1, 2),
             product_id: productIds[1], 
           },
         ],
@@ -722,12 +721,12 @@ async function main() {
       vat: 5.50,
       payment_method: "paypal",
       user_id: users[1].id,
+      ticket_code: generateTicketCode(2, 1),
       order_lines: {
         create: [
           {
-            current_price: 14.90,
-            quantity: 1,
-            ticket_code: generateTicketCode(2, 1),
+            unit_price: 14.90,
+            quantity: 1,          
             product_id: productIds[1],
           },
         ],
@@ -740,24 +739,22 @@ async function main() {
       vat: 5.50,
       payment_method: "credit_card",
       user_id: users[2].id,
+      ticket_code: generateTicketCode(3, 1),
       order_lines: {
         create: [
           {
-            current_price: 29.90,
-            quantity: 4,
-            ticket_code: generateTicketCode(3, 1),
+            unit_price: 29.90,
+            quantity: 4,        
             product_id: productIds[0], 
           },
           {
-            current_price: 14.90,
+            unit_price: 14.90,
             quantity: 2,
-            ticket_code: generateTicketCode(3, 2),
             product_id: productIds[1], 
           },
           {
-            current_price: 159.90,
+            unit_price: 159.90,
             quantity: 2,
-            ticket_code: generateTicketCode(3, 3),
             product_id: productIds[2], 
           },
         ],
@@ -770,12 +767,12 @@ async function main() {
       vat: 5.50,
       payment_method: "bank_transfer",
       user_id: users[3].id,
+      ticket_code: generateTicketCode(4, 1),
       order_lines: {
         create: [
           {
-            current_price: 29.90,
-            quantity: 1,
-            ticket_code: generateTicketCode(4, 1),
+            unit_price: 29.90,
+            quantity: 1,           
             product_id: productIds[0], 
           },
         ],
@@ -788,18 +785,17 @@ async function main() {
       vat: 5.50,
       payment_method: "credit_card",
       user_id: users[0].id,
+      ticket_code: generateTicketCode(5, 1),
       order_lines: {
         create: [
           {
-            current_price: 29.90,
-            quantity: 6,
-            ticket_code: generateTicketCode(5, 1),
+            unit_price: 29.90,
+            quantity: 6,           
             product_id: productIds[0], 
           },
           {
-            current_price: 14.90,
+            unit_price: 14.90,
             quantity: 3,
-            ticket_code: generateTicketCode(5, 2),
             product_id: productIds[1], 
           },
         ],
@@ -812,12 +808,12 @@ async function main() {
       vat: 5.50,
       payment_method: "paypal",
       user_id: users[1].id,
+      ticket_code: generateTicketCode(6, 1),
       order_lines: {
         create: [
           {
-            current_price: 29.90,
-            quantity: 2,
-            ticket_code: generateTicketCode(6, 1),
+            unit_price: 29.90,
+            quantity: 2,           
             product_id: productIds[0], 
           },
         ],
@@ -830,18 +826,17 @@ async function main() {
       vat: 5.50,
       payment_method: "credit_card", 
       user_id: users[2].id,
+      ticket_code: generateTicketCode(7, 1),
       order_lines: {
         create: [
           {
-            current_price: 14.90,
-            quantity: 1,
-            ticket_code: generateTicketCode(7, 1),
+            unit_price: 14.90,
+            quantity: 1,            
             product_id: productIds[1], 
           },
           {
-            current_price: 159.90,
+            unit_price: 159.90,
             quantity: 2,
-            ticket_code: generateTicketCode(7, 2),
             product_id: productIds[2],
           },
         ],
@@ -854,24 +849,22 @@ async function main() {
       vat: 5.50,
       payment_method: "credit_card",
       user_id: users[3].id,
+      ticket_code: generateTicketCode(8, 1),
       order_lines: {
         create: [
           {
-            current_price: 29.90,
-            quantity: 8,
-            ticket_code: generateTicketCode(8, 1),
+            unit_price: 29.90,
+            quantity: 8,           
             product_id: productIds[0], 
           },
           {
-            current_price: 14.90,
+            unit_price: 14.90,
             quantity: 4,
-            ticket_code: generateTicketCode(8, 2),
             product_id: productIds[1], 
           },
           {
-            current_price: 159.90,
+            unit_price: 159.90,
             quantity: 4,
-            ticket_code: generateTicketCode(8, 3),
             product_id: productIds[2], 
           },
         ],

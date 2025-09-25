@@ -37,7 +37,8 @@ abstract class BaseController {
     const limit = limitValidation.parse(req.query.limit);
     const offset = offsetValidation.parse(req.query.offset);
     const orderBy = this.schemaOrderBy.parse(req.query.orderBy);
-    const direction = directionValidation.parse(req.query.direction);
+
+    const totalFound = await this.prismaModel.count();
 
     const items = await this.prismaModel.findMany({
       take: limit,
@@ -45,7 +46,10 @@ abstract class BaseController {
       orderBy: orderBy ? { [orderBy]: direction } : undefined,
     });
 
-    res.json(items);
+    res.json({
+      items,
+      totalFound,
+    });
   }
 
   // --------------------  Get By ID ------------------------

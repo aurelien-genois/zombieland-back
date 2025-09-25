@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
 import { Prisma } from "@prisma/client";
-import { orderSchema } from "../schemas/reservation.schema.js";
+import { orderLineSchema, orderSchema } from "../schemas/reservation.schema.js";
 import {BadRequestError, NotFoundError, UnauthorizedError,} from "../lib/errors.js";
 import { parseIdValidation } from "../schemas/utils.schema.js";
 
@@ -332,7 +332,40 @@ const reservationsController = {
     );
     res.status(201).json({ ...order, subtotal, vat_amount, total });
   },
- 
+  async addOrderLines(req: Request, res: Response) {
+    const orderId = await parseIdValidation.parseAsync(req.params.id);
+    const { quantity, product_id } = await orderLineSchema.create.parseAsync(req.body);
+    const userId = req.userId;
+    const role = req.userRole as string | undefined;
+  
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: { user: true },
+    });
+    if (!order) throw new NotFoundError("Order not found");
+
+    if (role !== "admin" && order.user_id !== userId) {
+      throw new UnauthorizedError("Unauthorized - You can only modify your own orders");
+    }
+    if (order.status !== "pending") {
+      throw new BadRequestError("Can only add lines to pending orders");
+    }
+  
+    const product = await prisma.product.findUnique({ where: { id: product_id } });
+    if (!product) throw new NotFoundError("Product not found");
+  
+    const line = await prisma.orderLine.create({
+      data: {
+        order_id: orderId,
+        product_id,
+        quantity,
+        unit_price: product.price, // snapshot 
+      },
+      include: { product: { select: { id: true, name: true } } },
+    });
+  
+    res.status(201).json(line);
+  }
 };
 
 export default reservationsController;

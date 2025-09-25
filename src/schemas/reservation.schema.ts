@@ -55,7 +55,6 @@ export const orderLineSchema = {
   create: z.object({
     quantity: orderLineQuantityValidation,
     product_id: parseIdValidation,
-    order_id: parseIdValidation,
   }),
   // Update 
   update: z.object({

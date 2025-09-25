@@ -30,6 +30,11 @@ router.post(
   checkRoles(["admin", "member"]),
   reservationsController.createOrder
 );
+router.post(
+  "/:id/lines",
+  checkRoles(["admin", "member"]),
+  reservationsController.addOrderLines
+);
 
 // ====================  PUBLIC ROUTES ========================
 

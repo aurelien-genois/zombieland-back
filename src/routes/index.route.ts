@@ -2,6 +2,7 @@ import { Router } from "express";
 import users from "./users.route.js";
 import auth from "./auth.route.js";
 import activities from "./activities.route.js";
+import categories from "./categories.route.js";
 import products from "./products.route.js";
 import health from "./health.route.js";
 import swaggerUi from "swagger-ui-express";
@@ -24,8 +25,11 @@ router.use("/users", users);
 // --------------------  Auth ------------------------
 router.use("/auth", auth);
 
-// --------------------  Activitie ------------------------
+// --------------------  Activities ------------------------
 router.use("/activities", activities);
+
+// --------------------  Categories ------------------------
+router.use("/categories", categories);
 
 // --------------------  Products  ----------------------
 router.use("/products", products);
@@ -34,5 +38,5 @@ router.use("/products", products);
 router.use("/act", act);
 
 // --------------------  Reservations ------------------------
-//   Order 
+//   Order
 router.use("/orders", reservations);

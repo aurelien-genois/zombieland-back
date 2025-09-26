@@ -212,6 +212,7 @@ const activitiesController = {
         ...(image_url && { image_url }),
         ...(category_id && { category_id }),
         ...(saved !== undefined && { status: saved ? "published" : "draft" }),
+        updated_at: new Date(),
       },
     });
 
@@ -293,6 +294,7 @@ const activitiesController = {
       where: { id: activityId },
       data: {
         status: "published",
+        updated_at: new Date(),
       },
     });
 

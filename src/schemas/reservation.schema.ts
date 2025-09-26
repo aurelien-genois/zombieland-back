@@ -59,7 +59,7 @@ export const orderSchema = {
   create: z.object({
     visit_date: orderVisitDateValidation,
     vat: orderVatValidation.default(5.5),
-    payment_method: orderPaymentMethodValidation,
+    payment_method: orderPaymentMethodValidation.optional(),
     order_lines: z.array(
       z.object({
         quantity: orderLineQuantityValidation,
@@ -98,9 +98,9 @@ export const orderSchema = {
     visit_date_to: z.coerce.date().optional(),
     order_date_from: z.coerce.date().optional(),
     order_date_to: z.coerce.date().optional(),
-    payment_method: z.string().optional(),
-    min_amount: z.coerce.number().positive().optional(),
-    max_amount: z.coerce.number().positive().optional(),
+    payment_method: z.string().nullable().optional(),
+    // min_amount: z.coerce.number().positive().optional(),
+    // max_amount: z.coerce.number().positive().optional(),
     limit: z.coerce.number().int().min(1).max(100).optional().default(20),
     page: z.coerce.number().int().min(1).optional().default(1),
     order: z.enum([

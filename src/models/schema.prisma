@@ -169,7 +169,7 @@ model Order {
   visit_date      DateTime   
 
   vat             Decimal      @db.Decimal(4, 2)
-  payment_method  String
+  payment_method  String?
 
   user_id         Int
   user            User         @relation(fields: [user_id], references: [id])

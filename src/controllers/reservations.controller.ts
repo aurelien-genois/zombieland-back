@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client";
 import { orderLineSchema, orderSchema } from "../schemas/reservation.schema.js";
 import {BadRequestError, NotFoundError, UnauthorizedError,} from "../lib/errors.js";
 import { parseIdValidation } from "../schemas/utils.schema.js";
-
+import { OrderStatus } from "@prisma/client";
 function generateTicketCode() {
   return `ZMB-${new Date().getFullYear()}-${Date.now()}-${Math.floor(Math.random()*1e6)}`
     .toUpperCase();
@@ -420,7 +420,69 @@ const reservationsController = {
   
     await prisma.orderLine.delete({ where: { id: lineId } });
     res.status(204).json();
-  }
+  },
+
+  async updateOrderStatus(req: Request, res: Response) {
+    const orderId = await parseIdValidation.parseAsync(req.params.id);
+    const { status } = await orderSchema.updateStatus.parseAsync(req.body);
+    const userId = req.userId;
+    const role = req.userRole as string | undefined;
+  
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        order_lines: true,
+        user: { select: { id: true, firstname: true, lastname: true, email: true } },
+      },
+    });
+    if (!order){
+      throw new NotFoundError("Order not found");
+    } 
+  
+    if (role !== "admin") {
+      if (order.user_id !== userId){
+        throw new UnauthorizedError("Unauthorized");
+      } 
+      if (status !== "canceled") {
+        throw new UnauthorizedError("Only cancel is allowed for a member");
+      }
+      if (order.status !== "pending") {
+        throw new BadRequestError("You can only cancel pending orders");
+      }
+    }
+    // add status restriction. for exemple : if pending : change for "confirmed" or "canceled" only 
+    const validTransitions: Record<OrderStatus, OrderStatus[]> = {
+      [OrderStatus.pending]: [OrderStatus.confirmed, OrderStatus.canceled],
+      [OrderStatus.confirmed]: [OrderStatus.refund, OrderStatus.canceled],
+      [OrderStatus.canceled]: [],
+      [OrderStatus.refund]: [],
+    };
+
+    if (!validTransitions[order.status]?.includes(status)) {
+      throw new BadRequestError(
+        `Cannot transition from ${order.status} to ${status}`
+      );
+    }
+  
+    const updated = await prisma.order.update({
+      where: { id: orderId },
+      data: { status },
+      include: {
+        order_lines: true,
+        user: { select: { id: true, firstname: true, lastname: true, email: true } },
+      },
+    });
+  
+    const { subtotal, vat_amount, total } = amountsFromLines(
+      updated.order_lines.map(l => ({ unit_price: l.unit_price, quantity: l.quantity })),
+      updated.vat
+    );
+  
+    res.status(200).json({ ...updated, subtotal, vat_amount, total });
+  },
+
+
+
   
   
 };

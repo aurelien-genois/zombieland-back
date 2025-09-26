@@ -284,7 +284,7 @@ const reservationsController = {
       throw new NotFoundError("User not found");
     }
 
-    // préparer les lignes (si fournies) en figeant le prix courant
+    // if lines, fix current_price
     let createLines:
     | { create: Array<{ product_id: number; quantity: number; unit_price: number }> }
     | undefined;
@@ -332,6 +332,7 @@ const reservationsController = {
     );
     res.status(201).json({ ...order, subtotal, vat_amount, total });
   },
+
   async addOrderLines(req: Request, res: Response) {
     const orderId = await parseIdValidation.parseAsync(req.params.id);
     const { quantity, product_id } = await orderLineSchema.create.parseAsync(req.body);
@@ -359,7 +360,8 @@ const reservationsController = {
         order_id: orderId,
         product_id,
         quantity,
-        unit_price: product.price, // snapshot 
+        // snapshot 
+        unit_price: product.price, 
       },
       include: { product: { select: { id: true, name: true } } },
     });
@@ -389,7 +391,7 @@ const reservationsController = {
       throw new BadRequestError("Can only modify lines in pending orders");
     }
   
-    // si changement de produit -> refixer unit_price
+    // if product changed, add new unit_price
     const data = await orderLineSchema.update.parseAsync({quantity})
     if (product_id) {
       const product = await prisma.product.findUnique({ where: { id: product_id } });
@@ -407,7 +409,31 @@ const reservationsController = {
     });
   
     res.status(200).json(updated);
+  },
+
+  async deleteOrderLine(req: Request, res: Response) {
+    const lineId = await parseIdValidation.parseAsync(req.params.lineId);
+    const userId = req.userId;
+    const role = req.userRole as string | undefined;
+  
+    const line = await prisma.orderLine.findUnique({
+      where: { id: lineId },
+      include: { order: true },
+    });
+    if (!line){
+      throw new NotFoundError("Order line not found");
+    } 
+    if (role !== "admin" && line.order.user_id !== userId) {
+      throw new UnauthorizedError("Unauthorized - You can only modify your own orders");
+    }
+    if (line.order.status !== "pending") {
+      throw new BadRequestError("Can only delete lines from pending orders");
+    }
+  
+    await prisma.orderLine.delete({ where: { id: lineId } });
+    res.status(204).json();
   }
+  
   
 };
 

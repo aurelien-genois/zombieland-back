@@ -67,6 +67,9 @@ const activitiesController = {
 
     const activities = await prisma.activity.findMany({
       where: whereClause,
+      include: {
+        category: true,
+      },
       skip: (page - 1) * limit,
       take: limit,
       orderBy: [
@@ -130,6 +133,9 @@ const activitiesController = {
 
     const activityWithSameSlug = await prisma.activity.findUnique({
       where: { slug: slug },
+      include: {
+        category: true,
+      },
     });
     if (activityWithSameSlug) {
       throw new ConflictError("Activity already exists with same slug");

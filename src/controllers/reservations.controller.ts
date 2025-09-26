@@ -5,6 +5,16 @@ import { orderLineSchema, orderSchema } from "../schemas/reservation.schema.js";
 import {BadRequestError, NotFoundError, UnauthorizedError,} from "../lib/errors.js";
 import { parseIdValidation } from "../schemas/utils.schema.js";
 import { OrderStatus } from "@prisma/client";
+
+type Meta = {
+  page: number;
+  limit: number;
+  totalCount: number;
+  totalPages: number;
+  hasPrev: boolean;
+  hasNext: boolean;
+};
+
 function generateTicketCode() {
   return `ZMB-${new Date().getFullYear()}-${Date.now()}-${Math.floor(Math.random()*1e6)}`
     .toUpperCase();
@@ -86,9 +96,11 @@ const reservationsController = {
       order === "order_date:desc" ? { order_date: "desc" } :
       order === "visit_date:asc"  ? { visit_date: "asc"  } :
       order === "visit_date:desc" ? { visit_date: "desc" } :
+      order === "status:asc"      ? { status: "asc"      } :
+      order === "status:desc"     ? { status: "desc"     } :
                                     { order_date: "desc" };
 
-    const totalOrders = await prisma.order.count({
+    const totalCount = await prisma.order.count({
       where: whereClause,
     });
     const orders = await prisma.order.findMany({
@@ -112,29 +124,22 @@ const reservationsController = {
         },
       },
     });
-    const ordersWithTotals = orders.map((order) => {
-      const lines = order.order_lines.map((line) => {
-        const unit = line.unit_price;
-        
-        const lineTotal = +(unit * line.quantity).toFixed(2); 
-    
-        return {
-          ...line,
-          computed_line_total_price: lineTotal,
-        };
-      });
-    
-      const orderTotal = +lines
-        .reduce((sum, line) => sum + line.computed_line_total_price, 0)
-        .toFixed(2);
-    
-      return {
-        ...order,
-        order_lines: lines,
-        computed_order_total_price: orderTotal,
-      };
+    const data = orders.map(order => {
+      const { subtotal, vat_amount, total } = amountsFromLines(
+        order.order_lines.map(line => ({ unit_price: line.unit_price, quantity: line.quantity })),
+        order.vat
+      );
+      return { ...order, subtotal, vat_amount, total };
     });
-    res.status(200).json({ordersWithTotals, totalOrders});
+    const meta: Meta = {
+      page,
+      limit,
+      totalCount,
+      totalPages: Math.max(1, Math.ceil(totalCount / limit)),
+      hasPrev: page > 1,
+      hasNext: page * limit < totalCount,
+    };
+    res.status(200).json({data, meta,});
   },
 
   async getUserOrders(
@@ -159,9 +164,11 @@ const reservationsController = {
       order === "order_date:desc" ? { order_date: "desc" } :
       order === "visit_date:asc"  ? { visit_date: "asc"  } :
       order === "visit_date:desc" ? { visit_date: "desc" } :
+      order === "status:asc"      ? { status: "asc"      } :
+      order === "status:desc"     ? { status: "desc"     } :
                                     { order_date: "desc" };
 
-    const totalOrders = await prisma.order.count({
+    const totalCount = await prisma.order.count({
       where: {
         user_id: targetUserId,
         ...(status && { status }),
@@ -184,29 +191,22 @@ const reservationsController = {
       },
     });
 
-    const ordersWithTotals = orders.map((order) => {
-      const lines = order.order_lines.map((line) => {
-        const unit = line.unit_price;
-        
-        const lineTotal = +(unit * line.quantity).toFixed(2); 
-    
-        return {
-          ...line,
-          computed_line_total_price: lineTotal,
-        };
-      });
-    
-      const orderTotal = +lines
-        .reduce((sum, line) => sum + line.computed_line_total_price, 0)
-        .toFixed(2);
-    
-      return {
-        ...order,
-        order_lines: lines,
-        computed_order_total_price: orderTotal,
-      };
+    const data = orders.map(order => {
+      const { subtotal, vat_amount, total } = amountsFromLines(
+        order.order_lines.map(line => ({ unit_price: line.unit_price, quantity: line.quantity })),
+        order.vat
+      );
+      return { ...order, subtotal, vat_amount, total };
     });
-    res.status(200).json({ordersWithTotals, totalOrders});
+    const meta: Meta = {
+      page,
+      limit,
+      totalCount,
+      totalPages: Math.max(1, Math.ceil(totalCount / limit)),
+      hasPrev: page > 1,
+      hasNext: page * limit < totalCount,
+    };
+    res.status(200).json({data, meta,});
   },
   async getOneOrder(req: Request, res: Response) {
     const orderId = await parseIdValidation.parseAsync(req.params.id);
@@ -242,25 +242,15 @@ const reservationsController = {
       throw new UnauthorizedError("Unauthorized - You can only view your own orders");
     }
 
-    const lines = order.order_lines.map((line) => {
-      const unitPrice = line.unit_price;
-      const lineTotalPrice = +(unitPrice * line.quantity).toFixed(2);
-      return {
-        ...line,
-        computed_line_total_price: lineTotalPrice,
-      };
-    })
-    
-      const orderTotal = +lines
-        .reduce((sum, line) => sum + line.computed_line_total_price, 0)
-        .toFixed(2);
+    const { subtotal, vat_amount, total } = amountsFromLines(
+      order.order_lines.map(line => ({ unit_price: line.unit_price, quantity: line.quantity })),
+      order.vat
+    );
 
     
 
     res.status(200).json({
-      ...order,
-      order_lines: lines,
-      total_order: orderTotal,
+      ...order, subtotal, vat_amount, total
     });
   },
 
@@ -314,9 +304,9 @@ const reservationsController = {
         status: "pending",
         visit_date,
         vat,
-        payment_method,
         user_id: req.userId,
         ticket_code: generateTicketCode(),
+        ...(payment_method ? { payment_method } : {}), 
         ...(createLines && { order_lines: createLines }),
       },
       include: {

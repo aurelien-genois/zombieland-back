@@ -5,31 +5,25 @@ import { productSchema } from "../schemas/products.schema.js";
 import { NotFoundError } from "../lib/errors.js";
 
 const productsController = {
-  async getAllProductsByPublished(
-    req: Request,
-    res: Response
-  ) {
-    const products = await prisma.product.findMany({where: {status: "published"}})
-      res.status(200).json(products);
-  },
-
-  async getAllProducts(
-    req: Request,
-    res: Response
-  ) {
+  async getAllProducts(req: Request, res: Response) {
     const products = await prisma.product.findMany()
-      res.status(200).json(products);
+
+    if (!products) {
+      throw new NotFoundError("No products found");
+    }
+
+    res.status(200).json(products);
   },
 
-  async getProduct(req: Request, res: Response) {
-    const productId = await parseIdValidation.parseAsync(req.params.id);
+  async getAllProductsByPublished(req: Request, res: Response) {
+    const products = await prisma.product.findMany({where: {status: "published"}})
+     
+    if (!products) {
+      throw new NotFoundError("No products found");
+    }
 
-    const product = await prisma.product.findUnique({
-      where: { id: productId }
-    })
-    res.status(200).json(product);
+    res.status(200).json(products);
   },
-
 
   async getProduct(req: Request, res: Response) {
     const productId = await parseIdValidation.parseAsync(req.params.id);
@@ -37,6 +31,11 @@ const productsController = {
     const product = await prisma.product.findUnique({
       where: { id: productId },
     });
+
+    if (!product) {
+      throw new NotFoundError("Product is not found");
+    }
+
     res.status(200).json(product);
   },
 
@@ -44,7 +43,6 @@ const productsController = {
     const productId = await parseIdValidation.parseAsync(req.params.id);
     
     const product = await prisma.product.findUnique({
-  
       where: { id: productId, status: "published"}
     })
 
@@ -56,12 +54,13 @@ const productsController = {
   },
 
   async createProduct(req: Request, res: Response) {
-    const { name, price } = await productSchema.create.parse(req.body);
+    const { name, price, status } = await productSchema.create.parseAsync(req.body);
 
     const createdProduct = await prisma.product.create({
       data: {
         name,
         price,
+        status,
       },
     });
     res.status(200).json(createdProduct);

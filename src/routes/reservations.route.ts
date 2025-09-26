@@ -19,6 +19,35 @@ router.get(
   reservationsController.getUserOrders
 );
 
+router.get(
+  "/:id",
+  checkRoles(["admin", "member"]),
+  reservationsController.getOneOrder
+);
+
+router.post(
+  "/",
+  checkRoles(["admin", "member"]),
+  reservationsController.createOrder
+);
+router.post(
+  "/:id/lines",
+  checkRoles(["admin", "member"]),
+  reservationsController.addOrderLines
+);
+
+router.patch(
+  "/lines/:lineId",
+  checkRoles(["admin", "member"]),
+  reservationsController.updateOrderLine
+);
+
+router.delete(
+  "/lines/:lineId",
+  checkRoles(["admin", "member"]),
+  reservationsController.deleteOrderLine
+);
+
 // ====================  PUBLIC ROUTES ========================
 
 

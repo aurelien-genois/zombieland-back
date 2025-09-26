@@ -47,7 +47,11 @@ router.delete(
   checkRoles(["admin", "member"]),
   reservationsController.deleteOrderLine
 );
-
+router.patch(
+  "/:id/status",
+  checkRoles(["admin", "member"]),
+  reservationsController.updateOrderStatus
+);
 // ====================  PUBLIC ROUTES ========================
 
 

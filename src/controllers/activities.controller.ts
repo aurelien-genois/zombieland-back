@@ -110,6 +110,7 @@ const activitiesController = {
 
     const {
       name,
+      slogan,
       description,
       age_group,
       duration,
@@ -152,6 +153,7 @@ const activitiesController = {
       data: {
         name,
         slug,
+        ...(slogan && { slogan }),
         ...(description && { description }),
         minimum_age: age_group,
         ...(duration && { duration }),
@@ -181,6 +183,7 @@ const activitiesController = {
 
     const {
       name,
+      slogan,
       description,
       age_group,
       duration,
@@ -204,6 +207,7 @@ const activitiesController = {
       where: { id: activityId },
       data: {
         ...(name && { name }),
+        ...(slogan && { slogan }),
         ...(description && { description }),
         ...(age_group && { minimum_age: age_group }),
         ...(duration && { duration }),

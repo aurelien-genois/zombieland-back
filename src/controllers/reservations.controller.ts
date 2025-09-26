@@ -4,6 +4,16 @@ import { Prisma } from "@prisma/client";
 import { orderLineSchema, orderSchema } from "../schemas/reservation.schema.js";
 import {BadRequestError, NotFoundError, UnauthorizedError,} from "../lib/errors.js";
 import { parseIdValidation } from "../schemas/utils.schema.js";
+import { OrderStatus } from "@prisma/client";
+
+type Meta = {
+  page: number;
+  limit: number;
+  totalCount: number;
+  totalPages: number;
+  hasPrev: boolean;
+  hasNext: boolean;
+};
 
 function generateTicketCode() {
   return `ZMB-${new Date().getFullYear()}-${Date.now()}-${Math.floor(Math.random()*1e6)}`
@@ -86,9 +96,11 @@ const reservationsController = {
       order === "order_date:desc" ? { order_date: "desc" } :
       order === "visit_date:asc"  ? { visit_date: "asc"  } :
       order === "visit_date:desc" ? { visit_date: "desc" } :
+      order === "status:asc"      ? { status: "asc"      } :
+      order === "status:desc"     ? { status: "desc"     } :
                                     { order_date: "desc" };
 
-    const totalOrders = await prisma.order.count({
+    const totalCount = await prisma.order.count({
       where: whereClause,
     });
     const orders = await prisma.order.findMany({
@@ -112,29 +124,22 @@ const reservationsController = {
         },
       },
     });
-    const ordersWithTotals = orders.map((order) => {
-      const lines = order.order_lines.map((line) => {
-        const unit = line.unit_price;
-        
-        const lineTotal = +(unit * line.quantity).toFixed(2); 
-    
-        return {
-          ...line,
-          computed_line_total_price: lineTotal,
-        };
-      });
-    
-      const orderTotal = +lines
-        .reduce((sum, line) => sum + line.computed_line_total_price, 0)
-        .toFixed(2);
-    
-      return {
-        ...order,
-        order_lines: lines,
-        computed_order_total_price: orderTotal,
-      };
+    const data = orders.map(order => {
+      const { subtotal, vat_amount, total } = amountsFromLines(
+        order.order_lines.map(line => ({ unit_price: line.unit_price, quantity: line.quantity })),
+        order.vat
+      );
+      return { ...order, subtotal, vat_amount, total };
     });
-    res.status(200).json({ordersWithTotals, totalOrders});
+    const meta: Meta = {
+      page,
+      limit,
+      totalCount,
+      totalPages: Math.max(1, Math.ceil(totalCount / limit)),
+      hasPrev: page > 1,
+      hasNext: page * limit < totalCount,
+    };
+    res.status(200).json({data, meta,});
   },
 
   async getUserOrders(
@@ -159,9 +164,11 @@ const reservationsController = {
       order === "order_date:desc" ? { order_date: "desc" } :
       order === "visit_date:asc"  ? { visit_date: "asc"  } :
       order === "visit_date:desc" ? { visit_date: "desc" } :
+      order === "status:asc"      ? { status: "asc"      } :
+      order === "status:desc"     ? { status: "desc"     } :
                                     { order_date: "desc" };
 
-    const totalOrders = await prisma.order.count({
+    const totalCount = await prisma.order.count({
       where: {
         user_id: targetUserId,
         ...(status && { status }),
@@ -184,29 +191,22 @@ const reservationsController = {
       },
     });
 
-    const ordersWithTotals = orders.map((order) => {
-      const lines = order.order_lines.map((line) => {
-        const unit = line.unit_price;
-        
-        const lineTotal = +(unit * line.quantity).toFixed(2); 
-    
-        return {
-          ...line,
-          computed_line_total_price: lineTotal,
-        };
-      });
-    
-      const orderTotal = +lines
-        .reduce((sum, line) => sum + line.computed_line_total_price, 0)
-        .toFixed(2);
-    
-      return {
-        ...order,
-        order_lines: lines,
-        computed_order_total_price: orderTotal,
-      };
+    const data = orders.map(order => {
+      const { subtotal, vat_amount, total } = amountsFromLines(
+        order.order_lines.map(line => ({ unit_price: line.unit_price, quantity: line.quantity })),
+        order.vat
+      );
+      return { ...order, subtotal, vat_amount, total };
     });
-    res.status(200).json({ordersWithTotals, totalOrders});
+    const meta: Meta = {
+      page,
+      limit,
+      totalCount,
+      totalPages: Math.max(1, Math.ceil(totalCount / limit)),
+      hasPrev: page > 1,
+      hasNext: page * limit < totalCount,
+    };
+    res.status(200).json({data, meta,});
   },
   async getOneOrder(req: Request, res: Response) {
     const orderId = await parseIdValidation.parseAsync(req.params.id);
@@ -242,25 +242,15 @@ const reservationsController = {
       throw new UnauthorizedError("Unauthorized - You can only view your own orders");
     }
 
-    const lines = order.order_lines.map((line) => {
-      const unitPrice = line.unit_price;
-      const lineTotalPrice = +(unitPrice * line.quantity).toFixed(2);
-      return {
-        ...line,
-        computed_line_total_price: lineTotalPrice,
-      };
-    })
-    
-      const orderTotal = +lines
-        .reduce((sum, line) => sum + line.computed_line_total_price, 0)
-        .toFixed(2);
+    const { subtotal, vat_amount, total } = amountsFromLines(
+      order.order_lines.map(line => ({ unit_price: line.unit_price, quantity: line.quantity })),
+      order.vat
+    );
 
     
 
     res.status(200).json({
-      ...order,
-      order_lines: lines,
-      total_order: orderTotal,
+      ...order, subtotal, vat_amount, total
     });
   },
 
@@ -314,9 +304,9 @@ const reservationsController = {
         status: "pending",
         visit_date,
         vat,
-        payment_method,
         user_id: req.userId,
         ticket_code: generateTicketCode(),
+        ...(payment_method ? { payment_method } : {}), 
         ...(createLines && { order_lines: createLines }),
       },
       include: {
@@ -420,7 +410,69 @@ const reservationsController = {
   
     await prisma.orderLine.delete({ where: { id: lineId } });
     res.status(204).json();
-  }
+  },
+
+  async updateOrderStatus(req: Request, res: Response) {
+    const orderId = await parseIdValidation.parseAsync(req.params.id);
+    const { status } = await orderSchema.updateStatus.parseAsync(req.body);
+    const userId = req.userId;
+    const role = req.userRole as string | undefined;
+  
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        order_lines: true,
+        user: { select: { id: true, firstname: true, lastname: true, email: true } },
+      },
+    });
+    if (!order){
+      throw new NotFoundError("Order not found");
+    } 
+  
+    if (role !== "admin") {
+      if (order.user_id !== userId){
+        throw new UnauthorizedError("Unauthorized");
+      } 
+      if (status !== "canceled") {
+        throw new UnauthorizedError("Only cancel is allowed for a member");
+      }
+      if (order.status !== "pending") {
+        throw new BadRequestError("You can only cancel pending orders");
+      }
+    }
+    // add status restriction. for exemple : if pending : change for "confirmed" or "canceled" only 
+    const validTransitions: Record<OrderStatus, OrderStatus[]> = {
+      [OrderStatus.pending]: [OrderStatus.confirmed, OrderStatus.canceled],
+      [OrderStatus.confirmed]: [OrderStatus.refund, OrderStatus.canceled],
+      [OrderStatus.canceled]: [],
+      [OrderStatus.refund]: [],
+    };
+
+    if (!validTransitions[order.status]?.includes(status)) {
+      throw new BadRequestError(
+        `Cannot transition from ${order.status} to ${status}`
+      );
+    }
+  
+    const updated = await prisma.order.update({
+      where: { id: orderId },
+      data: { status },
+      include: {
+        order_lines: true,
+        user: { select: { id: true, firstname: true, lastname: true, email: true } },
+      },
+    });
+  
+    const { subtotal, vat_amount, total } = amountsFromLines(
+      updated.order_lines.map(l => ({ unit_price: l.unit_price, quantity: l.quantity })),
+      updated.vat
+    );
+  
+    res.status(200).json({ ...updated, subtotal, vat_amount, total });
+  },
+
+
+
   
   
 };

@@ -308,7 +308,7 @@ const reservationsController = {
         }),
       };
     }
-    // 3) create order
+    // create order
     const order = await prisma.order.create({
       data: {
         status: "pending",
@@ -371,8 +371,8 @@ const reservationsController = {
 
   async updateOrderLine(req: Request, res: Response) {
     const lineId = await parseIdValidation.parseAsync(req.params.lineId);
-    
-    const {quantity, product_id} = await orderLineSchema.update.parseAsync(req.body);
+    const { quantity } = await orderLineSchema.update.parseAsync(req.body);
+  
     const userId = req.userId;
     const role = req.userRole as string | undefined;
   
@@ -380,10 +380,8 @@ const reservationsController = {
       where: { id: lineId },
       include: { order: true },
     });
-    if (!line){
-      throw new NotFoundError("Order line not found");
-    } 
-
+    if (!line) throw new NotFoundError("Order line not found");
+  
     if (role !== "admin" && line.order.user_id !== userId) {
       throw new UnauthorizedError("Unauthorized - You can only modify your own orders");
     }
@@ -391,20 +389,10 @@ const reservationsController = {
       throw new BadRequestError("Can only modify lines in pending orders");
     }
   
-    // if product changed, add new unit_price
-    const data = await orderLineSchema.update.parseAsync({quantity})
-    if (product_id) {
-      const product = await prisma.product.findUnique({ where: { id: product_id } });
-      if (!product){
-        throw new NotFoundError("Product not found");
-      } 
-      data.product_id = product_id;
-      data.unit_price = product.price;
-    }
-  
+    // On ne modifie que la quantité
     const updated = await prisma.orderLine.update({
       where: { id: lineId },
-      data,
+      data: { ...(quantity !== undefined ? { quantity } : {}) },
       include: { product: { select: { id: true, name: true } } },
     });
   

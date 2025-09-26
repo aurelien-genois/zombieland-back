@@ -34,16 +34,7 @@ const orderLineQuantityValidation = z.coerce
   .min(1, "Quantity must be at least 1")
   .max(20, "Quantity cannot exceed 20 tickets per line");
 
-  const orderLineUnitPriceValidation = z.coerce
-  .number({
-    error: (iss) =>
-      iss.input === undefined
-        ? "Price is required"
-        : "Price must be a number",
-  })
-  .positive("Price must be positive")
-  .multipleOf(0.01, "Price must have maximum 2 decimal places")
-  .min(0.01, "Price must be at least 0.01");
+
 
 
 
@@ -58,9 +49,7 @@ export const orderLineSchema = {
   }),
   // Update 
   update: z.object({
-    unit_price: orderLineUnitPriceValidation.optional(),
     quantity: orderLineQuantityValidation.optional(),
-    product_id: parseIdValidation.optional(),
   }),
 };
 

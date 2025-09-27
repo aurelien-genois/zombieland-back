@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import z from "zod";
 import { HttpClientError } from "../lib/errors.js";
+import { logger } from "../lib/logger.js";
 
 export function globalErrorHandler(
   error: Error,
@@ -14,7 +15,7 @@ export function globalErrorHandler(
     stack: isProduction ? undefined : error.stack,
   };
 
-  console.error("An error occurred:", error);
+  logger.error(`An error occurred: ${error.message}`);
 
   if (error instanceof z.ZodError) {
     res.status(400).json({

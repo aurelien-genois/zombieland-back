@@ -213,18 +213,27 @@ const authController = {
 
   async refreshAccessToken(req: Request, res: Response) {
     const rawToken = req.cookies?.refreshToken || req.body?.refreshToken;
+    console.log("::::: Refresh Token received:", rawToken);
     if (!rawToken) {
       throw new BadRequestError("Refresh token not provided");
     }
 
     const existingRefreshToken = await prisma.token.findFirst({
       where: { token: rawToken, type: "refresh" },
-      include: { user: true },
+      include: { user: { include: { role: true } } },
     });
     if (!existingRefreshToken || !existingRefreshToken.user) {
       throw new UnauthorizedError("Invalid refresh token");
     }
+    console.log(
+      "::::: Valid refresh token for user:",
+      existingRefreshToken.user
+    );
 
+    console.log(
+      "::::: Valid refresh token for user:",
+      existingRefreshToken.user.id
+    );
     if (
       !existingRefreshToken.expired_at ||
       existingRefreshToken.expired_at < new Date()

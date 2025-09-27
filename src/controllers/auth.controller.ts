@@ -222,18 +222,13 @@ const authController = {
       where: { token: rawToken, type: "refresh" },
       include: { user: { include: { role: true } } },
     });
-    if (!existingRefreshToken || !existingRefreshToken.user) {
+    if (
+      !existingRefreshToken ||
+      !existingRefreshToken.user ||
+      !existingRefreshToken.user.role
+    ) {
       throw new UnauthorizedError("Invalid refresh token");
     }
-    console.log(
-      "::::: Valid refresh token for user:",
-      existingRefreshToken.user
-    );
-
-    console.log(
-      "::::: Valid refresh token for user:",
-      existingRefreshToken.user.id
-    );
     if (
       !existingRefreshToken.expired_at ||
       existingRefreshToken.expired_at < new Date()

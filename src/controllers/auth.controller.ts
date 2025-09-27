@@ -213,6 +213,7 @@ const authController = {
 
   async refreshAccessToken(req: Request, res: Response) {
     const rawToken = req.cookies?.refreshToken || req.body?.refreshToken;
+    console.log("::::: Refresh Token received:", rawToken);
     if (!rawToken) {
       throw new BadRequestError("Refresh token not provided");
     }
@@ -221,10 +222,13 @@ const authController = {
       where: { token: rawToken, type: "refresh" },
       include: { user: { include: { role: true } } },
     });
-    if (!existingRefreshToken || !existingRefreshToken.user) {
+    if (
+      !existingRefreshToken ||
+      !existingRefreshToken.user ||
+      !existingRefreshToken.user.role
+    ) {
       throw new UnauthorizedError("Invalid refresh token");
     }
-
     if (
       !existingRefreshToken.expired_at ||
       existingRefreshToken.expired_at < new Date()

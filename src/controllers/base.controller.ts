@@ -75,7 +75,6 @@ abstract class BaseController {
       throw new NotFoundError("Item not found");
     }
     const data = this.schemaUpdate.parse(req.body);
-    data.updated_at = new Date();
     const updatedItem = await this.prismaModel.update({
       where: { id },
       data,

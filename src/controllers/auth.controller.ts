@@ -219,7 +219,7 @@ const authController = {
 
     const existingRefreshToken = await prisma.token.findFirst({
       where: { token: rawToken, type: "refresh" },
-      include: { user: true },
+      include: { user: { include: { role: true } } },
     });
     if (!existingRefreshToken || !existingRefreshToken.user) {
       throw new UnauthorizedError("Invalid refresh token");

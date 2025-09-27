@@ -1,4 +1,4 @@
-import { prisma } from "./index.js";
+import { prisma } from "../index.js";
 
 async function main() {
   await prisma.orderLine.deleteMany();

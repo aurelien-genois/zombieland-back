@@ -12,6 +12,7 @@
     "start:dev": "npm run db:migrate:deploy && npm run dev",
     "======= PRISMA =======": "========= PRIMSA ===========",
     "db:seed": "tsx --env-file=.env ./src/models/seeding.ts",
+    "db:seed:users": "tsx --env-file=.env ./src/models/seeding.users.ts",
     "db:generate": "prisma generate --schema=./src/models/schema.prisma",
     "db:migrate:deploy": "prisma migrate deploy --schema=./src/models/schema.prisma",
     "db:migrate:dev": "prisma migrate dev --schema=./src/models/schema.prisma --name auto",
@@ -28,6 +29,7 @@
     "docker:db:migrate:dev": "docker exec -it zombieland-api npm run db:migrate:dev",
     "docker:db:generate": "docker exec -it zombieland-api npm run db:generate",
     "docker:db:seed": "docker exec -it zombieland-api npm run db:seed",
+    "docker:db:seed:users": "docker exec -it zombieland-api npm run db:seed:users",
     "======= ESLINT =======": "========= ESLINT ===========",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix"
@@ -57,6 +59,7 @@
     "typescript-eslint": "^8.44.0"
   },
   "dependencies": {
+    "@faker-js/faker": "^10.0.0",
     "@prisma/client": "^6.16.1",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",

@@ -1,4 +1,4 @@
-import { prisma } from "./index.js";
+import { prisma } from "../index.js";
 import { faker } from "@faker-js/faker";
 
 async function main() {

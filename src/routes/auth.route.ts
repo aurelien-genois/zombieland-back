@@ -1,15 +1,22 @@
 import { Router } from "express";
 
 import authController from "../controllers/auth.controller.js";
+import {
+  limiterEmail,
+  limiterLogin,
+  limiterRegister,
+  limiterUser,
+} from "../middlewares/rate-limit.middleware.js";
 
 const router = Router();
 
 // --------------------  Register ----------------------------
-router.post("/register", authController.register);
+router.post("/register", limiterRegister, authController.register);
 
 // --------------------  Confirmation Email ------------------------
 router.get(
   "/email-confirmation",
+  limiterEmail,
   authController.sendConfirmationEmailWithToken
 );
 
@@ -20,7 +27,7 @@ router.post(
 );
 
 // --------------------  Login -------------------------------
-router.post("/login", authController.login);
+router.post("/login", limiterLogin, authController.login);
 
 // --------------------  Logout ---------------------------
 router.get("/logout", authController.logout);
@@ -29,7 +36,11 @@ router.get("/logout", authController.logout);
 router.post("/refresh", authController.refreshAccessToken);
 
 // --------------------  1) Forgot Password Request ------------------------
-router.post("/forgot-password", authController.forgotPasswordRequest);
+router.post(
+  "/forgot-password",
+  limiterEmail,
+  authController.forgotPasswordRequest
+);
 
 // --------------------  2) Reset Password ------------------------
 router.patch("/reset-password", authController.resetPassword);

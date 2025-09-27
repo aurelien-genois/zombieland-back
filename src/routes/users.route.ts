@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import { usersController } from "../controllers/users.controller.js";
 import { checkRoles } from "../middlewares/check-roles.middleware.js";
+import { limiterUser } from "../middlewares/rate-limit.middleware.js";
 
 const router = Router();
 
@@ -10,6 +11,7 @@ const router = Router();
 // --------------------  Get My Account --------------------
 router.get(
   "/me",
+  limiterUser,
   checkRoles(["admin", "member"]),
   usersController.getMyAccount
 );
@@ -17,6 +19,7 @@ router.get(
 // --------------------  Update Password --------------------
 router.patch(
   "/change-password",
+  limiterUser,
   checkRoles(["admin", "member"]),
   usersController.updateUserPassword
 );
@@ -24,6 +27,7 @@ router.patch(
 // --------------------  Update Info --------------------
 router.patch(
   "/",
+  limiterUser,
   checkRoles(["admin", "member"]),
   usersController.updateUserInfo
 );
@@ -34,19 +38,35 @@ router.delete("/", checkRoles(["admin", "member"]), usersController.deleteUser);
 // ====================  ADMIN ROUTES ========================
 
 // --------------------  Get All Users --------------------
-router.get("/", checkRoles(["admin"]), usersController.getAllUsers);
+router.get(
+  "/",
+  limiterUser,
+  checkRoles(["admin"]),
+  usersController.getAllUsers
+);
 
 // --------------------  Get One User --------------------
-router.get("/:id", checkRoles(["admin"]), usersController.getOneUser);
+router.get(
+  "/:id",
+  limiterUser,
+  checkRoles(["admin"]),
+  usersController.getOneUser
+);
 
 // --------------------  Update Role User --------------------
 router.patch(
   "/:id/role",
+  limiterUser,
   checkRoles(["admin"]),
   usersController.updateRoleUser
 );
 
 // --------------------  Delete User Account --------------------
-router.delete("/:id", checkRoles(["admin"]), usersController.deleteUserAccount);
+router.delete(
+  "/:id",
+  limiterUser,
+  checkRoles(["admin"]),
+  usersController.deleteUserAccount
+);
 
 export default router;

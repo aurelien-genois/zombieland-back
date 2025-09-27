@@ -3,7 +3,6 @@ import debug from "debug";
 import cors from "cors";
 import express from "express";
 import { router } from "./routes/index.route.js";
-import bodyParser from "body-parser";
 import { config } from "./configs/server.config.js";
 import { helmetMiddlewre } from "./middlewares/helmet.middleware.js";
 import morgan from "morgan";
@@ -11,25 +10,31 @@ import cookieParser from "cookie-parser";
 import { globalErrorHandler } from "./middlewares/global-error-handler.js";
 import { logger } from "./lib/logger.js";
 import { loggerMiddleware } from "./middlewares/request-logger.middleware.js";
+import bodySanitizer from "./middlewares/body-sanitizer.middleware.js";
 
 const PORT = config.server.port;
 const app = express();
 
 app.use(cors({ origin: config.server.allowedOrigins, credentials: true }));
 
-app.use(express.json());
-
+// Security headers first
 app.use(helmetMiddlewre);
 
-app.use(bodyParser.json());
+// Body parsing
+app.use(express.json());
 
+// Sanitize request bodies
+app.use(bodySanitizer);
+
+// Cookies & logs
 app.use(cookieParser());
-
 app.use(morgan("dev"));
 app.use(loggerMiddleware);
 
+// Routes
 app.use("/api", router);
 
+// Error handler
 app.use(globalErrorHandler);
 
 app.listen(PORT, () => {

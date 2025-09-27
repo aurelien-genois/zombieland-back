@@ -11,6 +11,12 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import { globalErrorHandler } from "./middlewares/global-error-handler.js";
 
+import logger from "./lib/logger.js";
+
+logger.info("Info message");
+logger.error("Error message");
+logger.warn("Warning message");
+
 const PORT = config.server.port;
 const app = express();
 

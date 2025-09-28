@@ -6,5 +6,6 @@ export const config = {
     secure: process.env.NODE_ENV === "production" || false,
     logLevel: process.env.LOG_LEVEL || "info",
     portLogHttp: parseInt(process.env.LOGSTASH_PORT || "3030"),
+    // logService: process.env.LOG_HTTP_HOST || "localhost",
   },
 };

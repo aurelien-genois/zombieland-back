@@ -31,6 +31,7 @@ export const logger = createLogger({
     }),
     new transports.Http({
       level: "http",
+      // host: config.server.logService,
       host: "localhost",
       port: config.server.portLogHttp,
       path: "/api/logs",

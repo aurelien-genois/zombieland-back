@@ -52,6 +52,12 @@ router.patch(
   checkRoles(["admin", "member"]),
   reservationsController.updateOrderStatus
 );
+
+router.post(
+  "/:id/checkout/stripe",
+  checkRoles(["admin","member"]),
+  reservationsController.createStripeCheckoutSession
+);
 // ====================  PUBLIC ROUTES ========================
 
 

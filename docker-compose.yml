@@ -28,6 +28,8 @@ services:
       - NODE_ENV=development
       - DATABASE_URL=${DATABASE_URL_DOCKER}
       - PORT=3000
+      - LOG_HTTP_HOST=zombieland-log-service
+      - LOGSTASH_PORT=4005
     depends_on:
       zombieland-db:
         condition: service_healthy
@@ -50,3 +52,9 @@ services:
 
 volumes:
   zombieland:
+
+# connecter le micro-service logs au network
+
+networks:
+  default:
+    name: zombieland-net

@@ -11,6 +11,7 @@ import { globalErrorHandler } from "./middlewares/global-error-handler.js";
 import { logger } from "./lib/logger.js";
 import { loggerMiddleware } from "./middlewares/request-logger.middleware.js";
 import bodySanitizer from "./middlewares/body-sanitizer.middleware.js";
+import { stripeIPNRouter } from "./routes/utils/stripe_ipn.route.js";
 
 const PORT = config.server.port;
 const app = express();
@@ -20,6 +21,8 @@ app.use(cors({ origin: config.server.allowedOrigins, credentials: true }));
 // Security headers first
 app.use(helmetMiddlewre);
 
+// stripe payment before body parsing
+app.use("/api/orders/payment/stripe", stripeIPNRouter);
 // Body parsing
 app.use(express.json());
 

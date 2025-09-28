@@ -5,6 +5,7 @@ import { orderLineSchema, orderSchema } from "../schemas/reservation.schema.js";
 import {BadRequestError, NotFoundError, UnauthorizedError,} from "../lib/errors.js";
 import { parseIdValidation } from "../schemas/utils.schema.js";
 import { OrderStatus } from "@prisma/client";
+import Stripe from "stripe";
 
 type Meta = {
   page: number;
@@ -39,6 +40,8 @@ function amountsFromLines(
 
   return { subtotal, vat_amount, total };
 }
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2025-08-27.basil" });
 
 const reservationsController = {
   // GET All reservations + Pagination + Queries
@@ -471,6 +474,154 @@ const reservationsController = {
     res.status(200).json({ ...updated, subtotal, vat_amount, total });
   },
 
+  // ===========================================
+  // https://www.youtube.com/watch?v=x9cGa3oMJPc
+  // Help for stripe cli installation & config
+  // ===========================================
+
+
+  // =====================================
+  // POST /api/orders/:id/checkout/stripe 
+  // =====================================
+  async createStripeCheckoutSession(req: Request, res: Response) {
+    // Authentication required
+    if (!req.userId) {
+      throw new UnauthorizedError("Unauthorized - Must be logged in");
+    }
+
+    const orderId = await parseIdValidation.parseAsync(req.params.id);
+
+    // Retrieves the command with its lines + user
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      include: {
+        order_lines: { include: { product: true } },
+        user: { select: { id: true, firstname: true, lastname: true, email: true } },
+      },
+    });
+    if (!order) throw new NotFoundError("Order not found");
+
+    // Only the owner (or admin) can initiate payment
+    const role = req.userRole as string | undefined;
+    if (role !== "admin" && order.user_id !== req.userId) {
+      throw new UnauthorizedError("Unauthorized");
+    }
+
+    // The order must be 'pending' to initiate payment
+    if (order.status !== OrderStatus.pending) {
+      throw new BadRequestError("Order must be pending to start payment");
+    }
+
+    // Line items Stripe (in CENTS)
+    const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] =
+      order.order_lines.map((l) => ({
+        price_data: {
+          currency: "eur",
+          product_data: { name: l.product.name },
+          unit_amount: Math.round(l.unit_price * 100),
+        },
+        quantity: l.quantity,
+      }));
+
+    // Create the session
+    const session = await stripe.checkout.sessions.create({
+      mode: "payment",
+      line_items,
+      customer_email: order.user.email,
+      metadata: {
+        order_id: String(order.id),
+        user_id: String(order.user_id),
+      },
+      success_url: `${process.env.FRONT_URL}/checkout/confirmation/${order.id}`,
+      cancel_url: `${process.env.FRONT_URL}/checkout/payment/stripe?canceled=1&order_id=${order.id}`,
+    });
+
+    return res.status(200).json({ url: session.url });
+  },
+
+  // =====================================================================================
+  // POST /api/orders/payment/stripe  -> webhook Stripe (IPN)
+  // route to declare with express.raw({ type: "application/json" })
+  // =====================================================================================
+  async ipn(req: Request, res: Response) {
+    const sig = req.headers["stripe-signature"];
+    if (!sig) {
+      return res.status(400).send("Missing stripe-signature");
+    }
+
+    let event: Stripe.Event;
+    try {
+      event = stripe.webhooks.constructEvent(
+        req.body, // RAW body
+        sig as string,
+        process.env.STRIPE_WEBHOOK_SECRET!
+      );
+    } catch (err: any) {
+      return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    if (event.type === "checkout.session.completed") {
+      const session = event.data.object as Stripe.Checkout.Session;
+
+      // Sécurity
+      if (session.payment_status !== "paid") {
+        return res.status(200).json({ received: true });
+      }
+
+      const orderId = Number(session.metadata?.order_id);
+      if (!Number.isFinite(orderId)) {
+        throw new BadRequestError("Missing order_id in metadata");
+      }
+
+      // Pick up the order
+      const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        include: {
+          order_lines: true,
+          user: { select: { id: true, firstname: true, lastname: true, email: true } },
+        },
+      });
+      if (!order) return res.status(200).json({ received: true }); 
+
+      // if already confirmed we do nothing
+      if (order.status === OrderStatus.confirmed) {
+        return res.status(200).json({ received: true });
+      }
+
+      // confirms that if the order is 'pending'
+      if (order.status !== OrderStatus.pending) {
+        return res.status(200).json({ received: true });
+      }
+
+      const updated = await prisma.order.update({
+        where: { id: orderId },
+        data: { status: OrderStatus.confirmed },
+        include: {
+          order_lines: true,
+          user: { select: { id: true, firstname: true, lastname: true, email: true } },
+        },
+      });
+
+      // calculation of amounts, for logs or emails
+      const { subtotal, vat_amount, total } = amountsFromLines(
+        updated.order_lines.map((l) => ({ unit_price: l.unit_price, quantity: l.quantity })),
+        updated.vat
+      );
+
+      // Here we can send a confirmation email, generate a PDF, etc
+      
+
+      return res.status(200).json({
+        received: true,
+        order_id: updated.id,
+        status: updated.status,
+        subtotal,
+        vat_amount,
+        total,
+      });
+    }
+    return res.status(200).json({ received: true });
+  },
 
 
   

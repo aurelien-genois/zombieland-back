@@ -30,6 +30,8 @@ services:
       - PORT=3000
       - LOG_HTTP_HOST=zombieland-log-service
       - LOGSTASH_PORT=4005
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY} 
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
     depends_on:
       zombieland-db:
         condition: service_healthy

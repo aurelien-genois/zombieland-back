@@ -55,6 +55,6 @@ volumes:
 
 # connecter le micro-service logs au network
 
-# networks:
-#   default:
-#     name: zombieland-net
+networks:
+  default:
+    name: zombieland-net

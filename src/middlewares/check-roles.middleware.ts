@@ -20,7 +20,6 @@ export function checkRoles(roles: RoleName[]) {
 
 function extractAccessToken(req: Request): string {
   if (typeof req.cookies?.accessToken === "string") {
-    console.log("Access Token found in cookies", req.cookies.accessToken);
     return req.cookies.accessToken;
   }
   if (typeof req.headers?.authorization === "string") {

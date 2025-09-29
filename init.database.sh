@@ -26,6 +26,22 @@ else
   exit 1
 fi
 
+echo ">> Generating Prisma client..."
+if npx prisma generate --schema=./src/models/schema.prisma; then
+  echo "Prisma client generated"
+else
+  echo "Prisma generate failed"
+  exit 1
+fi
+
+echo ">> Seeding the database..."
+if docker exec -it zombieland-api npm run db:seed:orders; then
+  echo "Seed OK"
+else
+  echo "Seed failed"
+  exit 1
+fi
+
 echo ">> Seeding the database..."
 if docker exec -it zombieland-api npm run db:seed:activities; then
   echo "Seed OK"
@@ -34,12 +50,5 @@ else
   exit 1
 fi
 
-echo ">> Generating Prisma client..."
-if npx prisma generate --schema=./src/models/schema.prisma; then
-  echo "Prisma client generated"
-else
-  echo "Prisma generate failed"
-  exit 1
-fi
 
 echo "Database initialization complete."

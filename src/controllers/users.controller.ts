@@ -15,11 +15,9 @@ export const usersController = {
 
   // --------------------  Get My Account ------------------------
   async getMyAccount(req: Request, res: Response) {
-    console.log(">>>>>>>>>>>>>>>><<UserID from middleware:", req.userId);
     if (!req.userId) {
       throw new UnauthorizedError("Unauthorized");
     }
-    console.log(">>>>>>>>>>>>>>>><<UserID from middleware:", req.userId);
     const user = await prisma.user.findUnique({
       where: { id: req.userId },
       omit: {

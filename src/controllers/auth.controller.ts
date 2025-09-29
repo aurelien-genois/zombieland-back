@@ -213,7 +213,6 @@ const authController = {
 
   async refreshAccessToken(req: Request, res: Response) {
     const rawToken = req.cookies?.refreshToken || req.body?.refreshToken;
-    console.log("::::: Refresh Token received:", rawToken);
     if (!rawToken) {
       throw new BadRequestError("Refresh token not provided");
     }

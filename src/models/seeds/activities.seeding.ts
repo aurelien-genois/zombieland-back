@@ -1,14 +1,9 @@
 import { prisma } from "../index.js";
 
 async function main() {
-  await prisma.orderLine.deleteMany();
-  await prisma.order.deleteMany();
-  await prisma.product.deleteMany();
-  await prisma.token.deleteMany();
   await prisma.userRateActivity.deleteMany();
   await prisma.activity.deleteMany();
   await prisma.category.deleteMany();
-
 
   const categories = await prisma.category.createManyAndReturn({
     data: [
@@ -594,19 +589,19 @@ async function main() {
     data: [
       {
         name: "Ticket Adulte",
-        price: 29.90,
-        status: "published"
+        price: 29.9,
+        status: "published",
       },
       {
         name: "Ticket Enfant",
-        price: 14.90,
-        status: "published"
+        price: 14.9,
+        status: "published",
       },
       {
         name: "Tarif Groupe",
-        price: 159.90,
+        price: 159.9,
         status: "draft",
-      }
+      },
     ],
   });
 
@@ -615,9 +610,12 @@ async function main() {
   // Orders & OrderLines
   const users = await prisma.user.findMany();
   const products = await prisma.product.findMany();
-  const productIds = products.map(p => p.id);
-  const generateTicketCode = (orderId, lineId )  => {
-    const code = `ZMB-${new Date().getFullYear()}-${String(orderId).padStart(4, '0')}-${String(lineId).padStart(2, '0')}`;
+  const productIds = products.map((p) => p.id);
+  const generateTicketCode = (orderId, lineId) => {
+    const code = `ZMB-${new Date().getFullYear()}-${String(orderId).padStart(
+      4,
+      "0"
+    )}-${String(lineId).padStart(2, "0")}`;
     return code.toUpperCase();
   };
 
@@ -632,21 +630,21 @@ async function main() {
       status: "confirmed",
       order_date: new Date("2025-01-10T10:30:00"),
       visit_date: getFutureDate(15),
-      vat: 5.50,
+      vat: 5.5,
       payment_method: "credit_card",
       user_id: users[0].id,
       ticket_code: generateTicketCode(1, 1),
       order_lines: {
         create: [
           {
-            unit_price: 29.90,
+            unit_price: 29.9,
             quantity: 1,
-            product_id: productIds[0], 
+            product_id: productIds[0],
           },
           {
-            unit_price: 14.90,
+            unit_price: 14.9,
             quantity: 2,
-            product_id: productIds[1], 
+            product_id: productIds[1],
           },
         ],
       },
@@ -655,15 +653,15 @@ async function main() {
       status: "confirmed",
       order_date: new Date("2025-01-12T14:20:00"),
       visit_date: getFutureDate(7),
-      vat: 5.50,
+      vat: 5.5,
       payment_method: "paypal",
       user_id: users[1].id,
       ticket_code: generateTicketCode(2, 1),
       order_lines: {
         create: [
           {
-            unit_price: 14.90,
-            quantity: 1,          
+            unit_price: 14.9,
+            quantity: 1,
             product_id: productIds[1],
           },
         ],
@@ -673,26 +671,26 @@ async function main() {
       status: "pending",
       order_date: new Date("2025-01-15T09:00:00"),
       visit_date: getFutureDate(30),
-      vat: 5.50,
+      vat: 5.5,
       payment_method: "credit_card",
       user_id: users[2].id,
       ticket_code: generateTicketCode(3, 1),
       order_lines: {
         create: [
           {
-            unit_price: 29.90,
-            quantity: 4,        
-            product_id: productIds[0], 
+            unit_price: 29.9,
+            quantity: 4,
+            product_id: productIds[0],
           },
           {
-            unit_price: 14.90,
+            unit_price: 14.9,
             quantity: 2,
-            product_id: productIds[1], 
+            product_id: productIds[1],
           },
           {
-            unit_price: 159.90,
+            unit_price: 159.9,
             quantity: 2,
-            product_id: productIds[2], 
+            product_id: productIds[2],
           },
         ],
       },
@@ -701,16 +699,16 @@ async function main() {
       status: "canceled",
       order_date: new Date("2025-01-08T16:45:00"),
       visit_date: new Date("2025-01-20"),
-      vat: 5.50,
+      vat: 5.5,
       payment_method: "bank_transfer",
       user_id: users[3].id,
       ticket_code: generateTicketCode(4, 1),
       order_lines: {
         create: [
           {
-            unit_price: 29.90,
-            quantity: 1,           
-            product_id: productIds[0], 
+            unit_price: 29.9,
+            quantity: 1,
+            product_id: productIds[0],
           },
         ],
       },
@@ -719,21 +717,21 @@ async function main() {
       status: "confirmed",
       order_date: new Date("2025-01-14T11:30:00"),
       visit_date: getFutureDate(45),
-      vat: 5.50,
+      vat: 5.5,
       payment_method: "credit_card",
       user_id: users[0].id,
       ticket_code: generateTicketCode(5, 1),
       order_lines: {
         create: [
           {
-            unit_price: 29.90,
-            quantity: 6,           
-            product_id: productIds[0], 
+            unit_price: 29.9,
+            quantity: 6,
+            product_id: productIds[0],
           },
           {
-            unit_price: 14.90,
+            unit_price: 14.9,
             quantity: 3,
-            product_id: productIds[1], 
+            product_id: productIds[1],
           },
         ],
       },
@@ -742,16 +740,16 @@ async function main() {
       status: "refund",
       order_date: new Date("2025-01-05T13:20:00"),
       visit_date: new Date("2025-01-10"),
-      vat: 5.50,
+      vat: 5.5,
       payment_method: "paypal",
       user_id: users[1].id,
       ticket_code: generateTicketCode(6, 1),
       order_lines: {
         create: [
           {
-            unit_price: 29.90,
-            quantity: 2,           
-            product_id: productIds[0], 
+            unit_price: 29.9,
+            quantity: 2,
+            product_id: productIds[0],
           },
         ],
       },
@@ -760,19 +758,19 @@ async function main() {
       status: "pending",
       order_date: new Date(),
       visit_date: getFutureDate(5),
-      vat: 5.50,
-      payment_method: "credit_card", 
+      vat: 5.5,
+      payment_method: "credit_card",
       user_id: users[2].id,
       ticket_code: generateTicketCode(7, 1),
       order_lines: {
         create: [
           {
-            unit_price: 14.90,
-            quantity: 1,            
-            product_id: productIds[1], 
+            unit_price: 14.9,
+            quantity: 1,
+            product_id: productIds[1],
           },
           {
-            unit_price: 159.90,
+            unit_price: 159.9,
             quantity: 2,
             product_id: productIds[2],
           },
@@ -783,26 +781,26 @@ async function main() {
       status: "confirmed",
       order_date: new Date("2025-01-13T10:00:00"),
       visit_date: getFutureDate(60),
-      vat: 5.50,
+      vat: 5.5,
       payment_method: "credit_card",
       user_id: users[3].id,
       ticket_code: generateTicketCode(8, 1),
       order_lines: {
         create: [
           {
-            unit_price: 29.90,
-            quantity: 8,           
-            product_id: productIds[0], 
+            unit_price: 29.9,
+            quantity: 8,
+            product_id: productIds[0],
           },
           {
-            unit_price: 14.90,
+            unit_price: 14.9,
             quantity: 4,
-            product_id: productIds[1], 
+            product_id: productIds[1],
           },
           {
-            unit_price: 159.90,
+            unit_price: 159.9,
             quantity: 4,
-            product_id: productIds[2], 
+            product_id: productIds[2],
           },
         ],
       },
@@ -823,26 +821,23 @@ async function main() {
   //resume
   const orderCount = await prisma.order.count();
   const orderLineCount = await prisma.orderLine.count();
-  
+
   console.log("=== Seeding Summary ===");
   console.log(`Total orders: ${orderCount}`);
   console.log(`Total order lines: ${orderLineCount}`);
   console.log(`Orders by status:`);
-  
+
   const statusCounts = await prisma.order.groupBy({
-    by: ['status'],
+    by: ["status"],
     _count: {
       status: true,
     },
   });
-  
-  statusCounts.forEach(item => {
+
+  statusCounts.forEach((item) => {
     console.log(`  - ${item.status}: ${item._count.status}`);
   });
-  
 }
-
-
 
 main()
   .catch(console.error)

@@ -38,7 +38,7 @@ async function main() {
         email: "aurelien@zombie.com",
         password:
           "$2b$10$mOvf9oNbtRsuxoT5YLVhC.ZefQoa3IPtBgH963ixKHmWvUViZHnau",
-        is_active: false,
+        is_active: true,
         phone: "+33687654321",
         birthday: new Date("1990-10-22"),
         last_login: null,

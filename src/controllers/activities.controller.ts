@@ -163,6 +163,9 @@ const activitiesController = {
         category_id,
         status: saved ? "published" : "draft",
       },
+      include: {
+        category: true,
+      },
     });
 
     res.status(201).json(activity);
@@ -213,10 +216,13 @@ const activitiesController = {
         ...(duration && { duration }),
         ...(disabled_access !== undefined && { disabled_access }),
         ...(high_intensity !== undefined && { high_intensity }),
-        ...(image_url && { image_url }),
+        ...(image_url !== undefined && { image_url }),
         ...(category_id && { category_id }),
         ...(saved !== undefined && { status: saved ? "published" : "draft" }),
         updated_at: new Date(),
+      },
+      include: {
+        category: true,
       },
     });
 

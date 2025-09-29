@@ -29,7 +29,6 @@ const activityAgeGroupValidation = z.coerce
     error: (iss) =>
       iss.input === undefined ? "Age is required" : "Age must be a number",
   })
-  .positive("Age must be positive")
   .int("Age must be an integer")
   .min(0, "Age must be between 0 and 3")
   .max(3, "Age must be between 0 and 3");

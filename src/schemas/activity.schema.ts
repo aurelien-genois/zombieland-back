@@ -15,7 +15,7 @@ const activityDescriptionValidation = z
         ? "Description is required"
         : "Description must be a string",
   })
-  .min(5, "Name must have at least 5 characters");
+  .min(5, "Description must have at least 5 characters");
 
 const activitySloganValidation = z
   .string({
@@ -39,12 +39,10 @@ const activityDurationValidation = z.coerce.string({
     iss.input === undefined ? undefined : "Duration must be a string",
 });
 
-const activityImageUrlValidation = z
-  .string({
-    error: (iss) =>
-      iss.input === undefined ? undefined : "Image url must be a string",
-  })
-  .min(5, "Name must have at least 5 characters");
+const activityImageUrlValidation = z.string({
+  error: (iss) =>
+    iss.input === undefined ? undefined : "Image url must be a string",
+});
 
 const evaluateGradeValidation = z.coerce
   .number({

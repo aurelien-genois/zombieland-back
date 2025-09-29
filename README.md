@@ -30,6 +30,14 @@
 
 ## Inside the Container **_Run Prisma_**
 
+1-4 **script reset + generate + seeds**
+
+```bash
+npm docker:db:init
+```
+
+(
+
 1. **Reset the Prisma database**
 
    ```bash
@@ -51,5 +59,8 @@
 4. **Seed the database with a user**
 
    ```bash
-   npm run docker:db:seed
+   npm run docker:db:seed:orders
+   npm run docker:db:seed:activities
    ```
+
+)

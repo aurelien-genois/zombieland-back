@@ -43,7 +43,7 @@ const activitiesController = {
 
     const whereClause = {
       ...(category && { category_id: category }),
-      ...(age_group && { minimum_age: age_group }),
+      ...(age_group !== undefined && { minimum_age: age_group }),
       ...(high_intensity !== undefined && { high_intensity }),
       ...(disabled_access !== undefined && { disabled_access }),
       ...(statusFilter !== undefined && { status: statusFilter }),

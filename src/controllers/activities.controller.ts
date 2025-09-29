@@ -96,6 +96,9 @@ const activitiesController = {
         // if the route provides a status, force the filter with this status
         ...(args.status !== undefined && { status: args.status }),
       },
+      include: {
+        category: true,
+      },
     });
 
     if (!activity) {
@@ -134,9 +137,6 @@ const activitiesController = {
 
     const activityWithSameSlug = await prisma.activity.findUnique({
       where: { slug: slug },
-      include: {
-        category: true,
-      },
     });
     if (activityWithSameSlug) {
       throw new ConflictError("Activity already exists with same slug");

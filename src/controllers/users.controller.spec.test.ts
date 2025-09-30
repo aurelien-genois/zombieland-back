@@ -47,15 +47,12 @@ describe("Users Controller", () => {
   });
 
   it("should get all users with admin token", async () => {
-    const response = await fetch(
-      `http://localhost:${process.env.PORT}/api/users`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${adminToken}`,
-        },
-      }
-    );
+    const response = await fetch(`http://localhost:7357/api/users`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${adminToken}`,
+      },
+    });
 
     assert.strictEqual(response.status, 200, "Expected status 200");
 

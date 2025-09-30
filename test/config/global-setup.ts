@@ -5,6 +5,8 @@ import { Server } from "node:http";
 import { app } from "../../src/app.js";
 import { prisma } from "../../src/models/index.js";
 
+console.log("=================================================");
+
 // ================================================================================
 // Objectif de ce fichier : mettre en place l'environnement des tests d'intégration
 
@@ -43,6 +45,7 @@ before(async () => {
   );
   await $`npx prisma db push --schema=${prismaSchemaAbsolutePath}`;
 
+  console.log("===POUR TESTS===", process.env.PORT);
   // On lance un serveur de test
   server = app.listen(process.env.PORT);
 });

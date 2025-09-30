@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { emailValidation } from "./users.schema.js";
+import { emailValidation, usersSchema } from "./users.schema.js";
 
 describe("Email Validation", () => {
   it("should accept valid emails", () => {
@@ -23,4 +23,23 @@ describe("Email Validation", () => {
     assert.throws(() => emailValidation.parse(null));
     assert.throws(() => emailValidation.parse(123));
   });
-});
+}),
+  describe("Login Schema", () => {
+    it("should validate correct login data", () => {
+      const loginData = {
+        email: "test@example.com",
+        password: "securePassword-123",
+      };
+
+      assert.doesNotThrow(() => usersSchema.login.parse(loginData));
+    });
+
+    it("should reject login data with invalid email", () => {
+      const loginData = {
+        email: "invalid-email",
+        password: "securePassword1-23",
+      };
+
+      assert.throws(() => usersSchema.login.parse(loginData));
+    });
+  });

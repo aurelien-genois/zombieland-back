@@ -18,7 +18,7 @@ function buildUrlWithParams(endpoint: string, params?: Record<string, any>) {
   return `${endpoint}?${usp.toString()}`;
 }
 
-describe.only("Users Controller", () => {
+describe("Users Controller", () => {
   it("should get all users with admin token", async () => {
     const response = await authedRequester.get("/users");
     const data = await response.json();

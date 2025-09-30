@@ -32,7 +32,10 @@
     "docker:db:seed:activities": "docker exec -it zombieland-api npm run db:seed:activities",
     "======= ESLINT =======": "========= ESLINT ===========",
     "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "======= TEST =======": "========= TEST ===========",
+    "test:unit": "tsx --test ./**/*.unit.test.ts",
+    "test:spec": "tsx --test --env-file=./test/config/.env.test --import ./test/config/global-setup.ts --experimental-test-isolation=none ./**/*.spec.test.ts"
   },
   "keywords": [],
   "author": "",
@@ -48,8 +51,8 @@
     "@types/morgan": "^1.9.10",
     "@types/node": "^24.5.0",
     "@types/nodemailer": "^7.0.1",
-    "@types/stripe": "^8.0.416",
     "@types/sanitize-html": "^2.16.0",
+    "@types/stripe": "^8.0.416",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
     "@types/uuid": "^10.0.0",
@@ -74,13 +77,14 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
     "nodemailer": "^7.0.6",
-    "stripe": "^18.5.0",
     "sanitize-html": "^2.17.0",
+    "stripe": "^18.5.0",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "uuid": "^13.0.0",
     "winston": "^3.17.0",
     "winston-daily-rotate-file": "^5.0.0",
-    "zod": "^4.1.8"
+    "zod": "^4.1.8",
+    "zx": "^8.8.4"
   }
 }

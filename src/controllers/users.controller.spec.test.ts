@@ -1,43 +1,66 @@
 import assert from "node:assert";
 import { prisma } from "../models/index.js";
-import { describe, it } from "node:test";
+import { before, describe, it } from "node:test";
+import bcrypt from "bcrypt";
+import { generateAuthenticationTokens } from "../lib/token.js";
 
-describe.only("[GET] /api/users", () => {
-  it("should return a list of users", async () => {
-    // Arrange
+// user with cookie
+describe("Users Controller", () => {
+  let adminToken: string;
 
-    const databaseUsers = await prisma.user.createManyAndReturn({
-      data: [
-        {
-          id: 116,
-          firstname: "Arjun",
-          lastname: "Blick",
-          email: "dan.torphy@hotmail.com",
-          password: "password123-T",
-          is_active: false,
-          phone: "1-674-649-0759 x96741",
-          birthday: "1975-04-15T00:00:00.000Z",
-          last_login: null,
-        },
-        {
-          id: 123,
-          firstname: "Elena",
-          lastname: "Fadel",
-          email: "margaret.labadie@hotmail.com",
-          password: "password123-T",
-          is_active: true,
-          phone: "351.738.8202 x67037",
-          birthday: "2002-04-12T00:00:00.000Z",
-          last_login: "2025-09-17T19:08:53.245Z",
-        },
-      ],
+  before(async () => {
+    // 1. Crée les rôles avec upsert pour éviter les conflits
+    await prisma.role.upsert({
+      where: { id: 1 },
+      update: {},
+      create: { id: 1, name: "admin" },
     });
-    // Act
-    const response = await fetch("http://localhost:7357/api/users");
-    const responseUsers = await response.json();
 
-    // Assert
-    assert.ok(true);
-    assert.strictEqual(response.status, 200);
+    await prisma.role.upsert({
+      where: { id: 2 },
+      update: {},
+      create: { id: 2, name: "member" },
+    });
+
+    // 2. Crée un utilisateur ADMIN
+    const hashedPassword = await bcrypt.hash("adminpassword", 10);
+
+    const adminUser = await prisma.user.create({
+      data: {
+        firstname: "Admin",
+        lastname: "Test",
+        email: "admin@test.com",
+        password: hashedPassword,
+        role_id: 1,
+        is_active: true,
+        phone: "0123456789",
+        birthday: new Date("1990-01-01"), // Format Date correct
+      },
+      include: {
+        role: true,
+      },
+    });
+
+    // 3. Génère le token JWT
+    const tokens = generateAuthenticationTokens(adminUser);
+    adminToken = tokens.accessToken.token;
+  });
+
+  it("should get all users with admin token", async () => {
+    const response = await fetch(
+      `http://localhost:${process.env.PORT}/api/users`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${adminToken}`,
+        },
+      }
+    );
+
+    assert.strictEqual(response.status, 200, "Expected status 200");
+
+    const users = await response.json();
+    assert(Array.isArray(users.data), "Response 'data' should be an array");
+    assert(users.data.length >= 0, "There should be zero or more users");
   });
 });

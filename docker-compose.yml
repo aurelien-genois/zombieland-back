@@ -30,7 +30,7 @@ services:
       - PORT=3000
       - LOG_HTTP_HOST=zombieland-log-service
       - LOGSTASH_PORT=4005
-      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY} 
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
     depends_on:
       zombieland-db:
@@ -45,12 +45,12 @@ services:
     depends_on:
       zombieland-db:
         condition: service_healthy
-  mailpit:
-    image: axllent/mailpit
-    restart: unless-stopped
-    ports:
-      - "${MAILPIT_LOCAL_PORT}:8025" # Web UI
-      - "${SMTP_LOCAL_PORT}:1025" # SMTP !
+  # mailpit:
+  #   image: axllent/mailpit
+  #   restart: unless-stopped
+  #   ports:
+  #     - "${MAILPIT_LOCAL_PORT}:8025" # Web UI
+  #     - "${SMTP_LOCAL_PORT}:1025" # SMTP !
 
 volumes:
   zombieland:

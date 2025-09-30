@@ -5,6 +5,8 @@ import { checkRoles } from "../middlewares/check-roles.middleware.js";
 
 const router = Router();
 
+// (TEST BaseController)
+
 router.get("/health", (req, res) => res.send("TEST"));
 
 router.get("/", (req, res) => newActivityController.getAll(req, res));

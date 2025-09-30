@@ -2,6 +2,7 @@ import BaseController from "./base.controller.js";
 import { prisma } from "../models/index.js";
 import { activitySchema } from "../schemas/activity.schema.js";
 
+// (TEST BaseController)
 class BaseActivityController extends BaseController {
   constructor() {
     super({

@@ -34,7 +34,7 @@ router.use("/categories", categories);
 // --------------------  Products  ----------------------
 router.use("/products", products);
 
-// --------------------  Act  ----------------------
+// --------------------  Act (TEST BaseController)  ----------------------
 router.use("/act", act);
 
 // --------------------  Reservations ------------------------

@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 import jwt from "jsonwebtoken";
 import type { User, RoleName } from "@prisma/client";
-import { config } from "../configs/server.config.js";
+import { config } from "../../server.config.js";
 import { UnauthorizedError } from "./errors.js";
 
 export function generateAuthenticationTokens(

@@ -6,9 +6,9 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/app.js",
-    "dev": "tsx --watch src/app.ts",
-    "start:prod": "npm run db:migrate:deploy && node dist/app.js",
+    "start": "node dist/index.js",
+    "dev": "tsx --watch index.ts",
+    "start:prod": "npm run db:migrate:deploy && node dist/index.js",
     "start:dev": "npm run db:migrate:deploy && npm run dev",
     "======= PRISMA =======": "========= PRIMSA ===========",
     "db:seed:orders": "tsx --env-file=.env ./src/models/seeds/orders.seeding.ts",

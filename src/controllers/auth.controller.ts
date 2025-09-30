@@ -4,7 +4,7 @@ import { usersSchema } from "../schemas/users.schema.js";
 import type { User } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { generateAuthenticationTokens } from "../lib/token.js";
-import { config } from "../configs/server.config.js";
+import { config } from "../../server.config.js";
 import {
   sendForgotPasswordRequest,
   sendVerificationEmail,

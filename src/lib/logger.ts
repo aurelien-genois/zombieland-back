@@ -1,6 +1,6 @@
 import { createLogger, format, transports } from "winston";
 import DailyRotateFile from "winston-daily-rotate-file";
-import { config } from "../configs/server.config.js";
+import { config } from "../../server.config.js";
 
 export const logger = createLogger({
   level: config.server.logLevel,

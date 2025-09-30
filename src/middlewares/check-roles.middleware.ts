@@ -2,7 +2,7 @@ import type { RoleName } from "@prisma/client";
 import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import type { JwtPayload } from "jsonwebtoken";
-import { config } from "../configs/server.config.js";
+import { config } from "../../server.config.js";
 import { UnauthorizedError } from "../lib/errors.js";
 
 export function checkRoles(roles: RoleName[]) {

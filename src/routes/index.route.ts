@@ -7,7 +7,6 @@ import products from "./products.route.js";
 import health from "./health.route.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./swaggers/index.js";
-import act from "./act.route.js";
 import reservations from "./reservations.route.js";
 
 export const router = Router();
@@ -33,9 +32,6 @@ router.use("/categories", categories);
 
 // --------------------  Products  ----------------------
 router.use("/products", products);
-
-// --------------------  Act (TEST BaseController)  ----------------------
-router.use("/act", act);
 
 // --------------------  Reservations ------------------------
 //   Order

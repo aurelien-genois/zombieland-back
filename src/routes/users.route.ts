@@ -38,12 +38,7 @@ router.delete("/", checkRoles(["admin", "member"]), usersController.deleteUser);
 // ====================  ADMIN ROUTES ========================
 
 // --------------------  Get All Users --------------------
-router.get(
-  "/",
-  limiterUser,
-  checkRoles(["admin"]),
-  usersController.getAllUsers
-);
+router.get("/", limiterUser, usersController.getAllUsers);
 
 // --------------------  Get One User --------------------
 router.get(

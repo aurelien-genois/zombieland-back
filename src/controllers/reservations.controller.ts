@@ -258,57 +258,50 @@ const reservationsController = {
   },
 
   async createOrder(req: Request, res: Response) {
+    // il faut être connecté (admin ou membre)
     if (!req.userId) {
       throw new UnauthorizedError("Unauthorized - Must be logged in");
     }
+  
+    // on accepte user_id dans le body pour les admins
     const { visit_date, vat, payment_method, order_lines, user_id } =
       await orderSchema.create.parseAsync(req.body);
   
-    // check if visit_date is on future
+    // admin peut créer pour un autre user, sinon on force le user connecté
+    const role = req.userRole as string | undefined;
+    const targetUserId =
+      role === "admin" && user_id ? user_id : req.userId;
+  
+    // visit_date > now
     if (new Date(visit_date) <= new Date()) {
       throw new BadRequestError("Visit date must be in the future");
     }
   
-    const role = req.userRole as string | undefined;
-  
-  
-    const targetUserId =
-      role === "admin" && typeof user_id === "number" ? user_id : req.userId;
-  
-    // Vérif du user cible
-    const user = await prisma.user.findUnique({
-      where: { id: targetUserId },
-    });
+    // Vérifie que le user existe (sinon 404 lisible)
+    const user = await prisma.user.findUnique({ where: { id: targetUserId } });
     if (!user) {
       throw new NotFoundError("User not found");
     }
   
-    // if lines, fix current_price
+    // snapshot unit_price à partir des produits
     let createLines:
       | { create: Array<{ product_id: number; quantity: number; unit_price: number }> }
       | undefined;
   
     if (order_lines && order_lines.length > 0) {
-      const ids = order_lines.map(line => line.product_id);
+      const ids = order_lines.map((l) => l.product_id);
       const products = await prisma.product.findMany({ where: { id: { in: ids } } });
       if (products.length !== ids.length) {
         throw new NotFoundError("One or more products not found");
       }
-  
       createLines = {
-        create: order_lines.map(line => {
-          const productLine = products.find(product => product.id === line.product_id)!;
-          return {
-            product_id: line.product_id,
-            quantity: line.quantity,
-            // snapshot
-            unit_price: productLine.price,
-          };
+        create: order_lines.map((l) => {
+          const p = products.find((pp) => pp.id === l.product_id)!;
+          return { product_id: l.product_id, quantity: l.quantity, unit_price: p.price };
         }),
       };
     }
   
-    // create order
     const order = await prisma.order.create({
       data: {
         status: "pending",
@@ -326,7 +319,7 @@ const reservationsController = {
     });
   
     const { subtotal, vat_amount, total } = amountsFromLines(
-      order.order_lines.map(line => ({ unit_price: line.unit_price, quantity: line.quantity })),
+      order.order_lines.map((l) => ({ unit_price: l.unit_price, quantity: l.quantity })),
       order.vat
     );
   

@@ -36,8 +36,6 @@
 npm docker:db:init
 ```
 
-(
-
 1. **Reset the Prisma database**
 
    ```bash
@@ -63,8 +61,6 @@ npm docker:db:init
    npm run docker:db:seed:activities
    ```
 
-)
-
 # Application Testing
 
 ## Unit Tests
@@ -75,11 +71,9 @@ npm run test:unit
 
 ## Integration Test (spec)
 
-`````
-
-````bash
+```bash
 npm run test:spec
-`````
+```
 
 ### ⚠️ In Case of Errors
 

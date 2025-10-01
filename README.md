@@ -64,3 +64,28 @@ npm docker:db:init
    ```
 
 )
+
+# Application Testing
+
+## Unit Tests
+
+```bash
+npm run test:unit
+```
+
+## Integration Test (spec)
+
+`````
+
+````bash
+npm run test:spec
+`````
+
+### ⚠️ In Case of Errors
+
+Stop the Docker container manually:
+
+```bash
+docker stop <container_id_or_name>
+docker rm <container_id_or_name>
+```

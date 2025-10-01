@@ -11,7 +11,7 @@ console.log("=================================================");
 // Objectif de ce fichier : mettre en place l'environnement des tests d'intégration
 
 // === AVANT de lancer les test ===
-// Créer une BDD de test (oquiztest)
+// Créer une BDD de test (zombieland-test-db)
 // Charger les variables d'environnement (.env.test) à l'aide du flag --env-file
 // Créer les tables dans cette BDD de test (run les migrations)
 // Lancer le serveur Express
@@ -30,7 +30,7 @@ let server: Server;
 
 // Hook before : s'exécute une fois avant l'ensemble des tests
 before(async () => {
-  // Lancer la BDD oquiztest via un docker compose
+  // Lancer la BDD via un docker compose
   const composeFileAbsolutePath = path.resolve(
     import.meta.dirname,
     "compose.test.yml"

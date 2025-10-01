@@ -61,11 +61,14 @@ export const orderSchema = {
     vat: orderVatValidation.default(5.5),
     payment_method: orderPaymentMethodValidation.optional(),
     order_lines: z.array(
-      z.object({
-        quantity: orderLineQuantityValidation,
-        product_id: parseIdValidation,
-      })
-    ).min(1, "At least one product must be ordered").optional(),
+        z.object({
+          quantity: orderLineQuantityValidation,
+          product_id: parseIdValidation,
+        })
+      )
+      .min(1, "At least one product must be ordered")
+      .optional(),
+    user_id: parseIdValidation.optional(),
   }),
 
   // order statut

@@ -261,55 +261,62 @@ const reservationsController = {
     if (!req.userId) {
       throw new UnauthorizedError("Unauthorized - Must be logged in");
     }
-    const { visit_date, vat, payment_method, order_lines } = await orderSchema.create.parseAsync(req.body);
-
+    const { visit_date, vat, payment_method, order_lines, user_id } =
+      await orderSchema.create.parseAsync(req.body);
+  
     // check if visit_date is on future
     if (new Date(visit_date) <= new Date()) {
       throw new BadRequestError("Visit date must be in the future");
     }
-
-    // Vérify existing user
+  
+    const role = req.userRole as string | undefined;
+  
+  
+    const targetUserId =
+      role === "admin" && typeof user_id === "number" ? user_id : req.userId;
+  
+    // Vérif du user cible
     const user = await prisma.user.findUnique({
-      where: { id: req.userId },
+      where: { id: targetUserId },
     });
-
     if (!user) {
       throw new NotFoundError("User not found");
     }
-
+  
     // if lines, fix current_price
     let createLines:
-    | { create: Array<{ product_id: number; quantity: number; unit_price: number }> }
-    | undefined;
-
+      | { create: Array<{ product_id: number; quantity: number; unit_price: number }> }
+      | undefined;
+  
     if (order_lines && order_lines.length > 0) {
       const ids = order_lines.map(line => line.product_id);
       const products = await prisma.product.findMany({ where: { id: { in: ids } } });
       if (products.length !== ids.length) {
         throw new NotFoundError("One or more products not found");
       }
-
+  
       createLines = {
         create: order_lines.map(line => {
           const productLine = products.find(product => product.id === line.product_id)!;
           return {
             product_id: line.product_id,
             quantity: line.quantity,
-            // snapshot 
-            unit_price: productLine.price, 
+            // snapshot
+            unit_price: productLine.price,
           };
         }),
       };
     }
+  
     // create order
     const order = await prisma.order.create({
       data: {
         status: "pending",
         visit_date,
         vat,
-        user_id: req.userId,
+        user_id: targetUserId,
         ticket_code: generateTicketCode(),
-        ...(payment_method ? { payment_method } : {}), 
+        ...(payment_method ? { payment_method } : {}),
         ...(createLines && { order_lines: createLines }),
       },
       include: {
@@ -317,12 +324,12 @@ const reservationsController = {
         user: { select: { id: true, firstname: true, lastname: true, email: true } },
       },
     });
-
- 
+  
     const { subtotal, vat_amount, total } = amountsFromLines(
       order.order_lines.map(line => ({ unit_price: line.unit_price, quantity: line.quantity })),
       order.vat
     );
+  
     res.status(201).json({ ...order, subtotal, vat_amount, total });
   },
 
@@ -548,7 +555,7 @@ const reservationsController = {
     if (!sig) {
       return res.status(400).send("Missing stripe-signature");
     }
-
+  
     let event: Stripe.Event;
     try {
       event = stripe.webhooks.constructEvent(
@@ -559,21 +566,55 @@ const reservationsController = {
     } catch (err: any) {
       return res.status(400).send(`Webhook Error: ${err.message}`);
     }
-
+  
     if (event.type === "checkout.session.completed") {
       const session = event.data.object as Stripe.Checkout.Session;
-
-      // Sécurity
+  
+      // on ne traite que les paiements réellement payés
       if (session.payment_status !== "paid") {
         return res.status(200).json({ received: true });
       }
-
+  
       const orderId = Number(session.metadata?.order_id);
       if (!Number.isFinite(orderId)) {
         throw new BadRequestError("Missing order_id in metadata");
       }
-
-      // Pick up the order
+  
+      // Récupération (facultative) de la méthode de paiement depuis le PaymentIntent
+      let paymentMethodLabel: string | null = null;
+      const piId =
+        typeof session.payment_intent === "string"
+          ? session.payment_intent
+          : session.payment_intent?.id;
+  
+      if (piId) {
+        // On expand `latest_charge.payment_method_details` (et `payment_method` en secours)
+        const pi = await stripe.paymentIntents.retrieve(piId, {
+          expand: ["latest_charge.payment_method_details", "payment_method"],
+        });
+  
+        // 1) via latest_charge (recommandé)
+        if (typeof pi.latest_charge !== "string") {
+          const pmd = pi.latest_charge?.payment_method_details;
+          if (pmd?.type === "card" && pmd.card) {
+            paymentMethodLabel = `card:${pmd.card.brand ?? "unknown"}`;
+          } else if (pmd?.type) {
+            paymentMethodLabel = pmd.type; // ex: 'sepa_debit', 'paypal', etc.
+          }
+        }
+  
+        // 2) fallback via payment_method (si expand ci-dessus)
+        if (!paymentMethodLabel && typeof pi.payment_method === "object") {
+          const pm = pi.payment_method as Stripe.PaymentMethod;
+          if (pm.type === "card" && pm.card) {
+            paymentMethodLabel = `card:${pm.card.brand ?? "unknown"}`;
+          } else if (pm.type) {
+            paymentMethodLabel = pm.type;
+          }
+        }
+      }
+  
+      // Charge la commande
       const order = await prisma.order.findUnique({
         where: { id: orderId },
         include: {
@@ -581,51 +622,48 @@ const reservationsController = {
           user: { select: { id: true, firstname: true, lastname: true, email: true } },
         },
       });
-      if (!order) return res.status(200).json({ received: true }); 
-
-      // if already confirmed we do nothing
+      if (!order) return res.status(200).json({ received: true });
+  
+      // Déjà confirmée ? on ne retouche pas
       if (order.status === OrderStatus.confirmed) {
         return res.status(200).json({ received: true });
       }
-
-      // confirms that if the order is 'pending'
+      // On ne confirme que si elle était pending
       if (order.status !== OrderStatus.pending) {
         return res.status(200).json({ received: true });
       }
-
+  
       const updated = await prisma.order.update({
         where: { id: orderId },
-        data: { status: OrderStatus.confirmed },
+        data: {
+          status: OrderStatus.confirmed,
+          // stocke "card:visa", "card:mastercard", "paypal", "sepa_debit", etc.
+          payment_method: paymentMethodLabel ?? order.payment_method, // ne casse rien si null
+        },
         include: {
           order_lines: true,
           user: { select: { id: true, firstname: true, lastname: true, email: true } },
         },
       });
-
-      // calculation of amounts, for logs or emails
+  
       const { subtotal, vat_amount, total } = amountsFromLines(
         updated.order_lines.map((l) => ({ unit_price: l.unit_price, quantity: l.quantity })),
         updated.vat
       );
-
-      // Here we can send a confirmation email, generate a PDF, etc
-      
-
+  
       return res.status(200).json({
         received: true,
         order_id: updated.id,
         status: updated.status,
+        payment_method: updated.payment_method,
         subtotal,
         vat_amount,
         total,
       });
     }
+  
     return res.status(200).json({ received: true });
-  },
-
-
-  
-  
-};
+  }
+}  
 
 export default reservationsController;

@@ -6,22 +6,13 @@ import { NotFoundError } from "../lib/errors.js";
 
 const productsController = {
   async getAllProducts(req: Request, res: Response) {
-    const products = await prisma.product.findMany()
-
-    if (!products) {
-      throw new NotFoundError("No products found");
-    }
-
+    const products = await prisma.product.findMany();
+    // products is always an array; no need to 404 on empty, just return []
     res.status(200).json(products);
   },
 
   async getAllProductsByPublished(req: Request, res: Response) {
-    const products = await prisma.product.findMany({where: {status: "published"}})
-     
-    if (!products) {
-      throw new NotFoundError("No products found");
-    }
-
+    const products = await prisma.product.findMany({ where: { status: "published" } });
     res.status(200).json(products);
   },
 
@@ -41,28 +32,26 @@ const productsController = {
 
   async getProductByPublished(req: Request, res: Response) {
     const productId = await parseIdValidation.parseAsync(req.params.id);
-    
+
     const product = await prisma.product.findUnique({
-      where: { id: productId, status: "published"}
-    })
+      where: { id: productId, status: "published" },
+    });
 
     if (!product) {
       throw new NotFoundError("Product is not found");
     }
-    
+
     res.status(200).json(product);
   },
 
   async createProduct(req: Request, res: Response) {
+    // schema has default("published") so status is optional on input
     const { name, price, status } = await productSchema.create.parseAsync(req.body);
 
     const createdProduct = await prisma.product.create({
-      data: {
-        name,
-        price,
-        status,
-      },
+      data: { name, price, status },
     });
+
     res.status(200).json(createdProduct);
   },
 
@@ -72,20 +61,22 @@ const productsController = {
     const productToUpdate = await prisma.product.findUnique({
       where: { id: productId },
     });
-
     if (!productToUpdate) {
       return res.status(404).json({ error: "Product not found" });
     }
 
-    const { name, price } = await productSchema.update.parseAsync(req.body);
+    // ⬇️ MINIMAL CHANGE: also parse optional `status`
+    const { name, price, status } = await productSchema.update.parseAsync(req.body);
 
     const updatedProduct = await prisma.product.update({
       where: { id: productId },
       data: {
-        ...(name && { name }),
-        ...(price && { price }),
+        ...(name !== undefined && { name }),
+        ...(price !== undefined && { price }),
+        ...(status !== undefined && { status }), // ⬅️ apply status if provided
       },
     });
+
     res.status(200).json(updatedProduct);
   },
 
@@ -95,7 +86,6 @@ const productsController = {
     const productToDelete = await prisma.product.findUnique({
       where: { id: productId },
     });
-
     if (!productToDelete) {
       return res.status(404).json({ error: "Product not found" });
     }
@@ -103,11 +93,10 @@ const productsController = {
     const deletedProduct = await prisma.product.delete({
       where: { id: productId },
     });
-    res
-      .status(200)
-      .json({
-        message: `Product "${deletedProduct.name}" successfully deleted`,
-      });
+
+    res.status(200).json({
+      message: `Product "${deletedProduct.name}" successfully deleted`,
+    });
   },
 };
 

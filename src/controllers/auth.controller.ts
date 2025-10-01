@@ -5,10 +5,8 @@ import type { User } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { generateAuthenticationTokens } from "../lib/token.js";
 import { config } from "../../server.config.js";
-import {
-  sendForgotPasswordRequest,
-  sendVerificationEmail,
-} from "../services/emailManager.service.js";
+import { sendForgotPasswordRequest } from "../services/emails/messages/forgotPassword.js";
+import { sendConfirmationEmail } from "../services/emails/messages/confirmation.js";
 import { v4 as uuidv4 } from "uuid";
 import {
   BadRequestError,
@@ -96,7 +94,12 @@ const authController = {
       },
     });
 
-    await sendVerificationEmail(user.email, userToken.token);
+    await sendConfirmationEmail(
+      user.email,
+      userToken.token,
+      user.firstname,
+      user.lastname
+    );
 
     res.status(201).json(user);
   },
@@ -158,10 +161,15 @@ const authController = {
       },
     });
 
-    await sendVerificationEmail(user.email, userToken.token);
+    await sendConfirmationEmail(
+      user.email,
+      userToken.token,
+      user.firstname,
+      user.lastname
+    );
 
     res.status(200).json({
-      message: "Verification email sent successfully.",
+      message: "Confirmation email sent successfully.",
     });
   },
 

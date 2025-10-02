@@ -14,6 +14,10 @@ export const administrationController = {
 
     res.status(200).json({ message: "Contact Administration" });
   },
+
+  async pdf(req: Request, res: Response) {
+    res.status(200).json({ message: "Send PDF" });
+  },
 };
 
 export default administrationController;

@@ -35,8 +35,6 @@ async function main() {
     ],
   });
 
-  console.log("categories inserted !");
-
   const categoriesKeys = categories.reduce((acc, category) => {
     acc[category.name] = category.id;
     return acc;

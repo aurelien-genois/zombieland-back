@@ -11,7 +11,6 @@ import { loggerMiddleware } from "./middlewares/request-logger.middleware.js";
 import bodySanitizer from "./middlewares/body-sanitizer.middleware.js";
 import { stripeIPNRouter } from "./routes/utils/stripe_ipn.route.js";
 
-const PORT = config.server.port;
 // Créer une app Express
 export const app = express();
 

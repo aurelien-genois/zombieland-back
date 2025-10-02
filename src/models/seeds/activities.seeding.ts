@@ -1,4 +1,5 @@
 import { prisma } from "../index.js";
+import { Prisma } from "@prisma/client";
 
 async function main() {
   await prisma.userRateActivity.deleteMany();
@@ -585,7 +586,7 @@ async function main() {
 
   console.log("activities inserted !");
 
-  const product = await prisma.product.createMany({
+  await prisma.product.createMany({
     data: [
       {
         name: "Ticket Adulte",
@@ -611,7 +612,7 @@ async function main() {
   const users = await prisma.user.findMany();
   const products = await prisma.product.findMany();
   const productIds = products.map((p) => p.id);
-  const generateTicketCode = (orderId, lineId) => {
+  const generateTicketCode = (orderId: number, lineId: number) => {
     const code = `ZMB-${new Date().getFullYear()}-${String(orderId).padStart(
       4,
       "0"
@@ -620,12 +621,14 @@ async function main() {
   };
 
   // Fonction pour calculer une date de visite future
-  const getFutureDate = (dateForNow) => {
+  const getFutureDate = (dateForNow: number) => {
     const date = new Date();
     date.setDate(date.getDate() + dateForNow);
     return date;
   };
-  const orders = [
+  const orders: Array<
+    Omit<Prisma.OrderCreateInput, "user"> & { user_id: number }
+  > = [
     {
       status: "confirmed",
       order_date: new Date("2025-01-10T10:30:00"),
@@ -808,7 +811,7 @@ async function main() {
   ];
 
   for (const orderData of orders) {
-    const order = await prisma.order.create({
+    await prisma.order.create({
       data: orderData,
       include: {
         order_lines: true,

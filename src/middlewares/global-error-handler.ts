@@ -7,7 +7,7 @@ export function globalErrorHandler(
   error: Error,
   _req: Request,
   res: Response,
-  _next: NextFunction // don't remove ! it is required by express
+  _next: NextFunction
 ) {
   const isProduction = process.env.NODE_ENV === "production";
   const baseError = {
@@ -39,5 +39,6 @@ export function globalErrorHandler(
     ...baseError,
     status: 500,
   });
+
   return;
 }

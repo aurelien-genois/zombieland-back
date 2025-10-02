@@ -2,7 +2,11 @@ import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
 import { Prisma } from "@prisma/client";
 import { orderLineSchema, orderSchema } from "../schemas/reservation.schema.js";
-import {BadRequestError, NotFoundError, UnauthorizedError,} from "../lib/errors.js";
+import {
+  BadRequestError,
+  NotFoundError,
+  UnauthorizedError,
+} from "../lib/errors.js";
 import { parseIdValidation } from "../schemas/utils.schema.js";
 import { OrderStatus } from "@prisma/client";
 import Stripe from "stripe";
@@ -17,8 +21,9 @@ type Meta = {
 };
 
 function generateTicketCode() {
-  return `ZMB-${new Date().getFullYear()}-${Date.now()}-${Math.floor(Math.random()*1e6)}`
-    .toUpperCase();
+  return `ZMB-${new Date().getFullYear()}-${Date.now()}-${Math.floor(
+    Math.random() * 1e6
+  )}`.toUpperCase();
 }
 
 function amountsFromLines(
@@ -26,11 +31,12 @@ function amountsFromLines(
   vat: Prisma.Decimal | number
 ) {
   const subtotalD = lines.reduce(
-    (sum, line) => sum.plus(new Prisma.Decimal(line.unit_price).mul(line.quantity)),
+    (sum, line) =>
+      sum.plus(new Prisma.Decimal(line.unit_price).mul(line.quantity)),
     new Prisma.Decimal(0)
   );
 
-  const vatD = subtotalD.mul(vat).div(100);      // vat = 5.5 => 5.5%
+  const vatD = subtotalD.mul(vat).div(100); // vat = 5.5 => 5.5%
   const totalD = subtotalD.plus(vatD);
 
   // arrondis à 2 décimales
@@ -41,15 +47,13 @@ function amountsFromLines(
   return { subtotal, vat_amount, total };
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: "2025-08-27.basil" });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: "2025-08-27.basil",
+});
 
 const reservationsController = {
   // GET All reservations + Pagination + Queries
-  async getAllOrders(
-    req: Request, 
-    res: Response
-  ) {
-    
+  async getAllOrders(req: Request, res: Response) {
     const userRole = req.userRole as string | undefined;
     if (userRole !== "admin") {
       throw new UnauthorizedError("Unauthorized");
@@ -82,9 +86,9 @@ const reservationsController = {
           ...(order_date_to && { lte: order_date_to }),
         },
       }),
-    
+
       ...(payment_method && { payment_method }),
-    
+
       ...(search && {
         OR: [
           { payment_method: { contains: search, mode: "insensitive" } },
@@ -95,13 +99,19 @@ const reservationsController = {
       }),
     };
     const orderBy: Prisma.OrderOrderByWithRelationInput =
-      order === "order_date:asc"  ? { order_date: "asc"  } :
-      order === "order_date:desc" ? { order_date: "desc" } :
-      order === "visit_date:asc"  ? { visit_date: "asc"  } :
-      order === "visit_date:desc" ? { visit_date: "desc" } :
-      order === "status:asc"      ? { status: "asc"      } :
-      order === "status:desc"     ? { status: "desc"     } :
-                                    { order_date: "desc" };
+      order === "order_date:asc"
+        ? { order_date: "asc" }
+        : order === "order_date:desc"
+        ? { order_date: "desc" }
+        : order === "visit_date:asc"
+        ? { visit_date: "asc" }
+        : order === "visit_date:desc"
+        ? { visit_date: "desc" }
+        : order === "status:asc"
+        ? { status: "asc" }
+        : order === "status:desc"
+        ? { status: "desc" }
+        : { order_date: "desc" };
 
     const totalCount = await prisma.order.count({
       where: whereClause,
@@ -127,9 +137,12 @@ const reservationsController = {
         },
       },
     });
-    const data = orders.map(order => {
+    const data = orders.map((order) => {
       const { subtotal, vat_amount, total } = amountsFromLines(
-        order.order_lines.map(line => ({ unit_price: line.unit_price, quantity: line.quantity })),
+        order.order_lines.map((line) => ({
+          unit_price: line.unit_price,
+          quantity: line.quantity,
+        })),
         order.vat
       );
       return { ...order, subtotal, vat_amount, total };
@@ -142,34 +155,40 @@ const reservationsController = {
       hasPrev: page > 1,
       hasNext: page * limit < totalCount,
     };
-    res.status(200).json({data, meta,});
+    res.status(200).json({ data, meta });
   },
 
-  async getUserOrders(
-    req: Request, 
-    res: Response
-  ) {
+  async getUserOrders(req: Request, res: Response) {
     const targetUserId = await parseIdValidation.parseAsync(req.params.user_id);
     const userRole = req.userRole as string | undefined;
     const userId = req.userId;
 
     if (userRole !== "admin" && targetUserId !== userId) {
-      throw new UnauthorizedError("Unauthorized - You can only view your own orders");
+      throw new UnauthorizedError(
+        "Unauthorized - You can only view your own orders"
+      );
     }
 
-    const { status, limit, page, order } = await orderSchema.userOrders.parseAsync({
-      ...req.query,
-      user_id: targetUserId,
-    });
+    const { status, limit, page, order } =
+      await orderSchema.userOrders.parseAsync({
+        ...req.query,
+        user_id: targetUserId,
+      });
 
     const orderBy: Prisma.OrderOrderByWithRelationInput =
-      order === "order_date:asc"  ? { order_date: "asc"  } :
-      order === "order_date:desc" ? { order_date: "desc" } :
-      order === "visit_date:asc"  ? { visit_date: "asc"  } :
-      order === "visit_date:desc" ? { visit_date: "desc" } :
-      order === "status:asc"      ? { status: "asc"      } :
-      order === "status:desc"     ? { status: "desc"     } :
-                                    { order_date: "desc" };
+      order === "order_date:asc"
+        ? { order_date: "asc" }
+        : order === "order_date:desc"
+        ? { order_date: "desc" }
+        : order === "visit_date:asc"
+        ? { visit_date: "asc" }
+        : order === "visit_date:desc"
+        ? { visit_date: "desc" }
+        : order === "status:asc"
+        ? { status: "asc" }
+        : order === "status:desc"
+        ? { status: "desc" }
+        : { order_date: "desc" };
 
     const totalCount = await prisma.order.count({
       where: {
@@ -194,9 +213,12 @@ const reservationsController = {
       },
     });
 
-    const data = orders.map(order => {
+    const data = orders.map((order) => {
       const { subtotal, vat_amount, total } = amountsFromLines(
-        order.order_lines.map(line => ({ unit_price: line.unit_price, quantity: line.quantity })),
+        order.order_lines.map((line) => ({
+          unit_price: line.unit_price,
+          quantity: line.quantity,
+        })),
         order.vat
       );
       return { ...order, subtotal, vat_amount, total };
@@ -209,7 +231,7 @@ const reservationsController = {
       hasPrev: page > 1,
       hasNext: page * limit < totalCount,
     };
-    res.status(200).json({data, meta,});
+    res.status(200).json({ data, meta });
   },
   async getOneOrder(req: Request, res: Response) {
     const orderId = await parseIdValidation.parseAsync(req.params.id);
@@ -242,18 +264,24 @@ const reservationsController = {
 
     // Un utilisateur ne peut voir que ses propres commandes, sauf admin
     if (userRole !== "admin" && order.user_id !== userId) {
-      throw new UnauthorizedError("Unauthorized - You can only view your own orders");
+      throw new UnauthorizedError(
+        "Unauthorized - You can only view your own orders"
+      );
     }
 
     const { subtotal, vat_amount, total } = amountsFromLines(
-      order.order_lines.map(line => ({ unit_price: line.unit_price, quantity: line.quantity })),
+      order.order_lines.map((line) => ({
+        unit_price: line.unit_price,
+        quantity: line.quantity,
+      })),
       order.vat
     );
 
-    
-
     res.status(200).json({
-      ...order, subtotal, vat_amount, total
+      ...order,
+      subtotal,
+      vat_amount,
+      total,
     });
   },
 
@@ -262,46 +290,57 @@ const reservationsController = {
     if (!req.userId) {
       throw new UnauthorizedError("Unauthorized - Must be logged in");
     }
-  
+
     // on accepte user_id dans le body pour les admins
     const { visit_date, vat, payment_method, order_lines, user_id } =
       await orderSchema.create.parseAsync(req.body);
-  
+
     // admin peut créer pour un autre user, sinon on force le user connecté
     const role = req.userRole as string | undefined;
-    const targetUserId =
-      role === "admin" && user_id ? user_id : req.userId;
-  
+    const targetUserId = role === "admin" && user_id ? user_id : req.userId;
+
     // visit_date > now
     if (new Date(visit_date) <= new Date()) {
       throw new BadRequestError("Visit date must be in the future");
     }
-  
+
     // Vérifie que le user existe (sinon 404 lisible)
     const user = await prisma.user.findUnique({ where: { id: targetUserId } });
     if (!user) {
       throw new NotFoundError("User not found");
     }
-  
+
     // snapshot unit_price à partir des produits
     let createLines:
-      | { create: Array<{ product_id: number; quantity: number; unit_price: number }> }
+      | {
+          create: Array<{
+            product_id: number;
+            quantity: number;
+            unit_price: number;
+          }>;
+        }
       | undefined;
-  
+
     if (order_lines && order_lines.length > 0) {
       const ids = order_lines.map((l) => l.product_id);
-      const products = await prisma.product.findMany({ where: { id: { in: ids } } });
+      const products = await prisma.product.findMany({
+        where: { id: { in: ids } },
+      });
       if (products.length !== ids.length) {
         throw new NotFoundError("One or more products not found");
       }
       createLines = {
         create: order_lines.map((l) => {
           const p = products.find((pp) => pp.id === l.product_id)!;
-          return { product_id: l.product_id, quantity: l.quantity, unit_price: p.price };
+          return {
+            product_id: l.product_id,
+            quantity: l.quantity,
+            unit_price: p.price,
+          };
         }),
       };
     }
-  
+
     const order = await prisma.order.create({
       data: {
         status: "pending",
@@ -313,25 +352,34 @@ const reservationsController = {
         ...(createLines && { order_lines: createLines }),
       },
       include: {
-        order_lines: { include: { product: { select: { id: true, name: true } } } },
-        user: { select: { id: true, firstname: true, lastname: true, email: true } },
+        order_lines: {
+          include: { product: { select: { id: true, name: true } } },
+        },
+        user: {
+          select: { id: true, firstname: true, lastname: true, email: true },
+        },
       },
     });
-  
+
     const { subtotal, vat_amount, total } = amountsFromLines(
-      order.order_lines.map((l) => ({ unit_price: l.unit_price, quantity: l.quantity })),
+      order.order_lines.map((l) => ({
+        unit_price: l.unit_price,
+        quantity: l.quantity,
+      })),
       order.vat
     );
-  
+
     res.status(201).json({ ...order, subtotal, vat_amount, total });
   },
 
   async addOrderLines(req: Request, res: Response) {
     const orderId = await parseIdValidation.parseAsync(req.params.id);
-    const { quantity, product_id } = await orderLineSchema.create.parseAsync(req.body);
+    const { quantity, product_id } = await orderLineSchema.create.parseAsync(
+      req.body
+    );
     const userId = req.userId;
     const role = req.userRole as string | undefined;
-  
+
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: { user: true },
@@ -339,56 +387,62 @@ const reservationsController = {
     if (!order) throw new NotFoundError("Order not found");
 
     if (role !== "admin" && order.user_id !== userId) {
-      throw new UnauthorizedError("Unauthorized - You can only modify your own orders");
+      throw new UnauthorizedError(
+        "Unauthorized - You can only modify your own orders"
+      );
     }
     if (order.status !== "pending") {
       throw new BadRequestError("Can only add lines to pending orders");
     }
-  
-    const product = await prisma.product.findUnique({ where: { id: product_id } });
+
+    const product = await prisma.product.findUnique({
+      where: { id: product_id },
+    });
     if (!product) throw new NotFoundError("Product not found");
-  
+
     const line = await prisma.orderLine.create({
       data: {
         order_id: orderId,
         product_id,
         quantity,
-        // snapshot 
-        unit_price: product.price, 
+        // snapshot
+        unit_price: product.price,
       },
       include: { product: { select: { id: true, name: true } } },
     });
-  
+
     res.status(201).json(line);
   },
 
   async updateOrderLine(req: Request, res: Response) {
     const lineId = await parseIdValidation.parseAsync(req.params.lineId);
     const { quantity } = await orderLineSchema.update.parseAsync(req.body);
-  
+
     const userId = req.userId;
     const role = req.userRole as string | undefined;
-  
+
     const line = await prisma.orderLine.findUnique({
       where: { id: lineId },
       include: { order: true },
     });
     if (!line) throw new NotFoundError("Order line not found");
-  
+
     if (role !== "admin" && line.order.user_id !== userId) {
-      throw new UnauthorizedError("Unauthorized - You can only modify your own orders");
+      throw new UnauthorizedError(
+        "Unauthorized - You can only modify your own orders"
+      );
     }
     if (line.order.status !== "pending") {
       throw new BadRequestError("Can only modify lines in pending orders");
     }
-  
+
     // On ne modifie que la quantité
     const updated = await prisma.orderLine.update({
       where: { id: lineId },
       data: { ...(quantity !== undefined ? { quantity } : {}) },
       include: { product: { select: { id: true, name: true } } },
     });
-  
+
     res.status(200).json(updated);
   },
 
@@ -396,21 +450,23 @@ const reservationsController = {
     const lineId = await parseIdValidation.parseAsync(req.params.lineId);
     const userId = req.userId;
     const role = req.userRole as string | undefined;
-  
+
     const line = await prisma.orderLine.findUnique({
       where: { id: lineId },
       include: { order: true },
     });
-    if (!line){
+    if (!line) {
       throw new NotFoundError("Order line not found");
-    } 
+    }
     if (role !== "admin" && line.order.user_id !== userId) {
-      throw new UnauthorizedError("Unauthorized - You can only modify your own orders");
+      throw new UnauthorizedError(
+        "Unauthorized - You can only modify your own orders"
+      );
     }
     if (line.order.status !== "pending") {
       throw new BadRequestError("Can only delete lines from pending orders");
     }
-  
+
     await prisma.orderLine.delete({ where: { id: lineId } });
     res.status(204).json();
   },
@@ -420,22 +476,24 @@ const reservationsController = {
     const { status } = await orderSchema.updateStatus.parseAsync(req.body);
     const userId = req.userId;
     const role = req.userRole as string | undefined;
-  
+
     const order = await prisma.order.findUnique({
       where: { id: orderId },
       include: {
         order_lines: true,
-        user: { select: { id: true, firstname: true, lastname: true, email: true } },
+        user: {
+          select: { id: true, firstname: true, lastname: true, email: true },
+        },
       },
     });
-    if (!order){
+    if (!order) {
       throw new NotFoundError("Order not found");
-    } 
-  
+    }
+
     if (role !== "admin") {
-      if (order.user_id !== userId){
+      if (order.user_id !== userId) {
         throw new UnauthorizedError("Unauthorized");
-      } 
+      }
       if (status !== "canceled") {
         throw new UnauthorizedError("Only cancel is allowed for a member");
       }
@@ -443,7 +501,7 @@ const reservationsController = {
         throw new BadRequestError("You can only cancel pending orders");
       }
     }
-    // add status restriction. for exemple : if pending : change for "confirmed" or "canceled" only 
+    // add status restriction. for exemple : if pending : change for "confirmed" or "canceled" only
     const validTransitions: Record<OrderStatus, OrderStatus[]> = {
       [OrderStatus.pending]: [OrderStatus.confirmed, OrderStatus.canceled],
       [OrderStatus.confirmed]: [OrderStatus.refund, OrderStatus.canceled],
@@ -456,21 +514,26 @@ const reservationsController = {
         `Cannot transition from ${order.status} to ${status}`
       );
     }
-  
+
     const updated = await prisma.order.update({
       where: { id: orderId },
       data: { status },
       include: {
         order_lines: true,
-        user: { select: { id: true, firstname: true, lastname: true, email: true } },
+        user: {
+          select: { id: true, firstname: true, lastname: true, email: true },
+        },
       },
     });
-  
+
     const { subtotal, vat_amount, total } = amountsFromLines(
-      updated.order_lines.map(l => ({ unit_price: l.unit_price, quantity: l.quantity })),
+      updated.order_lines.map((l) => ({
+        unit_price: l.unit_price,
+        quantity: l.quantity,
+      })),
       updated.vat
     );
-  
+
     res.status(200).json({ ...updated, subtotal, vat_amount, total });
   },
 
@@ -479,9 +542,8 @@ const reservationsController = {
   // Help for stripe cli installation & config
   // ===========================================
 
-
   // =====================================
-  // POST /api/orders/:id/checkout/stripe 
+  // POST /api/orders/:id/checkout/stripe
   // =====================================
   async createStripeCheckoutSession(req: Request, res: Response) {
     // Authentication required
@@ -496,7 +558,9 @@ const reservationsController = {
       where: { id: orderId },
       include: {
         order_lines: { include: { product: true } },
-        user: { select: { id: true, firstname: true, lastname: true, email: true } },
+        user: {
+          select: { id: true, firstname: true, lastname: true, email: true },
+        },
       },
     });
     if (!order) throw new NotFoundError("Order not found");
@@ -548,7 +612,7 @@ const reservationsController = {
     if (!sig) {
       return res.status(400).send("Missing stripe-signature");
     }
-  
+
     let event: Stripe.Event;
     try {
       event = stripe.webhooks.constructEvent(
@@ -556,107 +620,127 @@ const reservationsController = {
         sig as string,
         process.env.STRIPE_WEBHOOK_SECRET!
       );
-    } catch (err: any) {
-      return res.status(400).send(`Webhook Error: ${err.message}`);
-    }
-  
-    if (event.type === "checkout.session.completed") {
-      const session = event.data.object as Stripe.Checkout.Session;
-  
-      // on ne traite que les paiements réellement payés
-      if (session.payment_status !== "paid") {
-        return res.status(200).json({ received: true });
-      }
-  
-      const orderId = Number(session.metadata?.order_id);
-      if (!Number.isFinite(orderId)) {
-        throw new BadRequestError("Missing order_id in metadata");
-      }
-  
-      // Récupération (facultative) de la méthode de paiement depuis le PaymentIntent
-      let paymentMethodLabel: string | null = null;
-      const piId =
-        typeof session.payment_intent === "string"
-          ? session.payment_intent
-          : session.payment_intent?.id;
-  
-      if (piId) {
-        // On expand `latest_charge.payment_method_details` (et `payment_method` en secours)
-        const pi = await stripe.paymentIntents.retrieve(piId, {
-          expand: ["latest_charge.payment_method_details", "payment_method"],
+
+      if (event.type === "checkout.session.completed") {
+        const session = event.data.object as Stripe.Checkout.Session;
+
+        // on ne traite que les paiements réellement payés
+        if (session.payment_status !== "paid") {
+          return res.status(200).json({ received: true });
+        }
+
+        const orderId = Number(session.metadata?.order_id);
+        if (!Number.isFinite(orderId)) {
+          throw new BadRequestError("Missing order_id in metadata");
+        }
+
+        // Récupération (facultative) de la méthode de paiement depuis le PaymentIntent
+        let paymentMethodLabel: string | null = null;
+        const piId =
+          typeof session.payment_intent === "string"
+            ? session.payment_intent
+            : session.payment_intent?.id;
+
+        if (piId) {
+          // On expand `latest_charge.payment_method_details` (et `payment_method` en secours)
+          const pi = await stripe.paymentIntents.retrieve(piId, {
+            expand: ["latest_charge.payment_method_details", "payment_method"],
+          });
+
+          // 1) via latest_charge (recommandé)
+          if (typeof pi.latest_charge !== "string") {
+            const pmd = pi.latest_charge?.payment_method_details;
+            if (pmd?.type === "card" && pmd.card) {
+              paymentMethodLabel = `card:${pmd.card.brand ?? "unknown"}`;
+            } else if (pmd?.type) {
+              paymentMethodLabel = pmd.type; // ex: 'sepa_debit', 'paypal', etc.
+            }
+          }
+
+          // 2) fallback via payment_method (si expand ci-dessus)
+          if (!paymentMethodLabel && typeof pi.payment_method === "object") {
+            const pm = pi.payment_method as Stripe.PaymentMethod;
+            if (pm.type === "card" && pm.card) {
+              paymentMethodLabel = `card:${pm.card.brand ?? "unknown"}`;
+            } else if (pm.type) {
+              paymentMethodLabel = pm.type;
+            }
+          }
+        }
+
+        // Charge la commande
+        const order = await prisma.order.findUnique({
+          where: { id: orderId },
+          include: {
+            order_lines: true,
+            user: {
+              select: {
+                id: true,
+                firstname: true,
+                lastname: true,
+                email: true,
+              },
+            },
+          },
         });
-  
-        // 1) via latest_charge (recommandé)
-        if (typeof pi.latest_charge !== "string") {
-          const pmd = pi.latest_charge?.payment_method_details;
-          if (pmd?.type === "card" && pmd.card) {
-            paymentMethodLabel = `card:${pmd.card.brand ?? "unknown"}`;
-          } else if (pmd?.type) {
-            paymentMethodLabel = pmd.type; // ex: 'sepa_debit', 'paypal', etc.
-          }
+        if (!order) return res.status(200).json({ received: true });
+
+        // Déjà confirmée ? on ne retouche pas
+        if (order.status === OrderStatus.confirmed) {
+          return res.status(200).json({ received: true });
         }
-  
-        // 2) fallback via payment_method (si expand ci-dessus)
-        if (!paymentMethodLabel && typeof pi.payment_method === "object") {
-          const pm = pi.payment_method as Stripe.PaymentMethod;
-          if (pm.type === "card" && pm.card) {
-            paymentMethodLabel = `card:${pm.card.brand ?? "unknown"}`;
-          } else if (pm.type) {
-            paymentMethodLabel = pm.type;
-          }
+        // On ne confirme que si elle était pending
+        if (order.status !== OrderStatus.pending) {
+          return res.status(200).json({ received: true });
         }
+
+        const updated = await prisma.order.update({
+          where: { id: orderId },
+          data: {
+            status: OrderStatus.confirmed,
+            // stocke "card:visa", "card:mastercard", "paypal", "sepa_debit", etc.
+            payment_method: paymentMethodLabel ?? order.payment_method, // ne casse rien si null
+          },
+          include: {
+            order_lines: true,
+            user: {
+              select: {
+                id: true,
+                firstname: true,
+                lastname: true,
+                email: true,
+              },
+            },
+          },
+        });
+
+        const { subtotal, vat_amount, total } = amountsFromLines(
+          updated.order_lines.map((l) => ({
+            unit_price: l.unit_price,
+            quantity: l.quantity,
+          })),
+          updated.vat
+        );
+
+        return res.status(200).json({
+          received: true,
+          order_id: updated.id,
+          status: updated.status,
+          payment_method: updated.payment_method,
+          subtotal,
+          vat_amount,
+          total,
+        });
       }
-  
-      // Charge la commande
-      const order = await prisma.order.findUnique({
-        where: { id: orderId },
-        include: {
-          order_lines: true,
-          user: { select: { id: true, firstname: true, lastname: true, email: true } },
-        },
-      });
-      if (!order) return res.status(200).json({ received: true });
-  
-      // Déjà confirmée ? on ne retouche pas
-      if (order.status === OrderStatus.confirmed) {
-        return res.status(200).json({ received: true });
+
+      return res.status(200).json({ received: true });
+    } catch (err: unknown) {
+      if (err && typeof err == "object") {
+        const errorObj = err as { message: string };
+        return res.status(400).send(`Webhook Error: ${errorObj.message}`);
       }
-      // On ne confirme que si elle était pending
-      if (order.status !== OrderStatus.pending) {
-        return res.status(200).json({ received: true });
-      }
-  
-      const updated = await prisma.order.update({
-        where: { id: orderId },
-        data: {
-          status: OrderStatus.confirmed,
-          // stocke "card:visa", "card:mastercard", "paypal", "sepa_debit", etc.
-          payment_method: paymentMethodLabel ?? order.payment_method, // ne casse rien si null
-        },
-        include: {
-          order_lines: true,
-          user: { select: { id: true, firstname: true, lastname: true, email: true } },
-        },
-      });
-  
-      const { subtotal, vat_amount, total } = amountsFromLines(
-        updated.order_lines.map((l) => ({ unit_price: l.unit_price, quantity: l.quantity })),
-        updated.vat
-      );
-  
-      return res.status(200).json({
-        received: true,
-        order_id: updated.id,
-        status: updated.status,
-        payment_method: updated.payment_method,
-        subtotal,
-        vat_amount,
-        total,
-      });
     }
-  
-    return res.status(200).json({ received: true });
-  }
-}  
+  },
+};
 
 export default reservationsController;

@@ -203,7 +203,7 @@ const authController = {
     setAccessTokenCookie(res, accessToken);
     setRefreshTokenCookie(res, refreshToken);
 
-    const { password: _pw, ...safeUser } = user;
+    const { ...safeUser } = user;
 
     res.status(200).json({
       user: safeUser,

@@ -5,7 +5,6 @@ import {
   limiterEmail,
   limiterLogin,
   limiterRegister,
-  limiterUser,
 } from "../middlewares/rate-limit.middleware.js";
 
 const router = Router();

@@ -79,7 +79,7 @@ async function main() {
     email: faker.internet.email().toLowerCase(),
     password: "$2b$10$KIXFakeHashForAllUsersXDlG93o7I7v/nmnyvT9flD1qFk",
     is_active: faker.datatype.boolean(),
-    phone: faker.phone.number("+336########"),
+    phone: faker.phone.number({ style: "international" }), // ? "+336########" cause typeScript error
     birthday: faker.date.birthdate({ min: 1960, max: 2005, mode: "year" }),
     last_login: faker.datatype.boolean()
       ? faker.date.recent({ days: 30 })
@@ -104,7 +104,7 @@ async function main() {
   console.log(`👥 Users créés (member): ${deduped.length}`);
 
   // 5) Produits fixes (billets)
-  const products = await prisma.product.createMany({
+  await prisma.product.createMany({
     data: [
       { name: "Adulte", price: 50, status: "published" },
       { name: "Etudiant", price: 40, status: "published" },
@@ -187,7 +187,12 @@ async function main() {
       )
     );
 
-    const allLines = [];
+    const allLines: Array<
+      Omit<Prisma.OrderLineCreateInput, "order" | "product"> & {
+        order_id: number;
+        product_id: number;
+      }
+    > = [];
     batch.forEach((o, idx) => {
       const orderId = createdOrders[idx].id;
       o.lines.forEach((l) => {

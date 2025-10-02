@@ -1,6 +1,7 @@
 import assert from "node:assert";
 import { describe, it } from "node:test";
 import { healthController } from "./health.controller.js";
+import { Request, Response } from "express";
 
 describe("[GET] /api/health", () => {
   it("should return a healthy status", async () => {
@@ -15,7 +16,7 @@ describe("[GET] /api/health", () => {
   it("should return 200 status", async () => {
     // Arrange
     let statusCode: number | undefined;
-    const res = {
+    const res: Partial<Response> = {
       status(code: number) {
         statusCode = code;
         return this;
@@ -23,10 +24,10 @@ describe("[GET] /api/health", () => {
       json() {
         return this;
       },
-    } as any;
+    };
 
     // Act
-    await healthController.checking({} as any, res);
+    await healthController.checking({} as Request, res as Response);
 
     // Assert
     assert.strictEqual(statusCode, 200);
@@ -35,26 +36,35 @@ describe("[GET] /api/health", () => {
 
 describe("[GET] /api/health", () => {
   it("should return 'All good here!' in the message", async () => {
+    type MockBody = {
+      message: string;
+      timestamp: string;
+    };
+
     // Arrange
-    let responseBody: any;
-    const res = {
+    let responseBody: null | MockBody = null;
+    const res: Partial<Response> = {
       status() {
         return this;
       },
-      json(body: any) {
+      json(body: MockBody) {
         responseBody = body;
         return this;
       },
-    } as any;
+    };
 
     // Act
-    await healthController.checking({} as any, res);
+    await healthController.checking({} as Request, res as Response);
 
     // Assert
-    assert.strictEqual(responseBody.message, "All good here!");
+    assert.notEqual(responseBody, null);
+    if (responseBody) {
+      const responseBodyOk = responseBody as MockBody;
+      assert.strictEqual(responseBodyOk.message, "All good here!");
 
-    assert.ok(responseBody.timestamp, "timestamp should exist");
-    const date = new Date(responseBody.timestamp);
-    assert.ok(!isNaN(date.getTime()), "timestamp should be a valid date");
+      assert.ok(responseBodyOk.timestamp, "timestamp should exist");
+      const date = new Date(responseBodyOk.timestamp);
+      assert.ok(!isNaN(date.getTime()), "timestamp should be a valid date");
+    }
   });
 });

@@ -9,7 +9,10 @@ import {
 } from "./api.helper.js";
 
 // Helper pour ajouter des query params à l'URL
-function buildUrlWithParams(endpoint: string, params?: Record<string, any>) {
+function buildUrlWithParams(
+  endpoint: string,
+  params?: Record<string, unknown>
+) {
   if (!params) return endpoint;
   const usp = new URLSearchParams();
   for (const [key, value] of Object.entries(params)) {

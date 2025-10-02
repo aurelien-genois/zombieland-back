@@ -4,9 +4,10 @@ import { z } from "zod";
 import { utilSchema } from "../schemas/utils.schema.js";
 import { NotFoundError } from "../lib/errors.js";
 import { limitValidation, offsetValidation } from "../schemas/query.schema.js";
+import { type PrismaClient } from "@prisma/client/extension";
 
 abstract class BaseController {
-  protected prismaModel: any;
+  protected prismaModel: PrismaClient;
   protected schemaCreate: ZodType;
   protected schemaUpdate: ZodType;
   protected schemaOrderBy: ZodType<string | undefined>;
@@ -17,7 +18,7 @@ abstract class BaseController {
     schemaUpdate,
     schemaOrderBy,
   }: {
-    prismaModel: any;
+    prismaModel: PrismaClient;
     schemaCreate: ZodType;
     schemaUpdate: ZodType;
     schemaOrderBy?: ZodType<string | undefined>;

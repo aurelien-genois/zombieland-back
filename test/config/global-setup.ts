@@ -36,7 +36,7 @@ before(async () => {
     "compose.test.yml"
   );
   await $`docker compose -f ${composeFileAbsolutePath} -p zombieland-test-db up -d`;
-  await $`sleep 1`; // Attendre une petite seconde pour s'assurer qu'elle tourne bien
+  await $`sleep 3`; // Attendre une petite seconde pour s'assurer qu'elle tourne bien
 
   // Créer les tables dans cette BDD
   const prismaSchemaAbsolutePath = path.resolve(

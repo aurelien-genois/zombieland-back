@@ -1,4 +1,3 @@
-import { configDotenv } from "dotenv";
 import { emailTransporter } from "../config/emailTransporter.service.js";
 
 export const sendContactEmail = async (

@@ -23,6 +23,7 @@ app.use(helmetMiddlewre);
 app.use("/api/orders/payment/stripe", stripeIPNRouter);
 // Body parsing
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Sanitize request bodies
 app.use(bodySanitizer);

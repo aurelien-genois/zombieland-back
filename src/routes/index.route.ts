@@ -8,6 +8,7 @@ import health from "./health.route.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./swaggers/index.js";
 import reservations from "./reservations.route.js";
+import administration from "./administration.route.js";
 
 export const router = Router();
 
@@ -33,6 +34,8 @@ router.use("/categories", categories);
 // --------------------  Products  ----------------------
 router.use("/products", products);
 
-// --------------------  Reservations ------------------------
-//   Order
+// --------------------  Reservations / Orders------------------------
 router.use("/orders", reservations);
+
+// --------------------   ADMINISTRATION ------------------------
+router.use("/administration", administration);

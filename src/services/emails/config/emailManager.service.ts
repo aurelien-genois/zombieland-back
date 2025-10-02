@@ -6,7 +6,7 @@ import { emailTransporter } from "./emailTransporter.service.js";
 export const emailTest = async (_req: Request, res: Response) => {
   const emailTest = {
     from: process.env.FROM_EMAIL,
-    to: process.env.TO_MAIL,
+    to: process.env.TO_ADMIN_EMAIL,
     subject: "✅ Test d'envoi",
     text: "Voici un e-mail envoyé depuis ton backend Node.js 🚀",
     html: "<b>Bravo ! Ceci est un test réel de <i>Zombieland</i></b>",

@@ -1,0 +1,20 @@
+npm run lint
+
+# reset locally if needed
+# npm run docker:down
+# docker volume rm zombielandcda-back_zombieland
+# npm run db:generate
+
+# set up docker if needed
+# npm run docker:up
+# npm run docker:db:init
+
+npm run test:unit
+npm run test:spec
+
+if [ -n "$(git diff --name-only HEAD~1 | grep schema.prisma)" ]; then
+    echo 
+    "⚠️ You modified the schema.prisma file. 
+    Make sure you also run the 'npm run db:migrate:dev' or 'docker:db:migrate:dev' command to generate the migration file.
+    "
+fi

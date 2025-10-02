@@ -33,7 +33,7 @@
 1-4 **script reset + generate + seeds**
 
 ```bash
-npm docker:db:init
+npm run docker:db:init
 ```
 
 1. **Reset the Prisma database**

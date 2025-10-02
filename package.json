@@ -35,7 +35,8 @@
     "lint:fix": "eslint . --fix",
     "======= TEST =======": "========= TEST ===========",
     "test:unit": "tsx --test ./**/*.unit.test.ts",
-    "test:spec": "tsx --test --env-file=./test/config/.env.test --import ./test/config/global-setup.ts --experimental-test-isolation=none ./**/*.spec.test.ts"
+    "test:spec": "tsx --test --env-file=./test/config/.env.test --import ./test/config/global-setup.ts --experimental-test-isolation=none ./**/*.spec.test.ts",
+    "prepare": "husky"
   },
   "keywords": [],
   "author": "",
@@ -62,7 +63,8 @@
     "prisma": "^6.16.1",
     "tsx": "^4.20.5",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.44.0"
+    "typescript-eslint": "^8.44.0",
+    "husky": "^9.1.7"
   },
   "dependencies": {
     "@faker-js/faker": "^10.0.0",
@@ -76,7 +78,6 @@
     "express": "^5.1.0",
     "express-rate-limit": "^8.1.0",
     "helmet": "^8.1.0",
-    "husky": "^9.1.7",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
     "nodemailer": "^7.0.6",

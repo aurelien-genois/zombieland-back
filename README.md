@@ -1,8 +1,8 @@
-# ZombieLandCDA - Backend (REST API)
-
 <img src="./public/images/logo.png"
      alt="Logo"
      style="width: 40%" />
+
+# ZombieLandCDA - Backend (REST API)
 
 ## 🧟‍♂️ Introduction
 

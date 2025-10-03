@@ -4,3 +4,4 @@ dist
 logs/*
 /generated/prisma
 /test/config/.env.test
+

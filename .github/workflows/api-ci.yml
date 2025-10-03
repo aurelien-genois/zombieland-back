@@ -12,6 +12,7 @@ on:
 jobs:
   run_tests:
     runs-on: ubuntu-latest
+    environment: test
     steps:
       # Récupérer le code du dépôt dans le runner (action officiel)
       - name: checkout code
@@ -35,4 +36,15 @@ jobs:
 
       # Tests d'intégration
       - name: Run integration tests
-        run: npm run test:spec
+        run: npm run  ghact:test:spec
+        env:
+          PORT: ${{ vars.PORT }}
+          ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS }}
+          JWT_SECRET: ${{ vars.JWT_SECRET }}
+          DEBUG: ${{ vars.DEBUG }}
+          NODE_ENV: ${{ vars.NODE_ENV }}
+          SALT_ROUNDS: ${{ vars.SALT_ROUNDS }}
+          DATABASE_URL: ${{ vars.DATABASE_URL }}
+          STRIPE_SECRET_KEY: ${{ vars.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ vars.STRIPE_WEBHOOK_SECRET }}
+          FRONT_URL: ${{ vars.FRONT_URL }}

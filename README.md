@@ -1,12 +1,12 @@
 # ZombieLandCDA - Backend (REST API)
 
-<img src="./public/images/logo.svg"
+<img src="./public/images/logo.png"
      alt="Logo"
      style="width: 40%" />
 
 ## 🧟‍♂️ Introduction
 
-The **ZombieLand** application modernizes park management by offering a secure web platform.
+The **ZombieLand** application modernizes amusement park management by offering a secure web platform.
 It provides an attractive presentation of the park to appeal to young audiences and families while strengthening its national reputation.
 Finally, it centralizes ticketing and simplifies online booking, reducing the staff’s workload.
 

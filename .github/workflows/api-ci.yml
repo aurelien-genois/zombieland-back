@@ -12,6 +12,7 @@ on:
 jobs:
   run_tests:
     runs-on: ubuntu-latest
+    environment: test
     steps:
       # Récupérer le code du dépôt dans le runner (action officiel)
       - name: checkout code
@@ -35,7 +36,7 @@ jobs:
 
       # Tests d'intégration
       - name: Run integration tests
-        run: npm run test:spec
+        run: npm run  ghact:test:spec
         env:
           PORT: ${{ vars.PORT }}
           ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS }}

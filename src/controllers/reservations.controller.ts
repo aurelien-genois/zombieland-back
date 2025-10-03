@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
-import { Prisma, OrderStatus} from "@prisma/client";
+import { Prisma, OrderStatus } from "@prisma/client";
 import { orderLineSchema, orderSchema } from "../schemas/reservation.schema.js";
 import {
   BadRequestError,
@@ -10,6 +10,7 @@ import {
 import { parseIdValidation } from "../schemas/utils.schema.js";
 
 import Stripe from "stripe";
+import { config } from "../../server.config.js";
 
 type Meta = {
   page: number;
@@ -29,7 +30,9 @@ const orderInclude = {
     include: { product: true },
   },
 } as const;
-type OrderWithLinesAndUser = Prisma.OrderGetPayload<{ include: typeof orderInclude }>;
+type OrderWithLinesAndUser = Prisma.OrderGetPayload<{
+  include: typeof orderInclude;
+}>;
 
 function generateTicketCode() {
   return `ZMB-${new Date().getFullYear()}-${Date.now()}-${Math.floor(
@@ -54,7 +57,7 @@ function amountsFromLines(
   return { subtotal, vat_amount, total };
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(config.server.STRIPE_SECRET_KEY, {
   apiVersion: "2025-08-27.basil",
 });
 
@@ -98,10 +101,33 @@ const reservationsController = {
 
       ...(search && {
         OR: [
-          { payment_method: { contains: search, mode: Prisma.QueryMode.insensitive } },
-          { user: { email:     { contains: search, mode: Prisma.QueryMode.insensitive } } },
-          { user: { firstname: { contains: search, mode: Prisma.QueryMode.insensitive } } },
-          { user: { lastname:  { contains: search, mode: Prisma.QueryMode.insensitive } } }
+          {
+            payment_method: {
+              contains: search,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            user: {
+              email: { contains: search, mode: Prisma.QueryMode.insensitive },
+            },
+          },
+          {
+            user: {
+              firstname: {
+                contains: search,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+          },
+          {
+            user: {
+              lastname: {
+                contains: search,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+          },
         ],
       }),
     };
@@ -145,7 +171,8 @@ const reservationsController = {
         },
       },
     });
-    const data = orders.map((order: OrderWithLinesAndUser) => {  // 👈
+    const data = orders.map((order: OrderWithLinesAndUser) => {
+      // 👈
       const { subtotal, vat_amount, total } = amountsFromLines(
         order.order_lines.map((line) => ({
           unit_price: line.unit_price,
@@ -183,21 +210,21 @@ const reservationsController = {
         user_id: targetUserId,
       });
 
-      const orderBy: Prisma.OrderOrderByWithRelationInput[] = [
-        order === "order_date:asc"
-          ? { order_date: "asc" }
-          : order === "order_date:desc"
-          ? { order_date: "desc" }
-          : order === "visit_date:asc"
-          ? { visit_date: "asc" }
-          : order === "visit_date:desc"
-          ? { visit_date: "desc" }
-          : order === "status:asc"
-          ? { status: "asc" }
-          : order === "status:desc"
-          ? { status: "desc" }
-          : { order_date: "desc" },
-      ];
+    const orderBy: Prisma.OrderOrderByWithRelationInput[] = [
+      order === "order_date:asc"
+        ? { order_date: "asc" }
+        : order === "order_date:desc"
+        ? { order_date: "desc" }
+        : order === "visit_date:asc"
+        ? { visit_date: "asc" }
+        : order === "visit_date:desc"
+        ? { visit_date: "desc" }
+        : order === "status:asc"
+        ? { status: "asc" }
+        : order === "status:desc"
+        ? { status: "desc" }
+        : { order_date: "desc" },
+    ];
 
     const totalCount = await prisma.order.count({
       where: {
@@ -341,7 +368,11 @@ const reservationsController = {
       createLines = {
         create: order_lines.map((l) => {
           const p = products.find((pp) => pp.id === l.product_id)!;
-          return { product_id: l.product_id, quantity: l.quantity, unit_price: p.price };
+          return {
+            product_id: l.product_id,
+            quantity: l.quantity,
+            unit_price: p.price,
+          };
         }),
       };
     }
@@ -623,7 +654,7 @@ const reservationsController = {
       event = stripe.webhooks.constructEvent(
         req.body, // RAW body
         sig as string,
-        process.env.STRIPE_WEBHOOK_SECRET!
+        config.server.STRIPE_WEBHOOK_SECRET
       );
 
       if (event.type === "checkout.session.completed") {

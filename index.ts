@@ -1,4 +1,4 @@
-import { config } from "./server.config.js"; 
+import { config } from "./server.config.js";
 import { app } from "./src/app.js";
 import { logger } from "./src/lib/logger.js";
 

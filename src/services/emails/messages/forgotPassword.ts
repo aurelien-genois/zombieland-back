@@ -1,10 +1,11 @@
 import { emailTransporter } from "../config/emailTransporter.service.js";
+import { config } from "../../../../server.config.js";
 
 export const sendForgotPasswordRequest = async (
   toEmail: string,
   resetToken: string
 ) => {
-  const resetLink = `http://localhost:5173/reset-password?token=${resetToken}`;
+  const resetLink = `${config.server.frontUrl}/reset-password?token=${resetToken}`;
 
   const html = `
   <!DOCTYPE html>

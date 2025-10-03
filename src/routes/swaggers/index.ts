@@ -1,4 +1,5 @@
 import swaggerJSDoc from "swagger-jsdoc";
+import { config } from "../../../server.config.js";
 
 const options = {
   definition: {
@@ -16,7 +17,7 @@ const options = {
     },
     servers: [
       {
-        url: `http://localhost:3020`,
+        url: config.server.backUrl,
       },
     ],
     tags: [

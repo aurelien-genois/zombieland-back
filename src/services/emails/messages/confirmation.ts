@@ -1,4 +1,5 @@
 import { emailTransporter } from "../config/emailTransporter.service.js";
+import { config } from "../../../../server.config.js";
 
 export const sendConfirmationEmail = async (
   toEmail: string,
@@ -7,7 +8,7 @@ export const sendConfirmationEmail = async (
   lastname: string
 ) => {
   const userName = `${firstname} ${lastname}`.trim();
-  const confirmationLink = `http://localhost:3020/api/auth/email-confirmation?token=${verificationCode}`;
+  const confirmationLink = `${config.server.backUrl}/api/auth/email-confirmation?token=${verificationCode}`;
 
   const html = `
   <!DOCTYPE html>

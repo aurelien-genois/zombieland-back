@@ -3,7 +3,7 @@ import cors from "cors";
 import express from "express";
 import { router } from "./routes/index.route.js";
 import { config } from "../server.config.js";
-import { helmetMiddlewre } from "./middlewares/helmet.middleware.js";
+import { helmetMiddleware } from "./middlewares/helmet.middleware.js";
 import morgan from "morgan";
 import cookieParser from "cookie-parser";
 import { globalErrorHandler } from "./middlewares/global-error-handler.js";
@@ -17,7 +17,7 @@ export const app = express();
 app.use(cors({ origin: config.server.allowedOrigins, credentials: true }));
 
 // Security headers first
-app.use(helmetMiddlewre);
+app.use(helmetMiddleware);
 
 // stripe payment before body parsing
 app.use("/api/orders/payment/stripe", stripeIPNRouter);

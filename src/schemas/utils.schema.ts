@@ -9,7 +9,8 @@ export const parseIdValidation = z.coerce
   .min(1, { error: "Parameter must be a positive integer" });
 
 export const parseSlugValidation = z
-  .stringFormat("slug", /^[a-z0-9]+(-[a-z0-9]+)*$/)
+  .string()
+  .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, { message: "Invalid slug format" })
   .min(1);
 
 // ================================== SCHEMAS =================================

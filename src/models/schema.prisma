@@ -7,6 +7,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum RoleName {
+  admin
+  member
+}
+
+enum OrderStatus {
+  pending
+  confirmed
+  canceled
+  refund
+}
+
+model Role {
+  id         Int       @id @default(autoincrement())
+  name       RoleName  @unique
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+
+  users      User[]
+}
 
 model User {
   id Int @id @default(autoincrement())
@@ -15,13 +35,179 @@ model User {
   lastname  String
   email     String  @unique()
   password  String
-  is_active  Boolean
-  phone       String
-  birthday   DateTime @db.Date
+  is_active Boolean @default(false)
+  phone     String?
+  birthday  DateTime @db.Date
   last_login DateTime?
+  role_id    Int?
+  role       Role?     @relation(fields: [role_id], references: [id])
+  orders     Order[]
 
   created_at DateTime @default(now())
   updated_at DateTime @default(now())
 
+  tokens     Token[]
+
+  userRateActivities UserRateActivity[] // Alias
+
+  @@index([firstname])
+  @@index([lastname])
+  
   @@map("user") 
+}
+
+enum TypeToken {
+  refresh
+  verification_email
+  reset_password
+}
+
+
+model Token {
+  id         Int      @id @default(autoincrement())
+  token      String  
+  type       TypeToken
+  expired_at  DateTime? 
+  user_id    Int?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user       User?    @relation(fields: [user_id], references: [id])
+}
+
+enum ActivityStatus {
+  published
+  draft
+}
+
+model Activity {
+  id Int @id @default(autoincrement())
+
+  name String
+  slug String @unique()
+  slogan String?
+  description  String?
+  minimum_age Int
+  duration String?
+  disabled_access Boolean @default(false)
+  high_intensity Boolean @default(false)
+  status ActivityStatus @default(draft)
+  image_url String?
+
+  category Category @relation(fields: [category_id], references: [id]) // Alias
+  category_id Int
+
+  userRateActivities UserRateActivity[] // Alias
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@index([name])
+  @@index([category_id])
+  @@index([minimum_age])
+  @@index([disabled_access])
+  @@index([high_intensity])
+
+  @@map("activity")
+}
+
+model Category {
+  id Int @id @default(autoincrement())
+
+  name String
+  color String
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  activities Activity[] // Alias
+
+  @@map("category") 
+}
+
+model UserRateActivity {
+  grade Int
+  comment String?
+
+  user User @relation(fields: [user_id], references: [id]) // Alias
+  user_id Int
+
+  activity Activity @relation(fields: [activity_id], references: [id]) // Alias
+  activity_id Int
+
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+
+  @@id(name: "user_rate_activity_pkey", fields: [user_id, activity_id])
+  @@map("user_rate_activity")
+}
+
+enum ProductStatus {
+  published
+  draft
+}
+
+model Product {
+  id Int @id @default(autoincrement())
+
+  name String @unique
+  price Float
+  status ProductStatus @default(draft)
+  order_lines OrderLine[]
+  
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now())
+  
+  @@map("product")
+}
+
+model Order {
+  id              Int          @id @default(autoincrement())
+
+  status          OrderStatus  @default(pending)
+  order_date      DateTime     @default(now())
+  visit_date      DateTime   
+
+  vat             Decimal      @db.Decimal(4, 2)
+  payment_method  String?
+
+  user_id         Int
+  user            User         @relation(fields: [user_id], references: [id])
+
+  order_lines     OrderLine[] 
+
+  ticket_code       String
+
+  created_at      DateTime     @default(now())
+  updated_at      DateTime     @updatedAt
+  
+  @@index([user_id])
+  @@index([status])
+  @@index([order_date])
+  @@index([ticket_code])
+  @@index([visit_date])
+  @@map("order")
+}
+
+model OrderLine {
+  id                Int      @id @default(autoincrement())
+
+  unit_price     Float
+  quantity          Int
+  
+
+  product_id        Int
+  product           Product  @relation(fields: [product_id], references: [id])
+
+  order_id          Int
+  order             Order    @relation(fields: [order_id], references: [id])
+
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+  
+  @@index([order_id])
+  @@index([product_id])
+  @@map("order_line")
+
+  
 }

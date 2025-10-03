@@ -1,5 +1,7 @@
 node_modules
 dist
 .env
-
+logs/*
 /generated/prisma
+/test/config/.env.test
+

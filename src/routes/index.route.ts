@@ -1,8 +1,41 @@
 import { Router } from "express";
 import users from "./users.route.js";
+import auth from "./auth.route.js";
+import activities from "./activities.route.js";
+import categories from "./categories.route.js";
+import products from "./products.route.js";
+import health from "./health.route.js";
+import swaggerUi from "swagger-ui-express";
+import swaggerSpec from "./swaggers/index.js";
+import reservations from "./reservations.route.js";
+import administration from "./administration.route.js";
 
 export const router = Router();
 
-router.get("/health", (_req, res) => res.send("All good here!"));
+// // --------------------  Swagger-------------------
+router.use("/api-docs", swaggerUi.serve);
+router.get("/api-docs", swaggerUi.setup(swaggerSpec));
 
+// --------------------  Health ------------------------
+router.use("/health", health);
+
+// --------------------  Users ------------------------
 router.use("/users", users);
+
+// --------------------  Auth ------------------------
+router.use("/auth", auth);
+
+// --------------------  Activities ------------------------
+router.use("/activities", activities);
+
+// --------------------  Categories ------------------------
+router.use("/categories", categories);
+
+// --------------------  Products  ----------------------
+router.use("/products", products);
+
+// --------------------  Reservations / Orders------------------------
+router.use("/orders", reservations);
+
+// --------------------   ADMINISTRATION ------------------------
+router.use("/administration", administration);

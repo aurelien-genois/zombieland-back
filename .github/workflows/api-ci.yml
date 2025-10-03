@@ -1,0 +1,50 @@
+name: Run unit & integration tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  run_tests:
+    runs-on: ubuntu-latest
+    environment: test
+    steps:
+      # Récupérer le code du dépôt dans le runner (action officiel)
+      - name: checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: npm install
+
+      # Prisma client pour environnement du runner
+      - name: Generate Prisma Client
+        run: npm run db:generate
+
+      # Tests unitaires
+      - name: Run unit tests
+        run: npm run test:unit
+
+      # Tests d'intégration
+      - name: Run integration tests
+        run: npm run  ghact:test:spec
+        env:
+          PORT: ${{ vars.PORT }}
+          ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS }}
+          JWT_SECRET: ${{ vars.JWT_SECRET }}
+          DEBUG: ${{ vars.DEBUG }}
+          NODE_ENV: ${{ vars.NODE_ENV }}
+          SALT_ROUNDS: ${{ vars.SALT_ROUNDS }}
+          DATABASE_URL: ${{ vars.DATABASE_URL }}
+          STRIPE_SECRET_KEY: ${{ vars.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ vars.STRIPE_WEBHOOK_SECRET }}
+          FRONT_URL: ${{ vars.FRONT_URL }}

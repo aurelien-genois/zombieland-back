@@ -133,6 +133,7 @@ const authController = {
     });
 
     res.redirect(`${config.server.frontUrl}/login`);
+
   },
   // --------------------  Resend Confirmation Email ------------------------
   async resendConfirmationEmail(req: Request, res: Response) {

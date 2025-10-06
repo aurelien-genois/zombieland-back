@@ -18,3 +18,4 @@ npm run test:spec
 #     Make sure you also run the 'npm run db:migrate:dev' or 'docker:db:migrate:dev' command to generate the migration file.
 #     "
 # fi
+

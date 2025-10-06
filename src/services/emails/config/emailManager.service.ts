@@ -12,6 +12,15 @@ export const emailTest = async (_req: Request, res: Response) => {
     html: "<b>Bravo ! Ceci est un test réel de <i>Zombieland</i></b>",
   };
 
-  const info = await emailTransporter.sendMail(emailTest);
-  res.send({ message: "Email envoyé avec succès !", info });
+  try {
+    const info = await emailTransporter.sendMail(emailTest);
+    res.send({ message: "Email envoyé avec succès !", info });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Email sending failed:", message);
+    res.status(500).send({
+      error: message,
+      status: 500,
+    });
+  }
 };

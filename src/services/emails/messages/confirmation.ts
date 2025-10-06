@@ -26,7 +26,8 @@ export const sendConfirmationEmail = async (
       <!-- Message -->
       <p style="font-size:16px;color:#555;line-height:1.6;margin-bottom:30px;">
         Merci de vous être inscrit sur <b>Zombieland</b>.<br/>
-        Veuillez confirmer votre adresse e-mail pour activer votre compte :
+        Veuillez confirmer votre adresse e-mail pour activer votre compte : <br/>
+        Vous serez redirigé vers la page de connexion après confirmation.
       </p>
       
       <!-- Bouton -->
@@ -35,6 +36,7 @@ export const sendConfirmationEmail = async (
                 border-radius:8px;text-decoration:none;font-weight:bold;font-size:16px;">
          ✅ Confirmer mon e-mail
       </a>
+
 
       <!-- Info -->
       <p style="font-size:13px;color:#777;margin-top:25px;">

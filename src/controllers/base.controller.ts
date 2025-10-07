@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import type { ZodType } from "zod";
 import { z } from "zod";
-import { utilSchema } from "../schemas/utils.schema.js";
+import { parseIdValidation } from "../schemas/utils.schema.js";
 import { NotFoundError } from "../lib/errors.js";
 import { limitValidation, offsetValidation } from "../schemas/query.schema.js";
 import { type PrismaClient } from "@prisma/client/extension";
@@ -53,7 +53,7 @@ abstract class BaseController {
 
   // --------------------  Get By ID ------------------------
   async getById(req: Request, res: Response): Promise<void> {
-    const { id } = utilSchema.parseId.parse(req.params);
+    const id = parseIdValidation.parse(req.params.id);
     const item = await this.prismaModel.findUnique({ where: { id } });
     if (!item) {
       throw new NotFoundError("Item not found");
@@ -70,7 +70,7 @@ abstract class BaseController {
 
   // --------------------  Update ------------------------
   async updateById(req: Request, res: Response): Promise<void> {
-    const { id } = utilSchema.parseId.parse(req.params);
+    const id = parseIdValidation.parse(req.params.id);
     const item = await this.prismaModel.findUnique({ where: { id } });
     if (!item) {
       throw new NotFoundError("Item not found");
@@ -85,7 +85,7 @@ abstract class BaseController {
 
   // --------------------  Delete ------------------------
   async deleteById(req: Request, res: Response): Promise<void> {
-    const { id } = utilSchema.parseId.parse(req.params);
+    const id = parseIdValidation.parse(req.params.id);
     const item = await this.prismaModel.findUnique({ where: { id } });
     if (!item) {
       throw new NotFoundError("Item not found");

@@ -1,6 +1,16 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { emailValidation, usersSchema } from "./users.schema.js";
+import {
+  emailValidation,
+  usersSchema,
+  firstnameValidation,
+  lastnameValidation,
+  passwordValidation,
+  isActiveValidation,
+  phoneValidation,
+} from "./users.schema.js";
+
+// -----------------------------   Email Validation  -----------------------------
 
 describe("Email Validation", () => {
   it("should accept valid emails", () => {
@@ -25,6 +35,7 @@ describe("Email Validation", () => {
   });
 });
 
+// -----------------------------   Login Schema  -----------------------------
 describe("Login Schema", () => {
   it("should validate correct login data", () => {
     const loginData = {
@@ -42,5 +53,94 @@ describe("Login Schema", () => {
     };
 
     assert.throws(() => usersSchema.login.parse(loginData));
+  });
+});
+
+// -----------------------------   Firstname Validation  -----------------------------
+describe("Firstname Validation", () => {
+  it("should accept valid first names", () => {
+    assert.doesNotThrow(() => firstnameValidation.parse("John"));
+    assert.doesNotThrow(() => firstnameValidation.parse("Alice"));
+  });
+  it("should reject first names that are too short", () => {
+    assert.throws(() => firstnameValidation.parse("J"));
+  });
+  it("should reject first names with invalid characters", () => {
+    assert.throws(() => firstnameValidation.parse("John123"));
+    assert.throws(() => firstnameValidation.parse("Alice!@#"));
+  });
+  it("should reject non-string values", () => {
+    assert.throws(() => firstnameValidation.parse(null));
+    assert.throws(() => firstnameValidation.parse(123));
+  });
+});
+
+// -----------------------------   Lastname Validation  -----------------------------
+describe("Lastname Validation", () => {
+  it("should accept valid first names", () => {
+    assert.doesNotThrow(() => lastnameValidation.parse("Legrand"));
+    assert.doesNotThrow(() => lastnameValidation.parse("Smith"));
+  });
+  it("should reject lastname that are too short", () => {
+    assert.throws(() => lastnameValidation.parse(""));
+  });
+  it("should reject first names with invalid characters", () => {
+    assert.throws(() => lastnameValidation.parse("Legrand123"));
+    assert.throws(() => lastnameValidation.parse("Smith!@#"));
+  });
+  it("should reject non-string values", () => {
+    assert.throws(() => lastnameValidation.parse(null));
+    assert.throws(() => lastnameValidation.parse(123));
+  });
+});
+
+// -----------------------------   Password Validation  -----------------------------
+describe("Password Validation", () => {
+  it("should accept valid password", () => {
+    assert.doesNotThrow(() => passwordValidation.parse("123456789aA!"));
+    assert.doesNotThrow(() => passwordValidation.parse("Test-1Passwo"));
+  });
+  it("should reject password that are too short", () => {
+    assert.throws(() => passwordValidation.parse(""));
+  });
+  it("should reject password with invalid characters", () => {
+    assert.throws(() => passwordValidation.parse("123456789"));
+    assert.throws(() => passwordValidation.parse("lowercase"));
+  });
+  it("should reject non-string values", () => {
+    assert.throws(() => passwordValidation.parse(null));
+    assert.throws(() => passwordValidation.parse(123));
+  });
+});
+
+// -----------------------------   Is Active Validation  -----------------------------
+describe.only("Is Active Validation", () => {
+  it("should accept boolean values", () => {
+    assert.doesNotThrow(() => isActiveValidation.parse(true));
+    assert.doesNotThrow(() => isActiveValidation.parse(false));
+  });
+  it("should reject non-boolean values", () => {
+    assert.throws(() => isActiveValidation.parse("true"));
+    assert.throws(() => isActiveValidation.parse(1));
+    assert.throws(() => isActiveValidation.parse(null));
+  });
+});
+
+// -----------------------------   Phone Validation  -----------------------------
+describe.only("Phone Validation", () => {
+  it("should accept valid phone numbers", () => {
+    assert.doesNotThrow(() => phoneValidation.parse("1234567890"));
+    assert.doesNotThrow(() => phoneValidation.parse("+1234567890"));
+  });
+  it("should reject phone numbers that are too short", () => {
+    assert.throws(() => phoneValidation.parse("123"));
+  });
+  it("should reject phone numbers with invalid characters", () => {
+    assert.throws(() => phoneValidation.parse("1234567890abc"));
+    assert.throws(() => phoneValidation.parse("12@34"));
+  });
+  it("should reject non-string values", () => {
+    assert.throws(() => phoneValidation.parse(null));
+    assert.throws(() => phoneValidation.parse(123));
   });
 });

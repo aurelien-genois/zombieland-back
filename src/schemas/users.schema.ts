@@ -9,14 +9,21 @@ export const emailValidation = z.preprocess(
 );
 
 // --------------------  Firstname ------------------------
-export const firstnameValidation = z
-  .string({
-    error: (iss) =>
-      iss.input === undefined
-        ? "Firstname is required."
-        : "Firstname must be a string.",
-  })
-  .min(1, { error: "Firstname cannot be empty" });
+export const firstnameValidation = z.preprocess(
+  (v) => (typeof v === "string" ? v.trim().replace(/\s+/g, " ") : v),
+  z
+    .string({
+      error: (iss) =>
+        iss.input === undefined
+          ? "Firstname is required."
+          : "Firstname must be a string.",
+    })
+    .min(2, { error: "Firstname must be at least 2 characters." })
+    .max(100, { error: "Firstname must be at most 50 characters." })
+    .regex(/^[\p{L}][\p{L}' -]*$/u, {
+      error: "Firstname contains invalid characters.",
+    })
+);
 
 // --------------------  Lastname ------------------------
 export const lastnameValidation = z
@@ -26,16 +33,20 @@ export const lastnameValidation = z
         ? "Lastname is required."
         : "Lastname must be a string.",
   })
-  .min(1, { error: "Lastname cannot be empty" });
+  .min(2, { error: "Lastname cannot be empty" })
+  .max(100, { error: "Lastname must be at most 50 characters." })
+  .regex(/^[\p{L}][\p{L}' -]*$/u, {
+    error: "Lastname contains invalid characters.",
+  });
 
 // --------------------  Password ------------------------
 
-const passwordValidation = z
+export const passwordValidation = z
   .string({
     error: (iss) =>
       iss.input === undefined ? "Password is required." : "Invalid Password.",
   })
-  .min(10, { error: "Password should have minimum length of 10" })
+  .min(12, { error: "Password should have minimum length of 10" })
   .max(100, { error: "Password is too long" })
   .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$/, {
     error:
@@ -44,18 +55,24 @@ const passwordValidation = z
 
 // --------------------  is_active ------------------------
 
-const isActiveValidation = z.boolean({ error: "is_active must be a boolean" });
+export const isActiveValidation = z.boolean({
+  error: "is_active must be a boolean",
+});
 
 // --------------------  Phone ------------------------
 
-const phoneValidation = z
+export const phoneValidation = z
   .string({
     error: (iss) =>
       iss.input === undefined
         ? "Phone number is required."
         : "Phone number must be a string.",
   })
-  .min(1, { error: "Phone number cannot be empty" });
+  .min(4, { error: "Phone number cannot be empty" })
+  .max(20, { error: "Phone number must be at most 20 characters." })
+  .regex(/^\+?[0-9\s\-()]+$/, {
+    error: "Phone number contains invalid characters.",
+  });
 
 // --------------------  Birthday ------------------------
 

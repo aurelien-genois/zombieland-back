@@ -184,7 +184,7 @@ describe("Last Login Validation", () => {
 });
 
 // --------------------  Token Validation  ------------------------
-describe.only("Token Validation", () => {
+describe("Token Validation", () => {
   it("should accept valid UUID v4", () => {
     assert.doesNotThrow(() =>
       tokenValidation.parse("23d3ff0c-b796-4eed-b414-f96744af4104")
@@ -200,5 +200,97 @@ describe.only("Token Validation", () => {
     assert.throws(() => tokenValidation.parse(null));
     assert.throws(() => tokenValidation.parse(123));
     assert.throws(() => tokenValidation.parse({}));
+  });
+});
+
+// --------------------  Registration Schema  ------------------------
+describe("User Schema - register", () => {
+  it("should accept valid user data", () => {
+    const data = {
+      firstname: "John",
+      lastname: "Doe",
+      email: "john@example.com",
+      password: "StrongPass#123",
+      confirmation: "StrongPass#123",
+      phone: "+33123456789",
+      birthday: "1990-01-01",
+    };
+    assert.doesNotThrow(() => usersSchema.register.parse(data));
+  });
+  it("should reject when passwords do not match", () => {
+    const data = {
+      firstname: "John",
+      lastname: "Doe",
+      email: "john@example.com",
+      password: "StrongPass#123",
+      confirmation: "DifferentPass#123",
+      phone: "+33123456789",
+      birthday: "1990-01-01",
+    };
+    assert.throws(() => usersSchema.register.parse(data));
+  });
+});
+
+// --------------------  Reset Password Schema  ------------------------
+describe("User Schema - resetPassword", () => {
+  it("should accept valid reset password data", () => {
+    const data = {
+      newPassword: "NewStrongPass#123",
+      confirmation: "NewStrongPass#123",
+    };
+    assert.doesNotThrow(() => usersSchema.resetPassword.parse(data));
+  });
+  it("should reject when new passwords do not match", () => {
+    const data = {
+      newPassword: "NewStrongPass#123",
+      confirmation: "DifferentPass#123",
+    };
+    assert.throws(() => usersSchema.resetPassword.parse(data));
+  });
+});
+
+// --------------------  Change Password Schema  ------------------------
+describe("User Schema - changePassword", () => {
+  it("should accept valid change password data", () => {
+    const data = {
+      oldPassword: "OldStrongPass#123",
+      newPassword: "NewStrongPass#123",
+      confirmation: "NewStrongPass#123",
+    };
+    assert.doesNotThrow(() => usersSchema.changePassword.parse(data));
+  });
+  it("should reject when new passwords do not match", () => {
+    const data = {
+      oldPassword: "OldStrongPass#123",
+      newPassword: "NewStrongPass#123",
+      confirmation: "DifferentPass#123",
+    };
+    assert.throws(() => usersSchema.changePassword.parse(data));
+  });
+});
+
+// --------------------  Update Info Schema  ------------------------
+describe("User Schema - updateInfo", () => {
+  it("should accept valid update info data", () => {
+    const data = {
+      firstname: "Jane",
+      lastname: "Smith",
+      email: "jane@example.com",
+      phone: "+33123456780",
+      birthday: "1992-02-02",
+    };
+    assert.doesNotThrow(() => usersSchema.updateInfo.parse(data));
+  });
+  it("should accept partial update info data", () => {
+    const data = {
+      firstname: "Jane",
+    };
+    assert.doesNotThrow(() => usersSchema.updateInfo.parse(data));
+  });
+  it("should reject invalid firstname", () => {
+    const data = {
+      firstname: "J",
+    };
+    assert.throws(() => usersSchema.updateInfo.parse(data));
   });
 });

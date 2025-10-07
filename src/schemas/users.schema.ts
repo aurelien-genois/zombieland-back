@@ -117,7 +117,6 @@ export const usersSchema = {
       phone: phoneValidation,
       birthday: birthdayValidation,
       last_login: lastLoginValidation,
-      is_active: isActiveValidation.optional(),
     })
     .refine((data) => data.password === data.confirmation, {
       message: "Passwords do not match",

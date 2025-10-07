@@ -76,7 +76,7 @@ export const phoneValidation = z
 
 // --------------------  Birthday ------------------------
 
-const birthdayValidation = z.preprocess(
+export const birthdayValidation = z.preprocess(
   (val) => (typeof val === "string" ? new Date(val) : val),
   z.date({
     error: (iss) =>
@@ -88,7 +88,7 @@ const birthdayValidation = z.preprocess(
 
 // --------------------  Last_Login ------------------------
 
-const lastLoginValidation = z.preprocess(
+export const lastLoginValidation = z.preprocess(
   (val) => (typeof val === "string" ? new Date(val) : val),
   z
     .date({

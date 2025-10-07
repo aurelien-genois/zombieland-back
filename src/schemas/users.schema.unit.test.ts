@@ -8,6 +8,7 @@ import {
   passwordValidation,
   isActiveValidation,
   phoneValidation,
+  birthdayValidation,
 } from "./users.schema.js";
 
 // -----------------------------   Email Validation  -----------------------------
@@ -114,7 +115,7 @@ describe("Password Validation", () => {
 });
 
 // -----------------------------   Is Active Validation  -----------------------------
-describe.only("Is Active Validation", () => {
+describe("Is Active Validation", () => {
   it("should accept boolean values", () => {
     assert.doesNotThrow(() => isActiveValidation.parse(true));
     assert.doesNotThrow(() => isActiveValidation.parse(false));
@@ -127,10 +128,12 @@ describe.only("Is Active Validation", () => {
 });
 
 // -----------------------------   Phone Validation  -----------------------------
-describe.only("Phone Validation", () => {
+describe("Phone Validation", () => {
   it("should accept valid phone numbers", () => {
     assert.doesNotThrow(() => phoneValidation.parse("1234567890"));
     assert.doesNotThrow(() => phoneValidation.parse("+1234567890"));
+    assert.doesNotThrow(() => phoneValidation.parse("123-456-7890"));
+    assert.doesNotThrow(() => phoneValidation.parse("(123) 456-7890"));
   });
   it("should reject phone numbers that are too short", () => {
     assert.throws(() => phoneValidation.parse("123"));
@@ -142,5 +145,21 @@ describe.only("Phone Validation", () => {
   it("should reject non-string values", () => {
     assert.throws(() => phoneValidation.parse(null));
     assert.throws(() => phoneValidation.parse(123));
+  });
+});
+
+// -----------------------------   Birthday Validation  -----------------------------
+describe.only("Birthday Validation", () => {
+  it("should accept valid date strings", () => {
+    assert.doesNotThrow(() => birthdayValidation.parse("2000-01-01"));
+    assert.doesNotThrow(() => birthdayValidation.parse("1995-12-31"));
+  });
+  it("should reject non-date values", () => {
+    assert.throws(() => birthdayValidation.parse(null));
+    assert.throws(() => birthdayValidation.parse(12345));
+    assert.throws(() => birthdayValidation.parse({}));
+  });
+  it("should reject invalid date strings", () => {
+    assert.throws(() => birthdayValidation.parse("invalid-date"));
   });
 });

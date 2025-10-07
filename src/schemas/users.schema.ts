@@ -102,7 +102,7 @@ export const lastLoginValidation = z.preprocess(
 
 // --------------------  Token ------------------------
 
-const tokenValidation = z.uuid({ error: "Token must be a valid UUID" });
+export const tokenValidation = z.uuid({ error: "Token must be a valid UUID" });
 
 // ================================== SCHEMAS =================================
 

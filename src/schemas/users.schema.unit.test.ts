@@ -9,6 +9,7 @@ import {
   isActiveValidation,
   phoneValidation,
   birthdayValidation,
+  tokenValidation,
 } from "./users.schema.js";
 
 // -----------------------------   Email Validation  -----------------------------
@@ -149,7 +150,7 @@ describe("Phone Validation", () => {
 });
 
 // -----------------------------   Birthday Validation  -----------------------------
-describe.only("Birthday Validation", () => {
+describe("Birthday Validation", () => {
   it("should accept valid date strings", () => {
     assert.doesNotThrow(() => birthdayValidation.parse("2000-01-01"));
     assert.doesNotThrow(() => birthdayValidation.parse("1995-12-31"));
@@ -161,5 +162,43 @@ describe.only("Birthday Validation", () => {
   });
   it("should reject invalid date strings", () => {
     assert.throws(() => birthdayValidation.parse("invalid-date"));
+  });
+});
+
+// -----------------------------   Last Login Validation  -----------------------------
+describe("Last Login Validation", () => {
+  it("should accept valid date strings", () => {
+    assert.doesNotThrow(() =>
+      birthdayValidation.parse("2025-10-01 12:30:11.551")
+    );
+    assert.doesNotThrow(() => birthdayValidation.parse("2022-12-31T23:59:59Z"));
+  });
+  it("should reject non-date values", () => {
+    assert.throws(() => birthdayValidation.parse(null));
+    assert.throws(() => birthdayValidation.parse(12345));
+    assert.throws(() => birthdayValidation.parse({}));
+  });
+  it("should reject invalid date strings", () => {
+    assert.throws(() => birthdayValidation.parse("invalid-date"));
+  });
+});
+
+// --------------------  Token Validation  ------------------------
+describe.only("Token Validation", () => {
+  it("should accept valid UUID v4", () => {
+    assert.doesNotThrow(() =>
+      tokenValidation.parse("23d3ff0c-b796-4eed-b414-f96744af4104")
+    );
+  });
+
+  it("should reject invalid UUIDs", () => {
+    assert.throws(() => tokenValidation.parse("invalid-uuid"));
+    assert.throws(() => tokenValidation.parse("1234"));
+  });
+
+  it("should reject non-string values", () => {
+    assert.throws(() => tokenValidation.parse(null));
+    assert.throws(() => tokenValidation.parse(123));
+    assert.throws(() => tokenValidation.parse({}));
   });
 });

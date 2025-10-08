@@ -37,6 +37,7 @@
     "test:unit": "tsx --test ./**/*.unit.test.ts",
     "test:unit:only": "tsx --test --test-only ./**/*.unit.test.ts",
     "test:spec": "tsx --test --env-file=./test/config/.env.test --import ./test/config/global-setup.ts --experimental-test-isolation=none ./**/*.spec.test.ts",
+    "test:spec:only": "tsx --test --test-only --env-file=./test/config/.env.test --import ./test/config/global-setup.ts --experimental-test-isolation=none ./**/*.spec.test.ts",
     "ghact:test:spec": "tsx --test --import ./test/config/global-setup.ts --experimental-test-isolation=none ./**/*.spec.test.ts",
     "prepare": "husky"
   },

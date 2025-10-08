@@ -83,6 +83,24 @@ const authController = {
         phone,
         birthday,
       },
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        email: true,
+        phone: true,
+        birthday: true,
+        is_active: true,
+        last_login: true,
+        created_at: true,
+        updated_at: true,
+        role: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
 
     const userToken = await prisma.token.create({
@@ -108,8 +126,24 @@ const authController = {
     const { token } = await usersSchema.token.parseAsync(req.query);
     const userToken = await prisma.token.findFirst({
       where: { token, type: "verification_email" },
-      include: { user: true },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstname: true,
+            lastname: true,
+            is_active: true,
+          },
+        },
+      },
     });
+
+    console.log("===== userToken:", userToken);
+
+    if (userToken?.user?.is_active) {
+      throw new ConflictError("This account is already active.");
+    }
 
     if (!userToken) {
       throw new NotFoundError("Token not found.");
@@ -133,13 +167,23 @@ const authController = {
     });
 
     res.redirect(`${config.server.frontUrl}/login`);
-
   },
   // --------------------  Resend Confirmation Email ------------------------
   async resendConfirmationEmail(req: Request, res: Response) {
     const { email } = await usersSchema.email.parseAsync(req.body);
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        firstname: true,
+        lastname: true,
+        is_active: true,
+      },
+    });
+
+    console.log("===== user:", user);
 
     if (!user) {
       throw new NotFoundError("No user found with this email.");

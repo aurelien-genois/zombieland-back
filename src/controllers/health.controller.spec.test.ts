@@ -16,7 +16,7 @@ describe("[GET] /api/health", () => {
   it("should return 200 status", async () => {
     // Arrange
     let statusCode: number | undefined;
-    const res: Partial<Response> = {
+    const res = {
       status(code: number) {
         statusCode = code;
         return this;
@@ -43,7 +43,7 @@ describe("[GET] /api/health", () => {
 
     // Arrange
     let responseBody: null | MockBody = null;
-    const res: Partial<Response> = {
+    const res = {
       status() {
         return this;
       },
@@ -54,7 +54,7 @@ describe("[GET] /api/health", () => {
     };
 
     // Act
-    await healthController.checking({} as Request, res as Response);
+    await healthController.checking({} as Request, res as unknown as Response);
 
     // Assert
     assert.notEqual(responseBody, null);

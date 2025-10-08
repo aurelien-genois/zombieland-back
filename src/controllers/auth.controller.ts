@@ -1,7 +1,6 @@
 import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
 import { usersSchema } from "../schemas/users.schema.js";
-import type { User } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { generateAuthenticationTokens } from "../lib/token.js";
 import { config } from "../../server.config.js";
@@ -14,6 +13,7 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "../lib/errors.js";
+import type { IAuthTokens } from "../@types/auth.js";
 
 interface Token {
   token: string;
@@ -21,7 +21,7 @@ interface Token {
   expiresInMS: number;
 }
 
-async function replaceRefreshTokenInDatabase(token: Token, user: User) {
+async function replaceRefreshTokenInDatabase(token: Token, user: IAuthTokens) {
   await prisma.token.deleteMany({
     where: { user_id: user.id, type: "refresh" },
   });
@@ -103,6 +103,8 @@ const authController = {
       },
     });
 
+    console.log("===== REGISTER:", user);
+
     const userToken = await prisma.token.create({
       data: {
         token: verificationToken,
@@ -139,7 +141,7 @@ const authController = {
       },
     });
 
-    console.log("===== userToken:", userToken);
+    console.log("===== SENDCONFIRMATIONEMAIL:", userToken);
 
     if (userToken?.user?.is_active) {
       throw new ConflictError("This account is already active.");
@@ -183,7 +185,7 @@ const authController = {
       },
     });
 
-    console.log("===== user:", user);
+    console.log("===== RESENDCONFIRMATIONEMAIL:", user);
 
     if (!user) {
       throw new NotFoundError("No user found with this email.");
@@ -244,7 +246,10 @@ const authController = {
     setAccessTokenCookie(res, accessToken);
     setRefreshTokenCookie(res, refreshToken);
 
-    const { ...safeUser } = user;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _pw, ...safeUser } = user;
+
+    console.log("===== SAFE USER:", safeUser);
 
     res.status(200).json({
       user: safeUser,
@@ -268,8 +273,13 @@ const authController = {
 
     const existingRefreshToken = await prisma.token.findFirst({
       where: { token: rawToken, type: "refresh" },
-      include: { user: { include: { role: true } } },
+      include: {
+        user: {
+          select: { id: true, email: true, role: true },
+        },
+      },
     });
+    console.log("===== EXISTING REFRESH TOKEN:", existingRefreshToken);
     if (
       !existingRefreshToken ||
       !existingRefreshToken.user ||
@@ -299,13 +309,16 @@ const authController = {
     setAccessTokenCookie(res, accessToken);
     setRefreshTokenCookie(res, refreshToken);
 
-    res.json({ accessToken, refreshToken });
+    res.json("New access token generated successfully.");
   },
   // --------------------  1) Forgot Password Request ------------------------
   async forgotPasswordRequest(req: Request, res: Response) {
     const { email } = await usersSchema.email.parseAsync(req.body);
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, email: true },
+    });
 
     if (!user) {
       throw new NotFoundError("No user found with this email.");

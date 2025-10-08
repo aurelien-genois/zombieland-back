@@ -1,17 +1,17 @@
 import crypto from "node:crypto";
 import jwt from "jsonwebtoken";
-import type { User, RoleName } from "@prisma/client";
 import { config } from "../../server.config.js";
 import { UnauthorizedError } from "./errors.js";
+import type { IAuthTokens } from "../@types/auth.js";
 
-export function generateAuthenticationTokens(
-  user: User & { role?: { name: RoleName } | null }
-) {
+export function generateAuthenticationTokens(user: IAuthTokens) {
   if (!user.id || !user.role?.name) {
     throw new UnauthorizedError(
       "User authentication failed - invalid user data"
     );
   }
+
+  console.log("****** User data:", user);
 
   const payload = {
     userId: user.id,

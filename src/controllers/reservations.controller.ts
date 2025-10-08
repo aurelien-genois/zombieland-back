@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
-import { Prisma } from "@prisma/client";
+import { Prisma, OrderStatus } from "@prisma/client";
 import { orderLineSchema, orderSchema } from "../schemas/reservation.schema.js";
 import {
   BadRequestError,
@@ -8,8 +8,9 @@ import {
   UnauthorizedError,
 } from "../lib/errors.js";
 import { parseIdValidation } from "../schemas/utils.schema.js";
-import { OrderStatus } from "@prisma/client";
+
 import Stripe from "stripe";
+import { config } from "../../server.config.js";
 
 type Meta = {
   page: number;
@@ -19,6 +20,19 @@ type Meta = {
   hasPrev: boolean;
   hasNext: boolean;
 };
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const orderInclude = {
+  user: {
+    select: { id: true, firstname: true, lastname: true, email: true },
+  },
+  order_lines: {
+    include: { product: true },
+  },
+} as const;
+type OrderWithLinesAndUser = Prisma.OrderGetPayload<{
+  include: typeof orderInclude;
+}>;
 
 function generateTicketCode() {
   return `ZMB-${new Date().getFullYear()}-${Date.now()}-${Math.floor(
@@ -35,19 +49,15 @@ function amountsFromLines(
       sum.plus(new Prisma.Decimal(line.unit_price).mul(line.quantity)),
     new Prisma.Decimal(0)
   );
-
-  const vatD = subtotalD.mul(vat).div(100); // vat = 5.5 => 5.5%
+  const vatD = subtotalD.mul(vat).div(100);
   const totalD = subtotalD.plus(vatD);
-
-  // arrondis à 2 décimales
   const subtotal = +subtotalD.toDecimalPlaces(2).toString();
   const vat_amount = +vatD.toDecimalPlaces(2).toString();
   const total = +totalD.toDecimalPlaces(2).toString();
-
   return { subtotal, vat_amount, total };
 }
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(config.server.STRIPE_SECRET_KEY, {
   apiVersion: "2025-08-27.basil",
 });
 
@@ -71,7 +81,7 @@ const reservationsController = {
       order,
       search,
     } = await orderSchema.filter.parseAsync(req.query);
-    const whereClause: Prisma.OrderWhereInput = {
+    const whereClause = {
       ...(status && { status }),
       ...(user_id && { user_id }),
       ...((visit_date_from || visit_date_to) && {
@@ -91,14 +101,37 @@ const reservationsController = {
 
       ...(search && {
         OR: [
-          { payment_method: { contains: search, mode: "insensitive" } },
-          { user: { email: { contains: search, mode: "insensitive" } } },
-          { user: { firstname: { contains: search, mode: "insensitive" } } },
-          { user: { lastname: { contains: search, mode: "insensitive" } } },
+          {
+            payment_method: {
+              contains: search,
+              mode: Prisma.QueryMode.insensitive,
+            },
+          },
+          {
+            user: {
+              email: { contains: search, mode: Prisma.QueryMode.insensitive },
+            },
+          },
+          {
+            user: {
+              firstname: {
+                contains: search,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+          },
+          {
+            user: {
+              lastname: {
+                contains: search,
+                mode: Prisma.QueryMode.insensitive,
+              },
+            },
+          },
         ],
       }),
     };
-    const orderBy: Prisma.OrderOrderByWithRelationInput =
+    const orderBy: Prisma.OrderOrderByWithRelationInput[] = [
       order === "order_date:asc"
         ? { order_date: "asc" }
         : order === "order_date:desc"
@@ -111,7 +144,8 @@ const reservationsController = {
         ? { status: "asc" }
         : order === "status:desc"
         ? { status: "desc" }
-        : { order_date: "desc" };
+        : { order_date: "desc" },
+    ];
 
     const totalCount = await prisma.order.count({
       where: whereClause,
@@ -120,7 +154,7 @@ const reservationsController = {
       where: whereClause,
       skip: (page - 1) * limit,
       take: limit,
-      orderBy: orderBy,
+      orderBy,
       include: {
         user: {
           select: {
@@ -137,7 +171,8 @@ const reservationsController = {
         },
       },
     });
-    const data = orders.map((order) => {
+    const data = orders.map((order: OrderWithLinesAndUser) => {
+      // 👈
       const { subtotal, vat_amount, total } = amountsFromLines(
         order.order_lines.map((line) => ({
           unit_price: line.unit_price,
@@ -175,7 +210,7 @@ const reservationsController = {
         user_id: targetUserId,
       });
 
-    const orderBy: Prisma.OrderOrderByWithRelationInput =
+    const orderBy: Prisma.OrderOrderByWithRelationInput[] = [
       order === "order_date:asc"
         ? { order_date: "asc" }
         : order === "order_date:desc"
@@ -188,7 +223,8 @@ const reservationsController = {
         ? { status: "asc" }
         : order === "status:desc"
         ? { status: "desc" }
-        : { order_date: "desc" };
+        : { order_date: "desc" },
+    ];
 
     const totalCount = await prisma.order.count({
       where: {
@@ -203,7 +239,7 @@ const reservationsController = {
       },
       skip: (page - 1) * limit,
       take: limit,
-      orderBy: orderBy,
+      orderBy,
       include: {
         order_lines: {
           include: {
@@ -219,7 +255,7 @@ const reservationsController = {
           unit_price: line.unit_price,
           quantity: line.quantity,
         })),
-        order.vat
+        Number(order.vat)
       );
       return { ...order, subtotal, vat_amount, total };
     });
@@ -274,7 +310,7 @@ const reservationsController = {
         unit_price: line.unit_price,
         quantity: line.quantity,
       })),
-      order.vat
+      Number(order.vat)
     );
 
     res.status(200).json({
@@ -366,7 +402,7 @@ const reservationsController = {
         unit_price: l.unit_price,
         quantity: l.quantity,
       })),
-      order.vat
+      Number(order.vat)
     );
 
     res.status(201).json({ ...order, subtotal, vat_amount, total });
@@ -531,7 +567,7 @@ const reservationsController = {
         unit_price: l.unit_price,
         quantity: l.quantity,
       })),
-      updated.vat
+      Number(updated.vat)
     );
 
     res.status(200).json({ ...updated, subtotal, vat_amount, total });
@@ -618,7 +654,7 @@ const reservationsController = {
       event = stripe.webhooks.constructEvent(
         req.body, // RAW body
         sig as string,
-        process.env.STRIPE_WEBHOOK_SECRET!
+        config.server.STRIPE_WEBHOOK_SECRET
       );
 
       if (event.type === "checkout.session.completed") {
@@ -719,7 +755,7 @@ const reservationsController = {
             unit_price: l.unit_price,
             quantity: l.quantity,
           })),
-          updated.vat
+          Number(updated.vat)
         );
 
         return res.status(200).json({

@@ -1,4 +1,26 @@
-# ZombieLandCDA-back
+<img src="./public/images/logo.png"
+     alt="Logo"
+     style="width: 40%" />
+
+# ZombieLandCDA - Backend (REST API)
+
+## 🧟‍♂️ Introduction
+
+The **ZombieLand** application modernizes amusement park management by offering a secure web platform.
+It provides an attractive presentation of the park to appeal to young audiences and families while strengthening its national reputation.
+Finally, it centralizes ticketing and simplifies online booking, reducing the staff’s workload.
+
+## ⚙️ Technologies
+
+- Node.js v22.18.0
+- TypeScript v5.9.2
+- Express.js v5.1.0
+- Prisma v6.16.1
+- Docker v28.3.2
+- Swagger v6.2.8
+- Stripe v18.5.0
+
+## 🚀 Getting Started
 
 ## Docker: **_Run Containers_**
 
@@ -61,7 +83,7 @@ npm run docker:db:init
    npm run docker:db:seed:activities
    ```
 
-# Application Testing
+# 🧪 Application Testing
 
 ## Unit Tests
 
@@ -83,3 +105,9 @@ Stop the Docker container manually:
 docker stop <container_id_or_name>
 docker rm <container_id_or_name>
 ```
+
+# 📖 API Documentation
+
+The interactive API documentation is available via **Swagger UI**:
+
+👉 [http://localhost:3000/api/api-docs/](http://localhost:3000/api/api-docs/)

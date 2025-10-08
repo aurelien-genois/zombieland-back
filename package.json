@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "node --env-file=.env dist/index.js",
     "dev": "tsx --watch index.ts",
     "start:prod": "npm run db:migrate:deploy && node dist/index.js",
     "start:dev": "npm run db:migrate:deploy && npm run dev",
@@ -36,6 +36,7 @@
     "======= TEST =======": "========= TEST ===========",
     "test:unit": "tsx --test ./**/*.unit.test.ts",
     "test:spec": "tsx --test --env-file=./test/config/.env.test --import ./test/config/global-setup.ts --experimental-test-isolation=none ./**/*.spec.test.ts",
+    "ghact:test:spec": "tsx --test --import ./test/config/global-setup.ts --experimental-test-isolation=none ./**/*.spec.test.ts",
     "prepare": "husky"
   },
   "keywords": [],

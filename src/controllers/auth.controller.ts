@@ -132,9 +132,8 @@ const authController = {
       where: { user_id: userToken.user_id, type: "verification_email" },
     });
 
-    res.status(200).json({
-      message: "Email successfully verified.",
-    });
+    res.redirect(`${config.server.frontUrl}/login`);
+
   },
   // --------------------  Resend Confirmation Email ------------------------
   async resendConfirmationEmail(req: Request, res: Response) {
@@ -168,9 +167,7 @@ const authController = {
       user.lastname
     );
 
-    res.status(200).json({
-      message: "Confirmation email sent successfully.",
-    });
+    res.redirect(`${config.server.frontUrl}/login`);
   },
 
   // --------------------  Login User ------------------------

@@ -35,8 +35,6 @@ async function main() {
     ],
   });
 
-  console.log("categories inserted !");
-
   const categoriesKeys = categories.reduce((acc, category) => {
     acc[category.name] = category.id;
     return acc;
@@ -217,7 +215,7 @@ async function main() {
         description:
           "Montez dans ce train supersonique et échappez à un nuage toxique qui vous poursuit. Effets de fumée et bruitages réalistes ajoutent à l’adrénaline.",
         minimum_age: 3,
-        duration: "3years",
+        duration: "3min",
         disabled_access: true,
         high_intensity: true,
         status: "published",

@@ -103,8 +103,6 @@ const authController = {
       },
     });
 
-    console.log("===== REGISTER:", user);
-
     const userToken = await prisma.token.create({
       data: {
         token: verificationToken,
@@ -140,8 +138,6 @@ const authController = {
         },
       },
     });
-
-    console.log("===== SENDCONFIRMATIONEMAIL:", userToken);
 
     if (userToken?.user?.is_active) {
       throw new ConflictError("This account is already active.");
@@ -184,8 +180,6 @@ const authController = {
         is_active: true,
       },
     });
-
-    console.log("===== RESENDCONFIRMATIONEMAIL:", user);
 
     if (!user) {
       throw new NotFoundError("No user found with this email.");
@@ -248,8 +242,6 @@ const authController = {
 
     const { password: _pw, ...safeUser } = user;
 
-    console.log("===== SAFE USER:", safeUser);
-
     res.status(200).json({
       user: safeUser,
     });
@@ -284,7 +276,6 @@ const authController = {
         },
       },
     });
-    console.log("===== EXISTING REFRESH TOKEN:", existingRefreshToken);
     if (
       !existingRefreshToken ||
       !existingRefreshToken.user ||

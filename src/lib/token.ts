@@ -11,8 +11,6 @@ export function generateAuthenticationTokens(user: IAuthTokens) {
     );
   }
 
-  console.log("****** User data:", user);
-
   const payload = {
     userId: user.id,
     role: user.role?.name,

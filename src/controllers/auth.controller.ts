@@ -275,7 +275,13 @@ const authController = {
       where: { token: rawToken, type: "refresh" },
       include: {
         user: {
-          select: { id: true, email: true, role: true },
+          select: {
+            id: true,
+            email: true,
+            role: true,
+            firstname: true,
+            lastname: true,
+          },
         },
       },
     });

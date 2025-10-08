@@ -246,7 +246,6 @@ const authController = {
     setAccessTokenCookie(res, accessToken);
     setRefreshTokenCookie(res, refreshToken);
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { password: _pw, ...safeUser } = user;
 
     console.log("===== SAFE USER:", safeUser);

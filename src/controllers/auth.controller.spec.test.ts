@@ -1,6 +1,6 @@
 import assert from "node:assert";
 import { prisma } from "../models/index.js";
-import { before, describe, it } from "node:test";
+import { before, beforeEach, describe, it } from "node:test";
 import bcrypt from "bcrypt";
 
 // --------------------  Register Test  ------------------------
@@ -98,7 +98,7 @@ describe("Auth Controller - Register", () => {
     assert.strictEqual(token?.user_id, response.id);
     assert.strictEqual(token?.type, "verification_email");
   });
-  it.only("should hash the user's password", async () => {
+  it("should hash the user's password", async () => {
     const newUser = {
       firstname: "Bob",
       lastname: "Brown",
@@ -108,7 +108,7 @@ describe("Auth Controller - Register", () => {
       birthday: new Date("1990-01-01"),
     };
 
-    const SALT = parseInt(process.env.SALT_ROUNDS || "8");
+    const SALT = parseInt(process.env.SALT_ROUNDS || "12");
 
     const encryptedPassword = await bcrypt.hash(newUser.password, SALT);
 
@@ -129,5 +129,61 @@ describe("Auth Controller - Register", () => {
     assert.notStrictEqual(user?.password, newUser.password);
     const isHashed = await bcrypt.compare(newUser.password, user!.password);
     assert.ok(isHashed);
+  });
+});
+
+// --------------------  Login Test  ------------------------
+describe.only("Auth Controller - Login", () => {
+  beforeEach(async () => {
+    await prisma.token.deleteMany();
+    await prisma.user.deleteMany();
+
+    await prisma.role.upsert({
+      where: { id: 1 },
+      update: {},
+      create: { id: 1, name: "admin" },
+    });
+
+    await prisma.role.upsert({
+      where: { id: 2 },
+      update: {},
+      create: { id: 2, name: "member" },
+    });
+
+    const email = "test.user@example.com";
+    const password = "Password123!!";
+
+    const SALT = parseInt(process.env.SALT_ROUNDS || "12");
+    const hashedPassword = await bcrypt.hash(password, SALT);
+
+    await prisma.user.create({
+      data: {
+        firstname: "Test",
+        lastname: "User",
+        email: email,
+        password: hashedPassword,
+        phone: "1234567890",
+        birthday: new Date("1990-01-01"),
+        is_active: true,
+        role_id: 2,
+      },
+    });
+  });
+  it("should login a user with correct credentials", async () => {
+    const email = "test.user@example.com";
+    const password = "Password123!!";
+
+    const response = await fetch("http://localhost:7357/api/auth/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    assert.strictEqual(response.status, 200);
+    assert.ok(response?.headers?.get("set-cookie"));
+    assert.ok(response?.headers?.get("set-cookie")?.includes("accessToken"));
+    assert.ok(response?.headers?.get("set-cookie")?.includes("refreshToken"));
   });
 });

@@ -1,6 +1,7 @@
 import assert from "node:assert";
 import { prisma } from "../models/index.js";
 import { before, describe, it } from "node:test";
+import bcrypt from "bcrypt";
 
 // --------------------  Register Test  ------------------------
 describe("Auth Controller - Register", () => {
@@ -62,5 +63,71 @@ describe("Auth Controller - Register", () => {
         );
       }
     );
+  });
+  it("should create a verification token for the new user", async () => {
+    const newUser = {
+      firstname: "Alice",
+      lastname: "Smith",
+      email: "alice.smith@example.com",
+      password: "password123",
+      phone: "1234567890",
+      birthday: new Date("1990-01-01"),
+    };
+
+    const response = await prisma.user.create({
+      data: newUser,
+    });
+
+    await prisma.token.create({
+      data: {
+        token: "some-unique-token",
+        type: "verification_email",
+        user_id: response.id,
+        expired_at: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
+      },
+    });
+
+    const token = await prisma.token.findFirst({
+      where: {
+        user_id: response.id,
+        type: "verification_email",
+      },
+    });
+
+    assert.ok(token);
+    assert.strictEqual(token?.user_id, response.id);
+    assert.strictEqual(token?.type, "verification_email");
+  });
+  it.only("should hash the user's password", async () => {
+    const newUser = {
+      firstname: "Bob",
+      lastname: "Brown",
+      email: "bob.brown@example.com",
+      password: "password123",
+      phone: "1234567890",
+      birthday: new Date("1990-01-01"),
+    };
+
+    const SALT = parseInt(process.env.SALT_ROUNDS || "8");
+
+    const encryptedPassword = await bcrypt.hash(newUser.password, SALT);
+
+    const response = await prisma.user.create({
+      data: {
+        ...newUser,
+        password: encryptedPassword,
+      },
+    });
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: response.id,
+      },
+    });
+
+    assert.ok(user);
+    assert.notStrictEqual(user?.password, newUser.password);
+    const isHashed = await bcrypt.compare(newUser.password, user!.password);
+    assert.ok(isHashed);
   });
 });

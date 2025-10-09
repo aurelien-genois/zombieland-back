@@ -3,9 +3,9 @@ import { beforeEach, describe, it } from "node:test";
 import bcrypt from "bcrypt";
 import { prisma } from "../models/index.js";
 import { generateAuthenticationTokens } from "../lib/token.js";
+import { apiBaseUrl} from '../../test/helpers/api.helper.js'
 
-
-const BASE_URL = "http://localhost:7357/api";
+const BASE_URL = apiBaseUrl;
 
 function futureDate(days = 7) {
   const d = new Date();

@@ -1,14 +1,13 @@
 // test/helpers/api.helper.ts
+import { IAuthTokens } from "../../src/@types/auth.js";
 import { generateAuthenticationTokens } from "../../src/lib/token.js";
-import { User, RoleName } from "@prisma/client";
+import { RoleName } from "@prisma/client";
 
 export const apiBaseUrl = `http://localhost:7357/api`;
 
 export const authedRequester = buildAuthedRequester(buildFakeUser());
 
-export function buildAuthedRequester(
-  user: User & { role: { name: RoleName } }
-) {
+export function buildAuthedRequester(user: IAuthTokens) {
   const { accessToken } = generateAuthenticationTokens(user);
 
   return {
@@ -59,33 +58,30 @@ export function buildAuthedRequester(
   };
 }
 
-export function buildFakeUser(
-  user?: Partial<User & { role: { name: RoleName } }>
-): User & { role: { name: RoleName } } {
+export function buildFakeUser(user?: Partial<IAuthTokens>): IAuthTokens {
   return {
     id: 1000000,
     firstname: "Admin",
     lastname: "Fake",
     email: `user${Math.random()}${Date.now()}@zombieland.com`,
-    password: "P4$$w0rd",
-    role_id: 1,
-    role: { name: RoleName.admin },
-    is_active: true,
-    last_login: new Date(),
-    phone: "0123456789",
-    birthday: new Date("1990-01-01"),
-    created_at: new Date(),
-    updated_at: new Date(),
+    role: {
+      name: RoleName.admin,
+      id: 1,
+      created_at: new Date(),
+      updated_at: new Date(),
+    },
     ...user,
-  };
+  } as IAuthTokens;
 }
 
-export function buildFakeMember(
-  user?: Partial<User & { role: { name: RoleName } }>
-): User & { role: { name: RoleName } } {
+export function buildFakeMember(user?: Partial<IAuthTokens>): IAuthTokens {
   return buildFakeUser({
-    role_id: 2,
-    role: { name: RoleName.member },
+    role: {
+      name: RoleName.member,
+      id: 2,
+      created_at: new Date(),
+      updated_at: new Date(),
+    },
     ...user,
   });
 }

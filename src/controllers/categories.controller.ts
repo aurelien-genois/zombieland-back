@@ -4,7 +4,7 @@ import { categorySchema } from "../schemas/category.schema.js";
 
 import { ConflictError } from "../lib/errors.js";
 import type { Request, Response } from "express";
-import { utilSchema } from "../schemas/utils.schema.js";
+import { parseIdValidation } from "../schemas/utils.schema.js";
 import { z } from "zod";
 
 class CategoriesController extends BaseController {
@@ -24,7 +24,7 @@ class CategoriesController extends BaseController {
   // TODO create: prevent create category with same name
 
   async deleteById(req: Request, res: Response): Promise<void> {
-    const { id } = utilSchema.parseId.parse(req.params);
+    const id = parseIdValidation.parse(req.params.id);
 
     const activityWithSameCategory = await prisma.activity.findFirst({
       where: { category_id: id },

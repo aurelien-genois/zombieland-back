@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
-import { utilSchema } from "../schemas/utils.schema.js";
+import { parseIdValidation } from "../schemas/utils.schema.js";
 import {
   ConflictError,
   NotFoundError,
@@ -188,7 +188,7 @@ export const usersController = {
 
   // --------------------  Get One User ------------------------
   async getOneUser(req: Request, res: Response) {
-    const { id } = utilSchema.parseId.parse(req.params);
+    const id = parseIdValidation.parse(req.params.id);
     const user = await prisma.user.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundError("User not found");
@@ -198,7 +198,7 @@ export const usersController = {
 
   // --------------------  Update Role User ------------------------
   async updateRoleUser(req: Request, res: Response) {
-    const { id } = utilSchema.parseId.parse(req.params);
+    const id = parseIdValidation.parse(req.params.id);
     const { role } = req.body;
 
     if (role !== "admin" && role !== "member") {
@@ -228,7 +228,7 @@ export const usersController = {
 
   // --------------------  Delete User Account ------------------------
   async deleteUserAccount(req: Request, res: Response) {
-    const { id } = utilSchema.parseId.parse(req.params);
+    const id = parseIdValidation.parse(req.params.id);
     const user = await prisma.user.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundError("User not found");

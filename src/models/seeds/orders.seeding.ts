@@ -1,10 +1,11 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../index.js";
 import { faker } from "@faker-js/faker";
+import { config } from "../../../server.config.js";
+import bcrypt from "bcrypt";
 
 async function main() {
   console.log("🚀 Seed start");
-
   // 1) Nettoyage (enfants -> parents)
   await prisma.token.deleteMany().catch(() => {});
   await prisma.orderLine.deleteMany().catch(() => {});
@@ -17,60 +18,75 @@ async function main() {
   const adminRole = await prisma.role.create({ data: { name: "admin" } });
   const userRole = await prisma.role.create({ data: { name: "member" } });
 
-  // 3) Utilisateurs fixes (admin)
-  await prisma.user.createMany({
-    data: [
-      {
-        firstname: "Michel",
-        lastname: "Zombie",
-        email: "michel@zombie.com",
-        password:
-          "$2b$10$L1uJRrojE9mzjFfCmF43pOZAbltzzOG/.HSgbRAIFB4gBEYArzW7a",
-        is_active: true,
-        phone: "+33612345678",
-        birthday: new Date("1995-05-12"),
-        last_login: new Date(),
-        role_id: adminRole.id,
+  const admins = [
+    {
+      firstname: "Admin-a",
+      lastname: "Zombie",
+      email: config.server.adminEmail,
+      password: config.server.adminPassword,
+      is_active: true,
+      phone: "+33612345678",
+      birthday: new Date("1995-05-12"),
+      last_login: new Date(),
+      role_id: adminRole.id,
+    },
+    {
+      firstname: "Admin-b",
+      lastname: "Zombie",
+      email: config.server.adminEmailB,
+      password: config.server.adminPasswordB,
+      is_active: true,
+      phone: "+33612345678",
+      birthday: new Date("1995-05-12"),
+      last_login: new Date(),
+      role_id: adminRole.id,
+    },
+    {
+      firstname: "Admin-c",
+      lastname: "Zombie",
+      email: config.server.adminEmailC,
+      password: config.server.adminPasswordC,
+      is_active: true,
+      phone: "+33612345678",
+      birthday: new Date("1995-05-12"),
+      last_login: new Date(),
+      role_id: adminRole.id,
+    },
+    {
+      firstname: "Admin-d",
+      lastname: "Zombie",
+      email: config.server.adminEmailD,
+      password: config.server.adminPasswordD,
+      is_active: true,
+      phone: "+33612345678",
+      birthday: new Date("1995-05-12"),
+      last_login: new Date(),
+      role_id: adminRole.id,
+    },
+  ];
+
+  const saltRounds = Number.parseInt(process.env.SALT_ROUNDS ?? "10");
+
+  for (const a of admins) {
+    if (!a.password) {
+      console.warn(`Skipping ${a.email} — missing password value`);
+      continue;
+    }
+    const hashed = await bcrypt.hash(a.password, saltRounds);
+    await prisma.user.create({
+      data: {
+        firstname: a.firstname,
+        lastname: a.lastname,
+        email: a.email,
+        password: hashed,
+        is_active: a.is_active,
+        phone: a.phone,
+        birthday: a.birthday,
+        last_login: a.last_login,
+        role_id: a.role_id,
       },
-      {
-        firstname: "Aurélien",
-        lastname: "Zombie",
-        email: "aurelien@zombie.com",
-        password:
-          "$2b$10$mOvf9oNbtRsuxoT5YLVhC.ZefQoa3IPtBgH963ixKHmWvUViZHnau",
-        is_active: true,
-        phone: "+33687654321",
-        birthday: new Date("1990-10-22"),
-        last_login: null,
-        role_id: adminRole.id,
-      },
-      {
-        firstname: "Loic",
-        lastname: "Zombie",
-        email: "loic@zombie.com",
-        password:
-          "$2b$10$96WSOMYdgeOKz1qIzjss9.R/2URXgtrTYQuZ/HitQEXM/zWmea/Mm",
-        is_active: true,
-        phone: "+33612345678",
-        birthday: new Date("1995-05-12"),
-        last_login: new Date(),
-        role_id: adminRole.id,
-      },
-      {
-        firstname: "Wilfried",
-        lastname: "Zombie",
-        email: "wilfried@zombie.com",
-        password:
-          "$2b$10$4kzwNfna84ImsKz04OrCnOeXdJPQBnpgfc1z4DmoxM/NZFOQKZ9si",
-        is_active: true,
-        phone: "+33612345678",
-        birthday: new Date("1995-05-12"),
-        last_login: new Date(),
-        role_id: adminRole.id,
-      },
-    ],
-    skipDuplicates: true,
-  });
+    });
+  }
 
   // 4) 200 users "member"
   const fakeUsers = Array.from({ length: 200 }).map(() => ({

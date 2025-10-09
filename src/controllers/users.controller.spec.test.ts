@@ -28,7 +28,7 @@ describe("Users Controller", () => {
     const adminUser = await prisma.user.create({
       data: {
         firstname: "Admin",
-        lastname: "Test",
+        lastname: "Test43",
         email: "admin@test.com",
         password: hashedPassword,
         role_id: 1,

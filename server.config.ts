@@ -12,5 +12,13 @@ export const config = {
     // logService: process.env.LOG_HTTP_HOST || "localhost",
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY || "",
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET || "",
+    adminEmail: process.env.ADMIN_EMAIL || "",
+    adminPassword: process.env.ADMIN_PASSWORD || "",
+    adminEmailB: process.env.ADMIN_EMAIL_B || "",
+    adminPasswordB: process.env.ADMIN_PASSWORD_B || "",
+    adminEmailC: process.env.ADMIN_EMAIL_C || "",
+    adminPasswordC: process.env.ADMIN_PASSWORD_C || "",
+    adminEmailD: process.env.ADMIN_EMAIL_D || "",
+    adminPasswordD: process.env.ADMIN_PASSWORD_D || "",
   },
 };

@@ -44,8 +44,6 @@ before(async () => {
     "../../src/models/schema.prisma"
   );
   await $`npx prisma db push --schema=${prismaSchemaAbsolutePath}`;
-
-  console.log("===POUR TESTS===", process.env.PORT);
   // On lance un serveur de test
   server = app.listen(process.env.PORT);
 });

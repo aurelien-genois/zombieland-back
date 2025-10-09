@@ -2,6 +2,8 @@ import { prisma } from "../index.js";
 import { Prisma } from "@prisma/client";
 
 async function main() {
+  console.log("🚀 Seed start");
+
   await prisma.userRateActivity.deleteMany();
   await prisma.activity.deleteMany();
   await prisma.category.deleteMany();
@@ -822,7 +824,6 @@ async function main() {
   //resume
   const orderCount = await prisma.order.count();
   const orderLineCount = await prisma.orderLine.count();
-
   console.log("=== Seeding Summary ===");
   console.log(`Total orders: ${orderCount}`);
   console.log(`Total order lines: ${orderLineCount}`);
@@ -836,10 +837,16 @@ async function main() {
   });
 
   statusCounts.forEach((item) => {
-    console.log(`  - ${item.status}: ${item._count.status}`);
+  console.log(`  - ${item.status}: ${item._count.status}`);
   });
 }
 
 main()
-  .catch(console.error)
-  .finally(() => prisma.$disconnect());
+  .catch((e) => {
+    console.error("❌ Seed error:", e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
+

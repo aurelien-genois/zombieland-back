@@ -34,8 +34,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "======= TEST =======": "========= TEST ===========",
-    "test:unit": "tsx --test ./**/*.unit.test.ts",
-    "test:spec": "tsx --test --env-file=./test/config/.env.test --import ./test/config/global-setup.ts --experimental-test-isolation=none ./**/*.spec.test.ts",
+    "test:unit": "DEBUG=app:test tsx --test ./**/*.unit.test.ts",
+    "test:spec": "DEBUG=app:test tsx --test --env-file=./test/config/.env.test --import ./test/config/global-setup.ts --experimental-test-isolation=none ./**/*.spec.test.ts",
     "ghact:test:spec": "tsx --test --import ./test/config/global-setup.ts --experimental-test-isolation=none ./**/*.spec.test.ts",
     "prepare": "husky"
   },

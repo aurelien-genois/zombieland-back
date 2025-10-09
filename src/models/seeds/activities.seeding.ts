@@ -1,3 +1,4 @@
+import type { Options } from "../../@types/express.js";
 import { prisma } from "../index.js";
 import { Prisma } from "@prisma/client";
 
@@ -617,6 +618,42 @@ async function main() {
     )}-${String(lineId).padStart(2, "0")}`;
     return code.toUpperCase();
   };
+  const generateRandomString= () => {
+    function strRandom(o: Options): string {
+      const b = 'abcdefghijklmnopqrstuvwxyz';
+      let a = 10,     
+          c = '',
+          d = 0,
+          e = ''+b;
+      if (o) {
+        if (o.startsWithLowerCase) {
+          c = b[Math.floor(Math.random() * b.length)];
+          d = 1;
+        }
+        if (o.length) {
+          a = o.length;
+        }
+        if (o.includeUpperCase) {
+          e += b.toUpperCase();
+        }
+        if (o.includeNumbers) {
+          e += '1234567890';
+        }
+      }
+      for (; d < a; d++) {
+        c += e[Math.floor(Math.random() * e.length)];
+      }
+      return c;
+    }
+  
+    const options = {
+      includeUpperCase: true,
+      includeNumbers: true,
+      length: 40,
+    };
+  
+    return strRandom(options);
+  }
 
   // Fonction pour calculer une date de visite future
   const getFutureDate = (dateForNow: number) => {
@@ -635,6 +672,7 @@ async function main() {
       payment_method: "credit_card",
       user_id: users[0].id,
       ticket_code: generateTicketCode(1, 1),
+      qr_code: generateRandomString(),
       order_lines: {
         create: [
           {
@@ -658,6 +696,7 @@ async function main() {
       payment_method: "paypal",
       user_id: users[1].id,
       ticket_code: generateTicketCode(2, 1),
+      qr_code: generateRandomString(),
       order_lines: {
         create: [
           {
@@ -676,6 +715,7 @@ async function main() {
       payment_method: "credit_card",
       user_id: users[2].id,
       ticket_code: generateTicketCode(3, 1),
+      qr_code: generateRandomString(),
       order_lines: {
         create: [
           {
@@ -704,6 +744,7 @@ async function main() {
       payment_method: "bank_transfer",
       user_id: users[3].id,
       ticket_code: generateTicketCode(4, 1),
+      qr_code: generateRandomString(),
       order_lines: {
         create: [
           {
@@ -722,6 +763,7 @@ async function main() {
       payment_method: "credit_card",
       user_id: users[0].id,
       ticket_code: generateTicketCode(5, 1),
+      qr_code: generateRandomString(),
       order_lines: {
         create: [
           {
@@ -745,6 +787,7 @@ async function main() {
       payment_method: "paypal",
       user_id: users[1].id,
       ticket_code: generateTicketCode(6, 1),
+      qr_code: generateRandomString(),
       order_lines: {
         create: [
           {
@@ -763,6 +806,7 @@ async function main() {
       payment_method: "credit_card",
       user_id: users[2].id,
       ticket_code: generateTicketCode(7, 1),
+      qr_code: generateRandomString(),
       order_lines: {
         create: [
           {
@@ -786,6 +830,7 @@ async function main() {
       payment_method: "credit_card",
       user_id: users[3].id,
       ticket_code: generateTicketCode(8, 1),
+      qr_code: generateRandomString(),
       order_lines: {
         create: [
           {

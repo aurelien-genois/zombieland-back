@@ -166,6 +166,7 @@ describe("Reservations Controller", () => {
         vat: 5.5,
         user_id: memberUserId,
         ticket_code: `TEST-${Date.now()}`,
+        qr_code: Math.random().toString(36).substring(2, 42),
         order_lines: {
           create: [{ product_id: productAId, quantity: 1, unit_price: 20 }],
         },
@@ -190,6 +191,7 @@ describe("Reservations Controller", () => {
         vat: 5.5,
         user_id: memberUserId,
         ticket_code: `TEST-${Date.now()}`,
+        qr_code: Math.random().toString(36).substring(2, 42),
         order_lines: {
           create: [{ product_id: productBId, quantity: 2, unit_price: 10 }],
         },
@@ -214,6 +216,7 @@ describe("Reservations Controller", () => {
         vat: 5.5,
         user_id: memberUserId,
         ticket_code: `TEST-${Date.now()}`,
+        qr_code: Math.random().toString(36).substring(2, 42),
         order_lines: {
           create: [{ product_id: productAId, quantity: 1, unit_price: 20 }],
         },
@@ -237,6 +240,7 @@ describe("Reservations Controller", () => {
         vat: 5.5,
         user_id: memberUserId,
         ticket_code: `TEST-${Date.now()}`,
+        qr_code: Math.random().toString(36).substring(2, 42),
         order_lines: {
           create: [{ product_id: productAId, quantity: 1, unit_price: 20 }],
         },
@@ -263,6 +267,7 @@ describe("Reservations Controller", () => {
         vat: 5.5,
         user_id: memberUserId,
         ticket_code: `TEST-${Date.now()}`,
+        qr_code: Math.random().toString(36).substring(2, 42),
         order_lines: {
           create: [{ product_id: productAId, quantity: 1, unit_price: 20 }],
         },

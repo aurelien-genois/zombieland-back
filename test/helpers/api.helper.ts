@@ -22,7 +22,39 @@ export function buildAuthedRequester(user: IAuthTokens) {
         ...options,
       });
     },
-    // Ajoute post, put, delete si besoin
+    async post(endpoint: string, options: RequestInit = {}) {
+      return fetch(`${apiBaseUrl}${endpoint}`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken.token}`,
+          "Content-Type": "application/json",
+          ...(options.headers || {}),
+        },
+        ...options,
+      });
+    },
+    async patch(endpoint: string, options: RequestInit = {}) {
+      return fetch(`${apiBaseUrl}${endpoint}`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${accessToken.token}`,
+          "Content-Type": "application/json",
+          ...(options.headers || {}),
+        },
+        ...options,
+      });
+    },
+    async delete(endpoint: string, options: RequestInit = {}) {
+      return fetch(`${apiBaseUrl}${endpoint}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${accessToken.token}`,
+          "Content-Type": "application/json",
+          ...(options.headers || {}),
+        },
+        ...options,
+      });
+    },
   };
 }
 

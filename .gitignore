@@ -2,6 +2,7 @@ node_modules
 dist
 .env
 logs/*
+logs*-audit.json
 /generated/prisma
 /test/config/.env.test
 

@@ -3,6 +3,7 @@ import { prisma } from "../models/index.js";
 import { before, describe, it } from "node:test";
 import bcrypt from "bcrypt";
 import { generateAuthenticationTokens } from "../lib/token.js";
+import { apiBaseUrl} from '../../test/helpers/api.helper.js'
 
 // user with cookie
 describe("Users Controller", () => {
@@ -47,7 +48,7 @@ describe("Users Controller", () => {
   });
 
   it("should get all users with admin token", async () => {
-    const response = await fetch(`http://localhost:7357/api/users`, {
+    const response = await fetch(`${apiBaseUrl}/users`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${adminToken}`,

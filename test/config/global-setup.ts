@@ -4,8 +4,11 @@ import { $ } from "zx";
 import { Server } from "node:http";
 import { app } from "../../src/app.js";
 import { prisma } from "../../src/models/index.js";
+import debug from "debug";
 
-console.log("=================================================");
+const logger = debug("app:test");
+
+logger("=================================================");
 
 // ================================================================================
 // Objectif de ce fichier : mettre en place l'environnement des tests d'intégration

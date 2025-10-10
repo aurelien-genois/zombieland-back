@@ -278,7 +278,7 @@ const activitiesController = {
       throw new ConflictError("User already rates this activity");
     }
 
-    const rate = await prisma.userRateActivity.create({
+    await prisma.userRateActivity.create({
       data: {
         activity_id: activityId,
         user_id: req.userId,
@@ -287,7 +287,15 @@ const activitiesController = {
       },
     });
 
-    res.status(201).json(rate);
+    const updatedActivity = await prisma.activity.findUnique({
+      where: { id: activityId },
+      include: {
+        category: true,
+        userRateActivities: true,
+      },
+    });
+
+    res.status(201).json(updatedActivity);
   },
 
   async publishActivity(req: Request, res: Response) {

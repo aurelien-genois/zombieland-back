@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { parseIdValidation } from "./utils.schema.js";
 
 // -----------------------------   Parse Id Validation  -----------------------------
-describe.only("Parse Id Validation", () => {
+describe("Parse Id Validation", () => {
   it("should accept valid positive integer strings", () => {
     assert.doesNotThrow(() => parseIdValidation.parse("123"));
     assert.doesNotThrow(() => parseIdValidation.parse(456));

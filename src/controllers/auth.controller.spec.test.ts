@@ -133,7 +133,7 @@ describe("Auth Controller - Register", () => {
 });
 
 // --------------------  Login Test  ------------------------
-describe.only("Auth Controller - Login", () => {
+describe("Auth Controller - Login", () => {
   beforeEach(async () => {
     await prisma.token.deleteMany();
     await prisma.user.deleteMany();

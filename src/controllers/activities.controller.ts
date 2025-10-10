@@ -98,6 +98,7 @@ const activitiesController = {
       },
       include: {
         category: true,
+        userRateActivities: true,
       },
     });
 

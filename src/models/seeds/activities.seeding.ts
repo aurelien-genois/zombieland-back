@@ -1,5 +1,6 @@
 import { prisma } from "../index.js";
 import { Prisma } from "@prisma/client";
+import { faker } from "@faker-js/faker";
 
 async function main() {
   console.log("🚀 Seed start");
@@ -585,6 +586,32 @@ async function main() {
   });
 
   console.log("activities inserted !");
+
+  const fakeRates = Array.from({ length: 100 }).map(() => ({
+    activity_id: faker.number.int({ min: 1, max: 36 }),
+    user_id: faker.number.int({ min: 1, max: 200 }),
+    grade: faker.number.int({ min: 1, max: 5 }),
+    comment: faker.lorem.sentence({ min: 3, max: 10 }),
+  }));
+
+  // remove duplicated combination activity/user
+  const seen = new Set();
+  const deduped = fakeRates.filter((r) => {
+    if (seen.has({ activity_id: r.activity_id, user_id: r.user_id }))
+      return false;
+    seen.add({ activity_id: r.activity_id, user_id: r.user_id });
+    return true;
+  });
+
+  // batch creation
+  for (let i = 0; i < deduped.length; i += 100) {
+    await prisma.userRateActivity.createMany({
+      data: deduped.slice(i, i + 100),
+      skipDuplicates: true,
+    });
+  }
+
+  console.log("user rate activities inserted !");
 
   await prisma.product.createMany({
     data: [

@@ -98,12 +98,26 @@ export const usersController = {
     });
     res.status(200).json(updatedUser);
   },
+
   // --------------------  Delete User ------------------------
   async deleteUser(req: Request, res: Response) {
     if (!req.userId) {
       throw new UnauthorizedError("Unauthorized");
     }
-    await prisma.user.delete({ where: { id: req.userId } });
+
+    await prisma.userRateActivity.deleteMany({
+      where: { user_id: req.userId },
+    });
+
+    await prisma.user.update({
+      where: { id: req.userId },
+      data: {
+        email: `deleted_${req.userId}@example.com`,
+        password: "",
+        is_active: false,
+      },
+    });
+
     res.status(204).send();
   },
 

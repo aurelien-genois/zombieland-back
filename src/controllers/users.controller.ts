@@ -105,14 +105,19 @@ export const usersController = {
       throw new UnauthorizedError("Unauthorized");
     }
 
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+
     await prisma.userRateActivity.deleteMany({
-      where: { user_id: req.userId },
+      where: { user_id: user.id },
     });
 
     await prisma.user.update({
-      where: { id: req.userId },
+      where: { id: user.id },
       data: {
-        email: `deleted_${req.userId}@example.com`,
+        email: `deleted_${user.id}@example.com`,
         password: "",
         is_active: false,
       },
@@ -256,11 +261,24 @@ export const usersController = {
   // --------------------  Delete User Account ------------------------
   async deleteUserAccount(req: Request, res: Response) {
     const id = parseIdValidation.parse(req.params.id);
+
     const user = await prisma.user.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundError("User not found");
     }
-    await prisma.user.delete({ where: { id } });
+    await prisma.userRateActivity.deleteMany({
+      where: { user_id: user.id },
+    });
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        email: `deleted_${user.id}@example.com`,
+        password: "",
+        is_active: false,
+      },
+    });
+
     res.status(204).send();
   },
 };

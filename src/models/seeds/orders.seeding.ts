@@ -155,6 +155,7 @@ async function main() {
         faker.helpers.arrayElement(["05.50", "10.00", "20.00"])
       );
       const ticket_code = faker.string.alphanumeric(10).toUpperCase();
+      const qr_code = faker.string.alphanumeric(40);
       const payment_method = faker.helpers.arrayElement(paymentMethods);
 
       const lineCount = faker.number.int({ min: 1, max: 4 });
@@ -176,6 +177,7 @@ async function main() {
         payment_method,
         user_id: u.id,
         ticket_code,
+        qr_code,
         lines,
       });
     }
@@ -197,6 +199,7 @@ async function main() {
             payment_method: o.payment_method,
             user_id: o.user_id,
             ticket_code: o.ticket_code,
+            qr_code: o.qr_code,
           },
           select: { id: true },
         })

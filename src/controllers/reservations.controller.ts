@@ -11,6 +11,7 @@ import { parseIdValidation } from "../schemas/utils.schema.js";
 
 import Stripe from "stripe";
 import { config } from "../../server.config.js";
+import type { Options } from "../@types/express.js";
 
 type Meta = {
   page: number;
@@ -38,6 +39,43 @@ function generateTicketCode() {
   return `ZMB-${new Date().getFullYear()}-${Date.now()}-${Math.floor(
     Math.random() * 1e6
   )}`.toUpperCase();
+}
+
+function generateRandomString() {
+  function strRandom(o: Options): string {
+    const b = 'abcdefghijklmnopqrstuvwxyz';
+    let a = 10,     
+        c = '',
+        d = 0,
+        e = ''+b;
+    if (o) {
+      if (o.startsWithLowerCase) {
+        c = b[Math.floor(Math.random() * b.length)];
+        d = 1;
+      }
+      if (o.length) {
+        a = o.length;
+      }
+      if (o.includeUpperCase) {
+        e += b.toUpperCase();
+      }
+      if (o.includeNumbers) {
+        e += '1234567890';
+      }
+    }
+    for (; d < a; d++) {
+      c += e[Math.floor(Math.random() * e.length)];
+    }
+    return c;
+  }
+
+  const options = {
+    includeUpperCase: true,
+    includeNumbers: true,
+    length: 40,
+  };
+
+  return strRandom(options);
 }
 
 function amountsFromLines(
@@ -384,6 +422,7 @@ const reservationsController = {
         vat,
         user_id: targetUserId,
         ticket_code: generateTicketCode(),
+        qr_code: generateRandomString(),
         ...(payment_method ? { payment_method } : {}),
         ...(createLines && { order_lines: createLines }),
       },

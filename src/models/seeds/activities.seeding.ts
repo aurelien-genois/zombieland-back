@@ -1,7 +1,11 @@
+import type { Options } from "../../@types/express.js";
 import { prisma } from "../index.js";
 import { Prisma } from "@prisma/client";
+import { faker } from "@faker-js/faker";
 
 async function main() {
+  console.log("🚀 Seed start");
+
   await prisma.userRateActivity.deleteMany();
   await prisma.activity.deleteMany();
   await prisma.category.deleteMany();
@@ -584,6 +588,32 @@ async function main() {
 
   console.log("activities inserted !");
 
+  const fakeRates = Array.from({ length: 100 }).map(() => ({
+    activity_id: faker.number.int({ min: 1, max: 36 }),
+    user_id: faker.number.int({ min: 1, max: 200 }),
+    grade: faker.number.int({ min: 1, max: 5 }),
+    comment: faker.lorem.sentence({ min: 3, max: 10 }),
+  }));
+
+  // remove duplicated combination activity/user
+  const seen = new Set();
+  const deduped = fakeRates.filter((r) => {
+    if (seen.has({ activity_id: r.activity_id, user_id: r.user_id }))
+      return false;
+    seen.add({ activity_id: r.activity_id, user_id: r.user_id });
+    return true;
+  });
+
+  // batch creation
+  for (let i = 0; i < deduped.length; i += 100) {
+    await prisma.userRateActivity.createMany({
+      data: deduped.slice(i, i + 100),
+      skipDuplicates: true,
+    });
+  }
+
+  console.log("user rate activities inserted !");
+
   await prisma.product.createMany({
     data: [
       {
@@ -617,6 +647,42 @@ async function main() {
     )}-${String(lineId).padStart(2, "0")}`;
     return code.toUpperCase();
   };
+  const generateRandomString= () => {
+    function strRandom(o: Options): string {
+      const b = 'abcdefghijklmnopqrstuvwxyz';
+      let a = 10,     
+          c = '',
+          d = 0,
+          e = ''+b;
+      if (o) {
+        if (o.startsWithLowerCase) {
+          c = b[Math.floor(Math.random() * b.length)];
+          d = 1;
+        }
+        if (o.length) {
+          a = o.length;
+        }
+        if (o.includeUpperCase) {
+          e += b.toUpperCase();
+        }
+        if (o.includeNumbers) {
+          e += '1234567890';
+        }
+      }
+      for (; d < a; d++) {
+        c += e[Math.floor(Math.random() * e.length)];
+      }
+      return c;
+    }
+  
+    const options = {
+      includeUpperCase: true,
+      includeNumbers: true,
+      length: 40,
+    };
+  
+    return strRandom(options);
+  }
 
   // Fonction pour calculer une date de visite future
   const getFutureDate = (dateForNow: number) => {
@@ -635,6 +701,7 @@ async function main() {
       payment_method: "credit_card",
       user_id: users[0].id,
       ticket_code: generateTicketCode(1, 1),
+      qr_code: generateRandomString(),
       order_lines: {
         create: [
           {
@@ -658,6 +725,7 @@ async function main() {
       payment_method: "paypal",
       user_id: users[1].id,
       ticket_code: generateTicketCode(2, 1),
+      qr_code: generateRandomString(),
       order_lines: {
         create: [
           {
@@ -676,6 +744,7 @@ async function main() {
       payment_method: "credit_card",
       user_id: users[2].id,
       ticket_code: generateTicketCode(3, 1),
+      qr_code: generateRandomString(),
       order_lines: {
         create: [
           {
@@ -704,6 +773,7 @@ async function main() {
       payment_method: "bank_transfer",
       user_id: users[3].id,
       ticket_code: generateTicketCode(4, 1),
+      qr_code: generateRandomString(),
       order_lines: {
         create: [
           {
@@ -722,6 +792,7 @@ async function main() {
       payment_method: "credit_card",
       user_id: users[0].id,
       ticket_code: generateTicketCode(5, 1),
+      qr_code: generateRandomString(),
       order_lines: {
         create: [
           {
@@ -745,6 +816,7 @@ async function main() {
       payment_method: "paypal",
       user_id: users[1].id,
       ticket_code: generateTicketCode(6, 1),
+      qr_code: generateRandomString(),
       order_lines: {
         create: [
           {
@@ -763,6 +835,7 @@ async function main() {
       payment_method: "credit_card",
       user_id: users[2].id,
       ticket_code: generateTicketCode(7, 1),
+      qr_code: generateRandomString(),
       order_lines: {
         create: [
           {
@@ -786,6 +859,7 @@ async function main() {
       payment_method: "credit_card",
       user_id: users[3].id,
       ticket_code: generateTicketCode(8, 1),
+      qr_code: generateRandomString(),
       order_lines: {
         create: [
           {
@@ -822,7 +896,6 @@ async function main() {
   //resume
   const orderCount = await prisma.order.count();
   const orderLineCount = await prisma.orderLine.count();
-
   console.log("=== Seeding Summary ===");
   console.log(`Total orders: ${orderCount}`);
   console.log(`Total order lines: ${orderLineCount}`);
@@ -836,10 +909,16 @@ async function main() {
   });
 
   statusCounts.forEach((item) => {
-    console.log(`  - ${item.status}: ${item._count.status}`);
+  console.log(`  - ${item.status}: ${item._count.status}`);
   });
 }
 
 main()
-  .catch(console.error)
-  .finally(() => prisma.$disconnect());
+  .catch((e) => {
+    console.error("❌ Seed error:", e);
+    process.exit(1);
+  })
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
+

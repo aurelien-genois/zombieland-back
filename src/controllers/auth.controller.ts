@@ -1,7 +1,6 @@
 import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
 import { usersSchema } from "../schemas/users.schema.js";
-import type { User } from "@prisma/client";
 import bcrypt from "bcrypt";
 import { generateAuthenticationTokens } from "../lib/token.js";
 import { config } from "../../server.config.js";
@@ -14,6 +13,7 @@ import {
   NotFoundError,
   UnauthorizedError,
 } from "../lib/errors.js";
+import type { IAuthTokens } from "../@types/auth.js";
 
 interface Token {
   token: string;
@@ -21,7 +21,7 @@ interface Token {
   expiresInMS: number;
 }
 
-async function replaceRefreshTokenInDatabase(token: Token, user: User) {
+async function replaceRefreshTokenInDatabase(token: Token, user: IAuthTokens) {
   await prisma.token.deleteMany({
     where: { user_id: user.id, type: "refresh" },
   });
@@ -83,6 +83,24 @@ const authController = {
         phone,
         birthday,
       },
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        email: true,
+        phone: true,
+        birthday: true,
+        is_active: true,
+        last_login: true,
+        created_at: true,
+        updated_at: true,
+        role: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
 
     const userToken = await prisma.token.create({
@@ -108,8 +126,22 @@ const authController = {
     const { token } = await usersSchema.token.parseAsync(req.query);
     const userToken = await prisma.token.findFirst({
       where: { token, type: "verification_email" },
-      include: { user: true },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            firstname: true,
+            lastname: true,
+            is_active: true,
+          },
+        },
+      },
     });
+
+    if (userToken?.user?.is_active) {
+      throw new ConflictError("This account is already active.");
+    }
 
     if (!userToken) {
       throw new NotFoundError("Token not found.");
@@ -133,13 +165,21 @@ const authController = {
     });
 
     res.redirect(`${config.server.frontUrl}/login`);
-
   },
   // --------------------  Resend Confirmation Email ------------------------
   async resendConfirmationEmail(req: Request, res: Response) {
     const { email } = await usersSchema.email.parseAsync(req.body);
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: {
+        id: true,
+        email: true,
+        firstname: true,
+        lastname: true,
+        is_active: true,
+      },
+    });
 
     if (!user) {
       throw new NotFoundError("No user found with this email.");
@@ -200,7 +240,7 @@ const authController = {
     setAccessTokenCookie(res, accessToken);
     setRefreshTokenCookie(res, refreshToken);
 
-    const { ...safeUser } = user;
+    const { password: _pw, ...safeUser } = user;
 
     res.status(200).json({
       user: safeUser,
@@ -224,7 +264,17 @@ const authController = {
 
     const existingRefreshToken = await prisma.token.findFirst({
       where: { token: rawToken, type: "refresh" },
-      include: { user: { include: { role: true } } },
+      include: {
+        user: {
+          select: {
+            id: true,
+            email: true,
+            role: true,
+            firstname: true,
+            lastname: true,
+          },
+        },
+      },
     });
     if (
       !existingRefreshToken ||
@@ -255,13 +305,16 @@ const authController = {
     setAccessTokenCookie(res, accessToken);
     setRefreshTokenCookie(res, refreshToken);
 
-    res.json({ accessToken, refreshToken });
+    res.json("New access token generated successfully.");
   },
   // --------------------  1) Forgot Password Request ------------------------
   async forgotPasswordRequest(req: Request, res: Response) {
     const { email } = await usersSchema.email.parseAsync(req.body);
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true, email: true },
+    });
 
     if (!user) {
       throw new NotFoundError("No user found with this email.");

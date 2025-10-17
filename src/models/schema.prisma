@@ -177,6 +177,7 @@ model Order {
   order_lines     OrderLine[] 
 
   ticket_code       String
+  qr_code         String
 
   created_at      DateTime     @default(now())
   updated_at      DateTime     @updatedAt

@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { prisma } from "../models/index.js";
-import { utilSchema } from "../schemas/utils.schema.js";
+import { parseIdValidation } from "../schemas/utils.schema.js";
 import {
   ConflictError,
   NotFoundError,
@@ -98,12 +98,31 @@ export const usersController = {
     });
     res.status(200).json(updatedUser);
   },
+
   // --------------------  Delete User ------------------------
   async deleteUser(req: Request, res: Response) {
     if (!req.userId) {
       throw new UnauthorizedError("Unauthorized");
     }
-    await prisma.user.delete({ where: { id: req.userId } });
+
+    const user = await prisma.user.findUnique({ where: { id: req.userId } });
+    if (!user) {
+      throw new NotFoundError("User not found");
+    }
+
+    await prisma.userRateActivity.deleteMany({
+      where: { user_id: user.id },
+    });
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        email: `deleted_${user.id}@example.com`,
+        password: "",
+        is_active: false,
+      },
+    });
+
     res.status(204).send();
   },
 
@@ -188,8 +207,21 @@ export const usersController = {
 
   // --------------------  Get One User ------------------------
   async getOneUser(req: Request, res: Response) {
-    const { id } = utilSchema.parseId.parse(req.params);
-    const user = await prisma.user.findUnique({ where: { id } });
+    const id = parseIdValidation.parse(req.params.id);
+    const user = await prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        firstname: true,
+        lastname: true,
+        email: true,
+        is_active: true,
+        phone: true,
+        birthday: true,
+        last_login: true,
+        role: { select: { id: true, name: true } },
+      },
+    });
     if (!user) {
       throw new NotFoundError("User not found");
     }
@@ -198,7 +230,7 @@ export const usersController = {
 
   // --------------------  Update Role User ------------------------
   async updateRoleUser(req: Request, res: Response) {
-    const { id } = utilSchema.parseId.parse(req.params);
+    const id = parseIdValidation.parse(req.params.id);
     const { role } = req.body;
 
     if (role !== "admin" && role !== "member") {
@@ -228,12 +260,25 @@ export const usersController = {
 
   // --------------------  Delete User Account ------------------------
   async deleteUserAccount(req: Request, res: Response) {
-    const { id } = utilSchema.parseId.parse(req.params);
+    const id = parseIdValidation.parse(req.params.id);
+
     const user = await prisma.user.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundError("User not found");
     }
-    await prisma.user.delete({ where: { id } });
+    await prisma.userRateActivity.deleteMany({
+      where: { user_id: user.id },
+    });
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        email: `deleted_${user.id}@example.com`,
+        password: "",
+        is_active: false,
+      },
+    });
+
     res.status(204).send();
   },
 };

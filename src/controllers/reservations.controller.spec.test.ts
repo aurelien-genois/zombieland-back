@@ -3,9 +3,9 @@ import { beforeEach, describe, it } from "node:test";
 import bcrypt from "bcrypt";
 import { prisma } from "../models/index.js";
 import { generateAuthenticationTokens } from "../lib/token.js";
+import { apiBaseUrl} from '../../test/helpers/api.helper.js'
 
-
-const BASE_URL = "http://localhost:7357/api";
+const BASE_URL = apiBaseUrl;
 
 function futureDate(days = 7) {
   const d = new Date();
@@ -166,6 +166,7 @@ describe("Reservations Controller", () => {
         vat: 5.5,
         user_id: memberUserId,
         ticket_code: `TEST-${Date.now()}`,
+        qr_code: Math.random().toString(36).substring(2, 42),
         order_lines: {
           create: [{ product_id: productAId, quantity: 1, unit_price: 20 }],
         },
@@ -190,6 +191,7 @@ describe("Reservations Controller", () => {
         vat: 5.5,
         user_id: memberUserId,
         ticket_code: `TEST-${Date.now()}`,
+        qr_code: Math.random().toString(36).substring(2, 42),
         order_lines: {
           create: [{ product_id: productBId, quantity: 2, unit_price: 10 }],
         },
@@ -214,6 +216,7 @@ describe("Reservations Controller", () => {
         vat: 5.5,
         user_id: memberUserId,
         ticket_code: `TEST-${Date.now()}`,
+        qr_code: Math.random().toString(36).substring(2, 42),
         order_lines: {
           create: [{ product_id: productAId, quantity: 1, unit_price: 20 }],
         },
@@ -237,6 +240,7 @@ describe("Reservations Controller", () => {
         vat: 5.5,
         user_id: memberUserId,
         ticket_code: `TEST-${Date.now()}`,
+        qr_code: Math.random().toString(36).substring(2, 42),
         order_lines: {
           create: [{ product_id: productAId, quantity: 1, unit_price: 20 }],
         },
@@ -263,6 +267,7 @@ describe("Reservations Controller", () => {
         vat: 5.5,
         user_id: memberUserId,
         ticket_code: `TEST-${Date.now()}`,
+        qr_code: Math.random().toString(36).substring(2, 42),
         order_lines: {
           create: [{ product_id: productAId, quantity: 1, unit_price: 20 }],
         },

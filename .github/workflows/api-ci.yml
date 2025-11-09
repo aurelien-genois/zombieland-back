@@ -24,7 +24,7 @@ jobs:
           node-version: "22"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       # Prisma client pour environnement du runner
       - name: Generate Prisma Client

@@ -16,7 +16,7 @@ router.post("/register", limiterRegister, authController.register);
 router.get(
   "/email-confirmation",
   limiterEmail,
-  authController.sendConfirmationEmailWithToken
+  authController.checkConfirmationEmailWithToken
 );
 
 // --------------------  Resend Confirmation Email ------------------------

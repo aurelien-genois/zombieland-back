@@ -122,7 +122,7 @@ const authController = {
     res.status(201).json(user);
   },
   // --------------------  Send Confirmation Email With Token------------------------
-  async sendConfirmationEmailWithToken(req: Request, res: Response) {
+  async checkConfirmationEmailWithToken(req: Request, res: Response) {
     const { token } = await usersSchema.token.parseAsync(req.query);
     const userToken = await prisma.token.findFirst({
       where: { token, type: "verification_email" },
@@ -164,7 +164,7 @@ const authController = {
       where: { user_id: userToken.user_id, type: "verification_email" },
     });
 
-    res.redirect(`${config.server.frontUrl}/login`);
+    res.redirect(`${config.server.frontUrl}/email-confirmation`);
   },
   // --------------------  Resend Confirmation Email ------------------------
   async resendConfirmationEmail(req: Request, res: Response) {

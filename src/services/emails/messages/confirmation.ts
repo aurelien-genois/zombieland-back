@@ -8,7 +8,7 @@ export const sendConfirmationEmail = async (
   lastname: string
 ) => {
   const userName = `${firstname} ${lastname}`.trim();
-  const confirmationLink = `${config.server.backUrl}/api/auth/email-confirmation?token=${verificationCode}`;
+  const confirmationLink = `${config.server.backUrl}/auth/email-confirmation?token=${verificationCode}`;
 
   const html = `
   <!DOCTYPE html>
@@ -22,14 +22,14 @@ export const sendConfirmationEmail = async (
 
       <!-- Titre -->
       <h1 style="color:#333;margin-bottom:20px;">Bienvenue, ${userName} 🎉</h1>
-      
+
       <!-- Message -->
       <p style="font-size:16px;color:#555;line-height:1.6;margin-bottom:30px;">
         Merci de vous être inscrit sur <b>Zombieland</b>.<br/>
         Veuillez confirmer votre adresse e-mail pour activer votre compte : <br/>
         Vous serez redirigé vers la page de connexion après confirmation.
       </p>
-      
+
       <!-- Bouton -->
       <a href="${confirmationLink}"
          style="display:inline-block;background:#007bff;color:#fff;padding:14px 24px;
@@ -42,7 +42,7 @@ export const sendConfirmationEmail = async (
       <p style="font-size:13px;color:#777;margin-top:25px;">
         Ce lien est valable pendant <strong>24 heures</strong>.
       </p>
-      
+
       <!-- Footer -->
       <p style="margin-top:40px;font-size:12px;color:#999;">
         © 2025 Zombieland - Tous droits réservés

@@ -43,11 +43,11 @@ function generateTicketCode() {
 
 function generateRandomString() {
   function strRandom(o: Options): string {
-    const b = 'abcdefghijklmnopqrstuvwxyz';
-    let a = 10,     
-        c = '',
-        d = 0,
-        e = ''+b;
+    const b = "abcdefghijklmnopqrstuvwxyz";
+    let a = 10,
+      c = "",
+      d = 0,
+      e = "" + b;
     if (o) {
       if (o.startsWithLowerCase) {
         c = b[Math.floor(Math.random() * b.length)];
@@ -60,7 +60,7 @@ function generateRandomString() {
         e += b.toUpperCase();
       }
       if (o.includeNumbers) {
-        e += '1234567890';
+        e += "1234567890";
       }
     }
     for (; d < a; d++) {
@@ -652,6 +652,7 @@ const reservationsController = {
     }
 
     // Line items Stripe (in CENTS)
+    // ! ERROR ? missing VAT for price calculation ?
     const line_items: Stripe.Checkout.SessionCreateParams.LineItem[] =
       order.order_lines.map((l) => ({
         price_data: {

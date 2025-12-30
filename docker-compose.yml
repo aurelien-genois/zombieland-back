@@ -42,6 +42,10 @@ services:
       - ADMIN_PASSWORD_C=${ADMIN_PASSWORD_C}
       - ADMIN_EMAIL_D=${ADMIN_EMAIL_D}
       - ADMIN_PASSWORD_D=${ADMIN_PASSWORD_D}
+      - VIRTUAL_HOST=${SSL_DOMAIN}
+      - VIRTUAL_PATH=/api
+      - LETSENCRYPT_HOST=${SSL_DOMAIN}
+      - LETSENCRYPT_EMAIL=aurelien.genois@gmail.com
     restart: unless-stopped
     depends_on:
       zombieland-db:
@@ -52,18 +56,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-    networks:
-      - proxy_default
-
-  adminer:
-    image: adminer:latest
-    container_name: adminer
-    restart: always
-    ports:
-      - "8080:8080"
-    depends_on:
-      zombieland-db:
-        condition: service_healthy
     networks:
       - proxy_default
 

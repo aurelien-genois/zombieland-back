@@ -10,6 +10,10 @@ The **ZombieLand** application modernizes amusement park management by offering 
 It provides an attractive presentation of the park to appeal to young audiences and families while strengthening its national reputation.
 Finally, it centralizes ticketing and simplifies online booking, reducing the staff’s workload.
 
+## TODO
+
+- tests intégration activities
+
 ## ⚙️ Technologies
 
 - Node.js v22.18.0

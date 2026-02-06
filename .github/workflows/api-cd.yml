@@ -70,33 +70,33 @@ jobs:
       - name: Write .env file
         run: |
           ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-      cd /var/www/html/zombieland-back
-      cat  << 'EOL' > .env
-      PORT=${{ secrets.PORT }}
-      JWT_SECRET=${{ secrets.JWT_SECRET }}
-      ALLOWED_ORIGINS=${{ vars.ALLOWED_ORIGINS }}
-      FRONT_URL=${{ vars.FRONT_URL }}
-      BACK_URL=${{ vars.BACK_URL }}
-      NODE_ENV=production
-      SALT_ROUNDS=${{ vars.SALT_ROUNDS }}
-      DATABASE_URL=${{ secrets.DATABASE_URL}}
-      DATABASE_URL_DOCKER=${{ secrets.DATABASE_URL_DOCKER}}
-      POSTGRES_USER=${{ secrets.POSTGRES_USER}}
-      POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD}}
-      POSTGRES_DB=${{ secrets.POSTGRES_DB}}
-      EMAIL_HOST=${{ secrets.EMAIL_HOST}}
-      EMAIL_PORT=587
-      FROM_EMAIL=aurelien.genois@gmail.com
-      EMAIL_PASS=${{ secrets.EMAIL_PASS}}
-      TO_ADMIN_EMAIL=aurelien.genois@gmail.com
-      SSL_DOMAIN=${{ vars.SSL_DOMAIN}}
-      STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY}}
-      STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET}}
-      ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL}}
-      ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD}}
-      HUSKY=0
-      EOL
-      EOF
+            cd /var/www/html/zombieland-back
+            cat > .env << 'EOL'
+            PORT=${{ secrets.PORT }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            ALLOWED_ORIGINS=${{ vars.ALLOWED_ORIGINS }}
+            FRONT_URL=${{ vars.FRONT_URL }}
+            BACK_URL=${{ vars.BACK_URL }}
+            NODE_ENV=production
+            SALT_ROUNDS=${{ vars.SALT_ROUNDS }}
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            DATABASE_URL_DOCKER=${{ secrets.DATABASE_URL_DOCKER }}
+            POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+            EMAIL_HOST=${{ secrets.EMAIL_HOST }}
+            EMAIL_PORT=587
+            FROM_EMAIL=aurelien.genois@gmail.com
+            EMAIL_PASS=${{ secrets.EMAIL_PASS }}
+            TO_ADMIN_EMAIL=aurelien.genois@gmail.com
+            SSL_DOMAIN=${{ vars.SSL_DOMAIN }}
+            STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
+            STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}
+            ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}
+            ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
+            HUSKY=0
+            EOL
+          EOF
 
       - name: Deploy to server
         run: |

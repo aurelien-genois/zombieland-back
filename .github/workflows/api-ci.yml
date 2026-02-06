@@ -12,7 +12,7 @@ on:
 jobs:
   run_tests:
     runs-on: ubuntu-latest
-    environment: test
+    environment: CI
     steps:
       # Récupérer le code du dépôt dans le runner (action officiel)
       - name: checkout code
@@ -29,22 +29,24 @@ jobs:
       # Prisma client pour environnement du runner
       - name: Generate Prisma Client
         run: npm run db:generate
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
       # Tests unitaires
       - name: Run unit tests
         run: npm run test:unit
+        env:
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
       # Tests d'intégration
       - name: Run integration tests
         run: npm run  ghact:test:spec
         env:
+          HUSKY: 0
           PORT: ${{ vars.PORT }}
-          ALLOWED_ORIGINS: ${{ vars.ALLOWED_ORIGINS }}
-          JWT_SECRET: ${{ vars.JWT_SECRET }}
-          DEBUG: ${{ vars.DEBUG }}
-          NODE_ENV: ${{ vars.NODE_ENV }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          NODE_ENV: test
           SALT_ROUNDS: ${{ vars.SALT_ROUNDS }}
-          DATABASE_URL: ${{ vars.DATABASE_URL }}
-          STRIPE_SECRET_KEY: ${{ vars.STRIPE_SECRET_KEY }}
-          STRIPE_WEBHOOK_SECRET: ${{ vars.STRIPE_WEBHOOK_SECRET }}
-          FRONT_URL: ${{ vars.FRONT_URL }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}

@@ -9,12 +9,13 @@ import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./swaggers/index.js";
 import reservations from "./reservations.route.js";
 import administration from "./administration.route.js";
+import { checkRoles } from "../middlewares/check-roles.middleware.js";
 
 export const router = Router();
 
 // // --------------------  Swagger-------------------
 router.use("/api-docs", swaggerUi.serve);
-router.get("/api-docs", swaggerUi.setup(swaggerSpec));
+router.get("/api-docs", checkRoles(["admin"]), swaggerUi.setup(swaggerSpec));
 
 // --------------------  Health ------------------------
 router.use("/health", health);

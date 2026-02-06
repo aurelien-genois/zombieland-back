@@ -67,9 +67,9 @@ jobs:
       - name: Write .env file
         run: |
           ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no \
-            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} bash << 'EOF'
           cd /var/www/html/zombieland-back
-          cat > .env << 'EOL'
+          cat > .env << 'ENVEOF'
           PORT=${{ secrets.PORT }}
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           ALLOWED_ORIGINS=${{ vars.ALLOWED_ORIGINS }}
@@ -93,7 +93,7 @@ jobs:
           ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}
           ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
           HUSKY=0
-          EOL
+          ENVEOF
           EOF
 
       - name: Deploy to server

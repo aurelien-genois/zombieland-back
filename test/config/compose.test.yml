@@ -7,8 +7,6 @@ services:
       POSTGRES_USER: test
       POSTGRES_PASSWORD: test
       POSTGRES_DB: zombieland_test
-    volumes:
-      - zombieland-test:/var/lib/postgresql/data
     ports:
       - 5437:5432
     healthcheck:
@@ -16,6 +14,3 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
-
-volumes:
-  zombieland-test:

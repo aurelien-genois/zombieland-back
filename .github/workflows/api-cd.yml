@@ -71,14 +71,14 @@ jobs:
         run: |
           ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             cd /var/www/html/zombieland-back
-            cat > .env <<EOL
+            cat  << 'EOL' > .env
             PORT=${{ secrets.PORT }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             ALLOWED_ORIGINS=${{ vars.ALLOWED_ORIGINS }}
             FRONT_URL=${{ vars.FRONT_URL }}
             BACK_URL=${{ vars.BACK_URL }}
             NODE_ENV=production
-            SALT_ROUNDS: ${{ vars.SALT_ROUNDS }}
+            SALT_ROUNDS=${{ vars.SALT_ROUNDS }}
             DATABASE_URL=${{ secrets.DATABASE_URL}}
             DATABASE_URL_DOCKER=${{ secrets.DATABASE_URL_DOCKER}}
             POSTGRES_USER=${{ secrets.POSTGRES_USER}}

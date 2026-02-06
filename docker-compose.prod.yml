@@ -20,9 +20,7 @@ services:
   zombieland-api:
     build:
       context: .
-      dockerfile: Dockerfile
-    volumes:
-      - ./src:/app/src
+      dockerfile: Dockerfile.prod
     container_name: zombieland-api
     ports:
       - "${PORT}:3000"
@@ -36,6 +34,10 @@ services:
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
       - ADMIN_EMAIL=${ADMIN_EMAIL}
       - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - VIRTUAL_HOST=${SSL_DOMAIN}
+      - VIRTUAL_PATH=/api
+      - LETSENCRYPT_HOST=${SSL_DOMAIN}
+      - LETSENCRYPT_EMAIL=aurelien.genois@gmail.com
     restart: unless-stopped
     depends_on:
       zombieland-db:

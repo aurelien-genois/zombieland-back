@@ -1,71 +1,71 @@
 name: Deploy API ZombieLand
 
 on:
-  push:
-    branches:
-      - main
+	push:
+		branches:
+			- main
 
 jobs:
-  run_tests:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-latest
-    environment: CI
-    steps:
-      # Récupérer le code du dépôt dans le runner (action officiel)
-      - name: checkout code
-        uses: actions/checkout@v4
+	run_tests:
+		if: github.event_name == 'push'
+		runs-on: ubuntu-latest
+		environment: CI
+		steps:
+			# Récupérer le code du dépôt dans le runner (action officiel)
+			- name: checkout code
+				uses: actions/checkout@v4
 
-      - name: Install Node 22
-        uses: actions/setup-node@v4
-        with:
-          node-version: "22"
+			- name: Install Node 22
+				uses: actions/setup-node@v4
+				with:
+					node-version: "22"
 
-      - name: Install dependencies
-        run: npm ci
+			- name: Install dependencies
+				run: npm ci
 
-      # Prisma client pour environnement du runner
-      - name: Generate Prisma Client
-        run: npm run db:generate
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+			# Prisma client pour environnement du runner
+			- name: Generate Prisma Client
+				run: npm run db:generate
+				env:
+					DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
-      # Tests unitaires
-      - name: Run unit tests
-        run: npm run test:unit
-        env:
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+			# Tests unitaires
+			- name: Run unit tests
+				run: npm run test:unit
+				env:
+					JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
-      # Tests d'intégration
-      - name: Run integration tests
-        run: npm run  ghact:test:spec
-        env:
-          HUSKY: 0
-          PORT: ${{ vars.PORT }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          NODE_ENV: test
-          SALT_ROUNDS: ${{ vars.SALT_ROUNDS }}
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+			# Tests d'intégration
+			- name: Run integration tests
+				run: npm run  ghact:test:spec
+				env:
+					HUSKY: 0
+					PORT: ${{ vars.PORT }}
+					JWT_SECRET: ${{ secrets.JWT_SECRET }}
+					NODE_ENV: test
+					SALT_ROUNDS: ${{ vars.SALT_ROUNDS }}
+					DATABASE_URL: ${{ secrets.DATABASE_URL }}
+					STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+					STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
 
-  deploy:
-    if: github.event_name == 'push'
-    needs: run_tests
-    runs-on: ubuntu-latest
-    environment: CD
+	deploy:
+		if: github.event_name == 'push'
+		needs: run_tests
+		runs-on: ubuntu-latest
+		environment: CD
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+		steps:
+			- name: Checkout repository
+				uses: actions/checkout@v4
 
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+			- name: Set up SSH
+				uses: webfactory/ssh-agent@v0.9.0
+				with:
+					ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      - name: Add server to known_hosts
-        run: |
-          ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+			- name: Add server to known_hosts
+				run: |
+					ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
 			- name: Write .env file
 				run: |
@@ -100,15 +100,15 @@ jobs:
 					EOF
 
 
-      - name: Deploy to server
-        run: |
-          rsync -avz --delete \
-            --exclude='.env' \
-            -e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
-            ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/html/zombieland-back
-          ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<-EOF
-            cd /var/www/html/zombieland-back
-            export NODE_ENV=production
-            docker-compose pull
-            docker-compose -f docker-compose.prod.yml up -d --build
-          EOF
+			- name: Deploy to server
+				run: |
+					rsync -avz --delete \
+						--exclude='.env' \
+						-e "ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no" \
+						./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/var/www/html/zombieland-back
+					ssh -p ${{ secrets.SSH_PORT }} -o StrictHostKeyChecking=no ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} <<-EOF
+						cd /var/www/html/zombieland-back
+						export NODE_ENV=production
+						docker-compose pull
+						docker-compose -f docker-compose.prod.yml up -d --build
+					EOF

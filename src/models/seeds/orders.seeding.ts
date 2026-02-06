@@ -20,43 +20,10 @@ async function main() {
 
   const admins = [
     {
-      firstname: "Admin-a",
+      firstname: "Admin",
       lastname: "Zombie",
       email: config.server.adminEmail,
       password: config.server.adminPassword,
-      is_active: true,
-      phone: "+33612345678",
-      birthday: new Date("1995-05-12"),
-      last_login: new Date(),
-      role_id: adminRole.id,
-    },
-    {
-      firstname: "Admin-b",
-      lastname: "Zombie",
-      email: config.server.adminEmailB,
-      password: config.server.adminPasswordB,
-      is_active: true,
-      phone: "+33612345678",
-      birthday: new Date("1995-05-12"),
-      last_login: new Date(),
-      role_id: adminRole.id,
-    },
-    {
-      firstname: "Admin-c",
-      lastname: "Zombie",
-      email: config.server.adminEmailC,
-      password: config.server.adminPasswordC,
-      is_active: true,
-      phone: "+33612345678",
-      birthday: new Date("1995-05-12"),
-      last_login: new Date(),
-      role_id: adminRole.id,
-    },
-    {
-      firstname: "Admin-d",
-      lastname: "Zombie",
-      email: config.server.adminEmailD,
-      password: config.server.adminPasswordD,
       is_active: true,
       phone: "+33612345678",
       birthday: new Date("1995-05-12"),
@@ -152,7 +119,7 @@ async function main() {
         "refund",
       ]);
       const vat = new Prisma.Decimal(
-        faker.helpers.arrayElement(["05.50", "10.00", "20.00"])
+        faker.helpers.arrayElement(["05.50", "10.00", "20.00"]),
       );
       const ticket_code = faker.string.alphanumeric(10).toUpperCase();
       const qr_code = faker.string.alphanumeric(40);
@@ -161,7 +128,7 @@ async function main() {
       const lineCount = faker.number.int({ min: 1, max: 4 });
       const chosenProducts = faker.helpers.arrayElements(
         productList,
-        lineCount
+        lineCount,
       );
 
       const lines = chosenProducts.map((p) => ({
@@ -202,8 +169,8 @@ async function main() {
             qr_code: o.qr_code,
           },
           select: { id: true },
-        })
-      )
+        }),
+      ),
     );
 
     const allLines: Array<
@@ -235,7 +202,7 @@ async function main() {
   ]);
 
   console.log(
-    `✅ Seed OK — Orders: ${ordersCount} | OrderLines: ${linesCount}`
+    `✅ Seed OK — Orders: ${ordersCount} | OrderLines: ${linesCount}`,
   );
 }
 

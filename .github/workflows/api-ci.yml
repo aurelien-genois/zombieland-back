@@ -40,7 +40,7 @@ jobs:
 
       # Tests d'intégration
       - name: Run integration tests
-        run: npm run  ghact:test:spec
+        run: npm run ghact:test:spec
         env:
           HUSKY: 0
           PORT: ${{ vars.PORT }}
